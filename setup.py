@@ -20,5 +20,6 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=requirements,
+    keywords=['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
 )
 
