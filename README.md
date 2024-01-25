@@ -1,53 +1,120 @@
 # README
 
+[**French version below**][fr]
+
+*trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
+
+Prior installation of Python 3.6+ is necessary. To install *trsproc* using pip and GitHub direct link call as follows.
+
+```pip install git+https://github.com/ELDAELRA/trsproc.git```
+
+or using git.
+
+```
+git clone https://github.com/ELDAELRA/trsproc.git
+sudo python -m setup.py install
+```
+
+## USAGE
+
+*trsproc* may be called directly from the Terminal and it will perform the specified flag on the current directory by default. To target another directory add its path as an argument to the call.
+
+```trsproc -flag alternative/target/path```
+
+~~If the language to be processed in the input TRS does not use ASCII/Latin based characters, the lang parameter of TRSParser must be set to "jkz".~~
+
+### FLAGS
+
+In case of incorrect flag the list of possible ones and their function will be printed in the console. The same list will also appear if no flag is provided. 
+
+* `-cne` deletes the Named Entity annotations if any are present in the input TRS.
+
+* ~~`-crt` applies specific corrections according to the function present around line 30 of *trsproc.py* and imported by default from *utils_trsproc.py*. Change the name of this function according to the desired correction.~~
+
+* `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
+
+* `-pne` pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.
+
+* `-rpt` performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation.
+
+* `-rs` calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (~~audio~~ and text, the latter in a tabular file) according to a given quantity.
+
+* `-rsne` calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (~~audio segments~~ and text, the latter in a tabular file) randomly by a given amount.
+
+* `-tg` converts TRS files to TextGrid files.
+
+* `-tgrs` converts TextGrid files to TRS files.
+
+* `-tmp` creates TRS-temporary files in a directory named "tmp". By default, these files contain only the "report" section(s) of the original TRS.
+~~**NB** To target a different Section, around line 69 of *trsproc.py* must appear "fun(ff, section_type='sectionTarget')".~~
+
+* `-trs` rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.
+
+* `-tsv` produces a tabular file with the structures and contents of the TRS files.
+
+* `-txt` creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.
+~~**NB** If you wish to produce only the txt files, "fun(ff, False)" must appear around line 69 of *trsproc.py*.~~
+
+* `-vad` converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.
+
+* `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRSs.
+
 ---
+# Version [fr]:française
 
-Le script *trsproc* permet d'effecuer des traitements divers avec des fichiers au format TRS. Il est possible de lancer le script en ligne de commande, au préalable il faudra avoir une installation Python 3.6+ ainsi que les libraries listées dans le fichier requirements.txt (pip install -r requirements.txt).
+*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber] (https://sourceforge.net/projects/trans/ "lien de téléchargement").
 
-Si la langue des TRS à traiter est une langue asiatique, autour de la ligne 67 de *trsproc.py* devra figurer "ff = TRSParser(d, lang='jkz')".
+Une installation préalable de Python 3.6+ est nécessaire. Pour installer *trsproc* à l'aide de pip et du lien direct GitHub, procédez comme suit.
 
-Son utilisation idéale est la suivante :
-1. Lancer un terminal et se placer dans le répertoire dans lequel l'on souhaite que les fichiers soient traités,
-	ex. cd /Users/user/data
+``pip install git+https://github.com/ELDAELRA/trsproc.git``.
 
-2. Appeler *trsproc* depuis son chemin absolu avec le flag adapté au traitement souhaité,
-	ex. python /Users/user/trsproc/trsproc.py -flag
+ou en utilisant git.
 
-En cas de mauvais flag une liste avec les différentes possibilités sera affichée.
+```
+git clone https://github.com/ELDAELRA/trsproc.git
+sudo python -m setup.py install
+```
 
-**NB** Toutes les phases de l'algorithme peuvent être lancé en ciblant un répertoire spécifique en le passant comme deuxième argument 
-ex. python3 path/to/trsproc/trsproc.py -flag /path/to/specific/folder (non recommandé)
+## UTILISATION
 
-## Les flags possibles
+*trsproc* peut être appelé directement depuis le terminal et il exécutera le drapeau spécifié dans le répertoire courant par défaut. Pour cibler un autre répertoire, ajoutez son chemin comme argument à l'appel.
 
--cne : effectue l'effacement de l'annotation en Entités Nommées présente dans les TRS en entrée.
+``trsproc -flag alternative/cible/chemin`` ``.
 
--crt : applique des corrections spécifiques selon la fonction présente autour de la ligne 30 de *trsproc.py* et importée par défaut de *utils_trsproc.py*. Changer le nom de cette fonction selon la correction souhaitée.
+~~Si la langue à traiter dans le TRS d'entrée n'utilise pas de caractères ASCII/Latins, le paramètre lang de TRSParser doit être fixé à "jkz".~~
 
--ne : permet l'extraction des entités nommées présentes dans les TRS en entrée sous forme de tableau.
+### DRAPEAUX
 
--pne : effectue une pré-annotation des TRS en entrée à partir du tableau créé en utilisant le flag -ne.
+En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions seront affichées dans la console. La même liste apparaîtra également si aucun drapeau n'est fourni.
 
--rpt : permet d'effectuer les opération du flag tmp et vsi afin d'obtenir des éléments de base pour la validation de données du projet 0774.
+* `-cne` supprime les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée.
 
--rs : permet d'effectuer un calcul de l'échantillon minimum pour la validation de transcription en TRS et l'extraction de segments aléatoires selon une quantité donnée.
+~~`-crt` applique des corrections spécifiques selon la fonction présente autour de la ligne 30 de *trsproc.py* et importée par défaut de *utils_trsproc.py*. Changez le nom de cette fonction en fonction de la correction désirée.~~
 
--rsne : permet d'effectuer un calcul de l'échantillon minimum pour la validation d'entités nommées en TRS et leur extraction aléatoire selon une quantité donnée.
+* `-ne` extrait les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée et les met dans un fichier tabulaire.
 
--tg : permet la conversion de fichiers TRS à fichiers TextGrid.
+* `-pne` pré-annote le TRS d'entrée en utilisant le tableau créé avec le drapeau `-ne` comme un dictionnaire d'annotations personnalisé.
 
--tgrs : permet la conversion de fichiers TextGrid à fichiers TRS.
+* `-rpt` effectue les opérations des drapeaux `-tmp` et `-vsi` afin d'obtenir les éléments de base pour la validation des données.
 
--tmp : permet la création de fichiers TRS-temporaire dans un répertoire nommé "tmp". Par défaut ces fichiers contiennent uniquement la ou les sections "report" du TRS d'origine.
-**NB** Pour cibler une Section différente, autour de la ligne 69 de *trsproc.py* devra figurer "fun(ff, section_type='sectionCible')".
+* `-rs` calcule l'échantillon minimum nécessaire à la validation de la transcription de TRS d'entrée et extrait des segments aléatoires (~~audio~~ et texte, ce dernier dans un fichier tabulaire) en fonction d'une quantité donnée.
 
--trs : prend en entrée un dossier avec des fichiers txt et recherche des fichiers TRS-placeholder dans le dossier parent pour effectuer une réecriture de TRS à partir du contenu des fichiers txt.
+* `-rsne` calcule l'échantillon minimum nécessaire pour la validation des Entités Nommées du TRS d'entrée et les extrait (~~ segments audio~~ et texte, ce dernier dans un fichier tabulaire) aléatoirement selon une quantité donnée.
 
--tsv : produit un fichier tabulaire (tsv) avec les structures et contenus des TRS et portant le nom du dossier dans lequel sont présents les fichiers traités.
+* `-tg` convertit le fichier TRS en fichier TextGrid.
 
--txt : permet la création de fichiers txt et TRS-placeholder. Le premier contient uniquement la transcription des TRS d'origine alors que le deuxième contient uniquement sa structure et sera utilisé pour la réecriture en cas de corrections à appliquer dans les txt ou autre opération similaire.
-**NB** Si l'on souhaite produire uniquement les txt, autour de la ligne 69 de *trsproc.py* devra figurer "fun(ff, False)".
+* `-tgrs` convertit le fichier TextGrid en fichier TRS.
 
--vad : permet la conversion de fichiers TextGrid issus de l'utilisation d'un algorithme de détection d'activité vocale (VAD) en fichiers TRS.
+* `-tmp` crée un fichier TRS temporaire dans un répertoire nommé "tmp". Par défaut, ce fichier ne contiennent que la section "report" du TRS original.
+~~**NB** Pour cibler une section différente, la ligne 69 de *trsproc.py* doit contenir "fun(ff, section_type='sectionTarget')".~~
 
--vsi : produit un tableau contenant des informations/statistiques lexicales de base concernant les TRS en entrée.
+* `-trs` réécrit un fichier TRS en utilisant un fichier txt d'entrée et un TRS-placeholder placé dans un sous-dossier du dossier parent d'entrée. Le TRS réécrit aura le contenu du fichier txt et la structure du TRS-placeholder.
+
+* `-tsv` produit un fichier tabulaire avec les structures et les contenus des fichiers TRS.
+
+* `-txt` crée des fichiers txt et TRS-placeholder. Le premier ne contenant la transcription du TRS original, le second contenant sa structure XML.
+~~**NB** Si vous souhaitez produire uniquement les fichiers txt, "fun(ff, False)" doit apparaître autour de la ligne 69 de *trsproc.py*.~~
+
+* `-vad` convertit le fichier TextGrid résultant de l'utilisation d'un algorithme de détection de l'activité vocale (VAD) en fichier TRS.
+
+* `-vsi` produit un fichier tabulaire contenant des informations lexicales de base et des statistiques concernant le TRS d'entrée.

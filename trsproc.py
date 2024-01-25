@@ -47,13 +47,13 @@ dicoPhases = {
 def main():
 	start_time = time.time()
 
-	p = sys.argv[1]
-	if len(sys.argv) == 3:
-		docPath = sys.argv[2]
-	else:
-		docPath = os.getcwd()
-
 	try:
+		p = sys.argv[1]
+		if len(sys.argv) == 3:
+			docPath = sys.argv[2]
+		else:
+			docPath = os.getcwd()
+
 		procParam = dicoPhases[p]
 		docus = sorted(glob.glob(os.path.join(docPath, f'*.{procParam[2]}')))
 		docus = list(set(docus))
@@ -71,7 +71,7 @@ def main():
 					else:
 						fun(d)
 			console.print(status)
-	except KeyError:
+	except (IndexError, KeyError):
 		utils_trsproc.warningArgs(dicoPhases)
 
 	print("--- %s sec taken ---" % round((time.time() - start_time), 2))
