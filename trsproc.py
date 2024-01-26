@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
 #
-## ELDA-R&D-2023
-### 30/01-20/12/2023
+##
+### ELDA-R&D-2023
 #### Gabriele CHIGNOLI
 #####
 # USAGE
-# python3 trsproc.py -flag (folder)
-
-"""
-TODO
-"""
+# python3 trsproc.py -flag [-option (folder)]
 
 # Global imports
-import random
-random.seed(42)
 import glob, os, sys, time
+import argparse
 from rich.console import Console
 
 # Custom imports
@@ -25,49 +20,76 @@ import utils_trsproc
 console = Console()
 
 dicoPhases = {
-	'-cne':("Effacement de l'annotation en Entités Nommées", "Cleaning NE annotation from TRS in", 'trs', TRSParser.cleanNEfromTRS),
-	'-crt':("Correction de TRS selon problèmes rencontrées", "TRS custom correction in", 'trs', utils_trsproc.turnDifferenceTRS),
-	'-ne':("Extraction d'Entités Nommées à partir de TRS", "NE extraction from", 'trs', TRSParser.retrieveNEToTsv),
-	'-pne':("Pré-anotation de TRS en Entités Nommées", "NE pre-annotation for TRS in", 'trs', utils_trsproc.trsPreannotation),
-	##### WORKING IN PROGRESS
-	'-rpt':("Rapport de validation sur Section cible", "Creating validation report for target Section", 'trs', utils_trsproc.soge6ptsReport),
-	'-rs':("Echantillonage aléatoire de segments", "Extracting random segments from", 'trs', utils_trsproc.randomSampling),
-	'-rsne':("Echantillonage aléatoire d'entité nommées", "Extracting random NE from", 'trs', utils_trsproc.randomSamplingNE),
-	'-tg':("Conversion de TRS à TextGrid", "Converting to TextGrid in", 'trs', TRSParser.trsToTextGrid),
-	'-tgrs':("Conversion de TextGrid à TRS", "Converting TextGrid to TRS in", 'TextGrid', TRSParser.textGridToTRS),
-	'-tmp':("Création TRS temporaire", "Writing temporary TRS in", 'trs', TRSParser.trsTMP),
-	'-trs':("Réecriture TRS", "Re-writing TRS in", 'txt', TRSParser.txtToTrs),
-	'-tsv':("Conversion de TRS à tsv", "Writing tsv from TRS in", 'trs', TRSParser.trsToTsv),
-	'-txt':("Création de txt et TRS-placeholder pour réecriture", "Extracting txt and TRS-placeholder in", 'trs', TRSParser.trsToTxt),
-	'-vad':("Conversion de TextGrid VAD à TRS", "Converting TextGrid in", 'TextGrid', TRSParser.vadToTRS),
-	'-vsi':("Création tableau d'information sur les TRS pour validation", "Extracting TRS statistics in", 'trs', TRSParser.validateTRS)
+	'-cne':("deletes the Named Entity annotations if any are present in the input TRS.", "Cleaning NE annotation from TRS in", 'trs', TRSParser.cleanNEfromTRS),
+	'-crt':("Correction de TRS selon problèmes rencontrées", "TRS custom correction in", 'trs', None),
+	'-ne':("extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.", "NE extraction from", 'trs', TRSParser.retrieveNEToTsv),
+	'-pne':("pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.", "NE pre-annotation for TRS in", 'trs', utils_trsproc.trsPreannotation),
+	'-rpt':("performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation.", "Creating validation report for target Section", 'trs', utils_trsproc.soge6ptsReport),
+	'-rs':("calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (~~audio~~ and text, the latter in a tabular file) according to a given quantity.", "Extracting random segments from", 'trs', utils_trsproc.randomSampling),
+	'-rsne':("calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (~~audio segments~~ and text, the latter in a tabular file) randomly by a given amount.", "Extracting random NE from", 'trs', utils_trsproc.randomSamplingNE),
+	'-tg':("converts TRS files to TextGrid files.", "Converting to TextGrid in", 'trs', TRSParser.trsToTextGrid),
+	'-tgrs':("converts TextGrid files to TRS files.", "Converting TextGrid to TRS in", 'TextGrid', TRSParser.textGridToTRS),
+	'-tmp':("creates TRS-temporary files in a directory named 'tmp'. By default, these files contain only the target section(s) of the original TRS.", "Writing temporary TRS in", 'trs', TRSParser.trsTMP),
+	'-trs':("rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.", "Re-writing TRS in", 'txt', TRSParser.txtToTrs),
+	'-tsv':("produces a tabular file with the structures and contents of the TRS files.", "Writing tsv from TRS in", 'trs', TRSParser.trsToTsv),
+	'-txt':("creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.", "Extracting txt and TRS-placeholder in", 'trs', TRSParser.trsToTxt),
+	'-vad':("converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.", "Converting TextGrid in", 'TextGrid', TRSParser.vadToTRS),
+	'-vsi':("produces a tabular file containing basic lexical information and statistics concerning the input TRS.", "Extracting TRS statistics in", 'trs', TRSParser.validateTRS)
+}
+possible_corrections = {
+	'turnDifferenceTRS':"",
+	'trsFinalCorrection':"",
+	'correctionLà':"",
+	'correctionMaj':""
 }
 
 #----------
 def main():
 	start_time = time.time()
+	p = sys.argv[1]
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-a', '--audio', required=False)
+	parser.add_argument('-f', '--folder', required=False)
+	parser.add_argument('-jkz', required=False, nargs='?')
+	parser.add_argument('-plh', required=False, nargs='?')
+	parser.add_argument('-s', '--section', required=False)
+	args = parser.parse_args()
 
 	try:
-		p = sys.argv[1]
-		if len(sys.argv) == 3:
-			docPath = sys.argv[2]
+		if args.folder:
+			docPath = args.folder
 		else:
 			docPath = os.getcwd()
+		if args.audio:
+			audioFormat = args.audio
+		else:
+			audioFormat = 'wav'
+		if args.jkz:
+			langT = 'jkz'
+		else:
+			langT = 'eu'
 
 		procParam = dicoPhases[p]
 		docus = sorted(glob.glob(os.path.join(docPath, f'*.{procParam[2]}')))
 		docus = list(set(docus))
 		fun = procParam[-1]
-		if p in ["-rs", "-rsne"]:
+		if p in ['-rs', '-rsne']:
 			fun(docus, docPath)
 		else:
+			if p == '-crt':
+				for c in possible_corrections:
+					print(f"{c} -> {possible_corrections[c]}")
+				fun = input("Insert the desired correction function (list above)\t")
 			with console.status(f"{procParam[1]} {docPath} with {len(docus)} files", spinner='point') as status:
 				for d in docus:
 					if procParam[2] == 'trs':
-						ff = TRSParser(d)
-						#print(ff.speakers)	# DEBUG
-						fun(ff)
-						#print(ff.filename, ff.contents[0]['totalWords']) # DEBUG
+						ff = TRSParser(d, audioFormat, langT)
+						if args.section:
+							fun(ff, section_type=args.section)
+						elif args.plh:
+							fun(ff, False)
+						else:
+							fun(ff)
 					else:
 						fun(d)
 			console.print(status)

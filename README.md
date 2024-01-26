@@ -1,12 +1,15 @@
 # README
 
-[**French version below**][fr]
+![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
+[French version below][fr]
 
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
 Prior installation of Python 3.6+ is necessary. To install *trsproc* using pip and GitHub direct link call as follows.
 
-```pip install git+https://github.com/ELDAELRA/trsproc.git```
+```
+pip install git+https://github.com/ELDAELRA/trsproc.git
+```
 
 or using git.
 
@@ -17,11 +20,21 @@ sudo python -m setup.py install
 
 ## USAGE
 
-*trsproc* may be called directly from the Terminal and it will perform the specified flag on the current directory by default. To target another directory add its path as an argument to the call.
+*trsproc* may be called directly from the Terminal and it will perform the specified flag on the current directory by default.
 
-```trsproc -flag alternative/target/path```
+### OPTIONAL ARGUMENTS
 
-~~If the language to be processed in the input TRS does not use ASCII/Latin based characters, the lang parameter of TRSParser must be set to "jkz".~~
+Some optional arguments are available for advanced processing. `trsproc -flag [-option [option_argument_if_needed]]`.
+
+* `-a` or `--audio` followed by the audio format used for the audio data corresponding to the input TRS if it is different from WAV.
+
+* `-f` or `--folder` followed by a path allows to target the specified directory instead of the current one.
+
+* `-jkz` must be specified if the language to be processed in the input TRS does not use ASCII/Latin based characters.
+
+* `-plh` must be specified if the processing of the `-txt` flag must only produce txt files.
+
+* `-s` or `--section` followed by the alternative target section name if the processing of the `-rpt` or `-tmp` flag must target a section other than the default one, i.e. "report".
 
 ### FLAGS
 
@@ -29,7 +42,7 @@ In case of incorrect flag the list of possible ones and their function will be p
 
 * `-cne` deletes the Named Entity annotations if any are present in the input TRS.
 
-* ~~`-crt` applies specific corrections according to the function present around line 30 of *trsproc.py* and imported by default from *utils_trsproc.py*. Change the name of this function according to the desired correction.~~
+* `-crt` applies specific corrections according to the function chosen from the prompted list.
 
 * `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
 
@@ -46,27 +59,28 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-tgrs` converts TextGrid files to TRS files.
 
 * `-tmp` creates TRS-temporary files in a directory named "tmp". By default, these files contain only the "report" section(s) of the original TRS.
-~~**NB** To target a different Section, around line 69 of *trsproc.py* must appear "fun(ff, section_type='sectionTarget')".~~
 
 * `-trs` rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.
 
-* `-tsv` produces a tabular file with the structures and contents of the TRS files.
+* `-tsv` produces a tabular file from with the structures and contents of the TRS files.
 
 * `-txt` creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.
-~~**NB** If you wish to produce only the txt files, "fun(ff, False)" must appear around line 69 of *trsproc.py*.~~
 
 * `-vad` converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.
 
-* `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRSs.
+* `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
 ---
-# Version [fr]:française
+[fr]:
+# Version française
 
-*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber] (https://sourceforge.net/projects/trans/ "lien de téléchargement").
+*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber](https://sourceforge.net/projects/trans/ "lien de téléchargement").
 
 Une installation préalable de Python 3.6+ est nécessaire. Pour installer *trsproc* à l'aide de pip et du lien direct GitHub, procédez comme suit.
 
-``pip install git+https://github.com/ELDAELRA/trsproc.git``.
+```
+pip install git+https://github.com/ELDAELRA/trsproc.git
+```
 
 ou en utilisant git.
 
@@ -77,11 +91,22 @@ sudo python -m setup.py install
 
 ## UTILISATION
 
-*trsproc* peut être appelé directement depuis le terminal et il exécutera le drapeau spécifié dans le répertoire courant par défaut. Pour cibler un autre répertoire, ajoutez son chemin comme argument à l'appel.
+*trsproc* peut être appelé directement depuis le terminal et il exécutera le drapeau spécifié dans le répertoire courant par défaut.
 
-``trsproc -flag alternative/cible/chemin`` ``.
 
-~~Si la langue à traiter dans le TRS d'entrée n'utilise pas de caractères ASCII/Latins, le paramètre lang de TRSParser doit être fixé à "jkz".~~
+### ARGUMENTS FACULTATIFS
+
+Certains arguments optionnels sont disponibles pour un traitement avancé. `trsproc -drapeau [-option [argument_si_besoin]]`.
+
+* `-a` ou `--audio` suivi par le format audio utilisé pour les données audio correspondant au TRS d'entrée s'il est différent de WAV.
+
+* `-f` ou `--folder` suivi d'un chemin permet de cibler le répertoire spécifié au lieu du répertoire courant.
+
+* `-jkz` doit être spécifié si la langue à traiter dans le TRS d'entrée n'utilise pas de caractères ASCII/Latins.
+
+* `-plh` doit être spécifié si, lors du traitement du drapeau `-txt`, seuls des fichiers txt doivent être produits.
+
+* `-s` ou `--section` suivi du nom de section cible alternative si, lors du traitement du drapeau `-rpt` ou `-tmp`, une section différente que celle par défaut, i.e. "report", doit être ciblée.
 
 ### DRAPEAUX
 
@@ -89,7 +114,7 @@ En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions 
 
 * `-cne` supprime les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée.
 
-~~`-crt` applique des corrections spécifiques selon la fonction présente autour de la ligne 30 de *trsproc.py* et importée par défaut de *utils_trsproc.py*. Changez le nom de cette fonction en fonction de la correction désirée.~~
+* `-crt` applique des corrections spécifiques selon la fonction choisie dans la liste proposée.
 
 * `-ne` extrait les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée et les met dans un fichier tabulaire.
 
@@ -106,14 +131,12 @@ En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions 
 * `-tgrs` convertit le fichier TextGrid en fichier TRS.
 
 * `-tmp` crée un fichier TRS temporaire dans un répertoire nommé "tmp". Par défaut, ce fichier ne contiennent que la section "report" du TRS original.
-~~**NB** Pour cibler une section différente, la ligne 69 de *trsproc.py* doit contenir "fun(ff, section_type='sectionTarget')".~~
 
 * `-trs` réécrit un fichier TRS en utilisant un fichier txt d'entrée et un TRS-placeholder placé dans un sous-dossier du dossier parent d'entrée. Le TRS réécrit aura le contenu du fichier txt et la structure du TRS-placeholder.
 
 * `-tsv` produit un fichier tabulaire avec les structures et les contenus des fichiers TRS.
 
 * `-txt` crée des fichiers txt et TRS-placeholder. Le premier ne contenant la transcription du TRS original, le second contenant sa structure XML.
-~~**NB** Si vous souhaitez produire uniquement les fichiers txt, "fun(ff, False)" doit apparaître autour de la ligne 69 de *trsproc.py*.~~
 
 * `-vad` convertit le fichier TextGrid résultant de l'utilisation d'un algorithme de détection de l'activité vocale (VAD) en fichier TRS.
 
