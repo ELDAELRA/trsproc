@@ -1,17 +1,51 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Classe pour le parsing de fichiers TRS
+#
+# TRS parsing class
 ## trsproc.py dependency
-### 16/08-22/12/2023
-#### Gabriele CHIGNOLI
+###
+####
 #####
-#
-# module à importer
-#
 
+"""
+TODO
+
+add other language tag summary
+
+add prompt funciton
+def prmptTRS()
+print filename fileduration in filepath
+self.speakers
+self.contents
+
+def addLangTag(self):
+dicolang = importJSON ?
+trs = open(self.inputTRS, 'r', encoding).read()
+trs_list = trs.split("\n)
+for i in range(len(trs_list)):
+	l = trs_list[i]
+	if re.search("<Event.*", l)
+		et_s = ElementTree.fromstring(l)
+		if et_s.attrib['type'] == "language"
+			lang_s = et_s.attrib['desc]
+			ext_s = et_s.attrib['extent]
+			l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
+		if re.search("<Sync.*, l) and trs_list[i+1] != "":
+			output_trs +=f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>\n'
+		elif re.search("</Turn.*, l) and trs_list[i-1] != "":
+			output_trs +=f'{l}\n<Event desc="*langtoadd*" type="language" extent="end"/>\n'
+		else:
+			output_trs += f"{l}\n"
+	path_out = os.path.join(self.filepath, "lang")
+	os.makedirs(path_out, exist_ok=True)
+	file_output = os.path.join(path, f"{self.filename}.trs")
+	with open(file_output, 'w', encoding) as f_out:
+	f_out.write(""join(output_trs))
+	return
+"""
 # Global imports
 import os, re
-import parselmouth, textgrids #praat-parselmouth, praat-textgrids
+import parselmouth, textgrids
 from xml.etree import cElementTree as ElementTree
 from xml.etree.ElementTree import ParseError
 
@@ -107,6 +141,9 @@ class TRSParser():
 								seg_trans = "[nontrans]"
 							elif et_s.attrib['desc'] == "pi":
 								seg_trans = "[pronpi]"
+							elif et_s.attrib['type'] == "language":
+								lang_oth = et_s.attrib['desc']
+								seg_trans = f'[lang={lang_oth}]'
 							elif et_s.attrib['type'] == "entities" and et_s.attrib['extent'] == "begin":
 								ne_id += 1
 								ne_dict[ne_id] = {}

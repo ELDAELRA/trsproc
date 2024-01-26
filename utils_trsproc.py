@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# Fonction complémentaires pour le traitement de fichiers TRS
+#
+# complementary functions for TRS processing
 ## trsproc.py dependency
-### 17/08-22/12/2023
-#### Gabriele CHIGNOLI
+###
+####
 #####
-#
-# module à importer
-#
 
 #Global imports
 import random
@@ -21,11 +19,11 @@ import parselmouth
 # Custom imports
 from parsing_trs import TRSParser
 
-script_dir = os.path.dirname(__file__) #<-- absolute dir the script is in
+script_dir = os.path.dirname(__file__)
 
 #----------
 def warningArgs(args_dict):
-	print(f"Invalid arguments. Please choose from the list of flags below and call the program again:")
+	print(f"Invalid flag, Please choose from the list below and call the program again:")
 	for p in args_dict:
 		print(f"{p} -> {args_dict[p][0]}")
 
@@ -109,77 +107,6 @@ def soge6ptsReport(trs_input, section_type="report"):
 #Si balise Who est detectee et que le segment n'est pas vide <- signaler dans tableau segments problematiques
 
 	return
-
-
-def turnDifferenceTRS(trs_t, folder_q, tag=["Turn"]):
-	"""
-	>_ Nom d'un TRS pour lequel identifier une différence de Turn ou Sync avec son jumeau
-	>>> Liste des différences
-	"""
-	path_trs_t, trs_name = os.path.split(trs_t)
-	folder_trs_t = os.path.basename(path_trs_t)
-	path_trs_q = path_trs_t.rstrip(folder_trs_t)
-	trs_q = os.path.join(path_trs_q, folder_q, f"{trs_name[:-4]}_*.trs")
-#	print(trs_t, trs_q)
-	trs_q_name = os.path.split(trs_q)[1]
-	for t in tag:
-		print(f"\N{ABACUS} Searching differences in {t} between {trs_name} and {trs_q_name}")
-		if t == "Turn":
-		 ## Retrieve tag information for reference TRS
-			tag_list_t, tag_list_q = [], []
-			tree_t = ElementTree.parse(trs_t)
-			root_t = tree_t.getroot()
-			for tags_t in root_t.iter(t):
-				tag_t_start, tag_t_end = tags_t.attrib['startTime'], tags_t.attrib['endTime']
-				tag_list_t.append((tag_t_start, tag_t_end))
-		 ## Retrieve tag information for test TRS
-			tree_q = ElementTree.parse(trs_q)
-			root_q = tree_q.getroot()
-			for tags_q in root_q.iter(t):
-				tag_q_start, tag_q_end = tags_q.attrib['startTime'], tags_q.attrib['endTime']
-				tag_list_q.append((tag_q_start, tag_q_end))
-		print(f"Ref {tag_list_t} vs Test {len(tag_list_q)}")
-
-	return
-
-
-def trsFinalCorrection(input_trs):
-	"""
-	>_ fichier trs sur lequel appliquer une correction
-	>>> fichier trs corrigé
-	"""
-	output_trs = ""
-	trs_folder, trs_name = os.path.split(input_trs)
-	trs_name = input_trs[:-4]
-	trs = open(input_trs, 'r', encoding='utf-8').read()
-	trs_list = trs.split("\n")
-	print(f"\N{LINKED PAPERCLIPS} Correcting {trs_name}")
-	 ### Boucle sur les lignes du TRS
-	for l in range(len(trs_list)):
-		line = trs_list[l]
-		if len(line) == 0 or re.search("<.*>", line):
-			pass
-		else:
-			line_succ = trs_list[l+1]
-			line_prec = trs_list[l-1]
-			if re.search("<Event.*entities.*", line_succ) and re.search('extent="begin"', line_succ):
-				line = line + " "
-			if re.search("<Event.*entities.*", line_prec) and re.search('extent="end"', line_prec) and line[0] not in [",", "."]:
-				line = " " + line
-				### Correction majuscules dans date et amount
-				#if re.search('desc="time.*', line_prec) or re.search('desc="amount.*', line_prec):
-				#	line = line.lower()
-		line = line.replace("  ", " ")
-		output_trs += f"{line}\n"
-
-	path_correction = os.path.join(trs_folder, "correction")
-	os.makedirs(path_correction, exist_ok=True)
-	file_output = os.path.join(path_correction, f"{trs_name}.trs")
-	with open(file_output, 'w', encoding='utf-8') as f_txt:
-		f_txt.write("".join(output_trs))
-	
-	return
-
 
 def sampleFromDict(input_dict, sample):
 	keys = random.sample(list(input_dict.keys()), sample)
@@ -386,5 +313,153 @@ def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
 	with open(input_file, 'w', encoding='utf-8') as f_trs:
 		## Dump du texte de sortie dans le nouveau TRS
 		f_trs.write(trs_preannotated)
+
+	return
+
+
+
+## Ad hoc correction functions ---------------
+
+def turnDifferenceTRS(trs_t, folder_q, tag=["Turn"]):
+	"""
+	>_ Nom d'un TRS pour lequel identifier une différence de Turn ou Sync avec son jumeau
+	>>> Liste des différences
+	"""
+	path_trs_t, trs_name = os.path.split(trs_t)
+	folder_trs_t = os.path.basename(path_trs_t)
+	path_trs_q = path_trs_t.rstrip(folder_trs_t)
+	trs_q = os.path.join(path_trs_q, folder_q, f"{trs_name[:-4]}_*.trs")
+#	print(trs_t, trs_q)
+	trs_q_name = os.path.split(trs_q)[1]
+	for t in tag:
+		print(f"\N{ABACUS} Searching differences in {t} between {trs_name} and {trs_q_name}")
+		if t == "Turn":
+		 ## Retrieve tag information for reference TRS
+			tag_list_t, tag_list_q = [], []
+			tree_t = ElementTree.parse(trs_t)
+			root_t = tree_t.getroot()
+			for tags_t in root_t.iter(t):
+				tag_t_start, tag_t_end = tags_t.attrib['startTime'], tags_t.attrib['endTime']
+				tag_list_t.append((tag_t_start, tag_t_end))
+		 ## Retrieve tag information for test TRS
+			tree_q = ElementTree.parse(trs_q)
+			root_q = tree_q.getroot()
+			for tags_q in root_q.iter(t):
+				tag_q_start, tag_q_end = tags_q.attrib['startTime'], tags_q.attrib['endTime']
+				tag_list_q.append((tag_q_start, tag_q_end))
+		print(f"Ref {tag_list_t} vs Test {len(tag_list_q)}")
+
+	return
+
+
+def trsFinalCorrection(input_trs):
+	"""
+	>_ fichier trs sur lequel appliquer une correction
+	>>> fichier trs corrigé
+	"""
+	output_trs = ""
+	trs_folder, trs_name = os.path.split(input_trs)
+	trs_name = input_trs[:-4]
+	trs = open(input_trs, 'r', encoding='utf-8').read()
+	trs_list = trs.split("\n")
+	print(f"\N{LINKED PAPERCLIPS} Correcting {trs_name}")
+	 ### Boucle sur les lignes du TRS
+	for l in range(len(trs_list)):
+		line = trs_list[l]
+		if len(line) == 0 or re.search("<.*>", line):
+			pass
+		else:
+			line_succ = trs_list[l+1]
+			line_prec = trs_list[l-1]
+			if re.search("<Event.*entities.*", line_succ) and re.search('extent="begin"', line_succ):
+				line = line + " "
+			if re.search("<Event.*entities.*", line_prec) and re.search('extent="end"', line_prec) and line[0] not in [",", "."]:
+				line = " " + line
+				### Correction majuscules dans date et amount
+				#if re.search('desc="time.*', line_prec) or re.search('desc="amount.*', line_prec):
+				#	line = line.lower()
+		line = line.replace("  ", " ")
+		output_trs += f"{line}\n"
+
+	path_correction = os.path.join(trs_folder, "correction")
+	os.makedirs(path_correction, exist_ok=True)
+	file_output = os.path.join(path_correction, f"{trs_name}.trs")
+	with open(file_output, 'w', encoding='utf-8') as f_txt:
+		f_txt.write("".join(output_trs))
+	
+	return
+
+
+def correctionLà(txt_input):
+	"""
+	>_ text file for correction of là
+	>>> writing of the corrected file
+	"""
+	txt_dump, nb_la = "", 0
+	txt_path, txt_name = os.path.split(txt_input)
+	txt_folder = os.path.basename(txt_path)
+	origin_path = txt_path.rstrip(txt_folder)
+	target_path = os.path.join(origin_path, "corrections", "la")
+	os.makedirs(target_path, exist_ok=True)
+	txt_output = os.path.join(target_path, txt_name)
+	txt_input = open(txt_input, 'r', encoding='utf-8').read()
+	txt_input = txt_input.split("\n")
+	for l in txt_input:
+		l_splitted = l.split(" ")
+		if re.search("là", l_splitted[-1].lower()):
+			nb_la +=1
+			l_splitted[-1] = "la"
+			l = " ".join(l_splitted)
+		txt_dump += f"{l}\n"
+	with open(txt_output, 'w', encoding='utf-8') as f_txt:
+ ## Dump du texte dans le fichier de sortie
+			f_txt.write(txt_dump)
+	print(f'\N{CHECK MARK} Corrected {nb_la} misplaced "là" in {txt_name}')
+
+	return
+
+
+def correctionMaj(txt_input):
+	"""
+	>_ text file for correction of capiral letters
+	>>> writing of the corrected file
+	"""
+	txt_dump, nb_maj = "", 0
+	txt_path, txt_name = os.path.split(txt_input)
+	txt_name = txt_name.split(".")[0]
+	txt_folder = os.path.basename(txt_path)
+	origin_path = txt_path.rstrip(txt_folder)
+	trs_input = os.path.join(origin_path, f"{txt_name}.trs")
+	target_path = os.path.join(origin_path, "corrections", "maj")
+	os.makedirs(target_path, exist_ok=True)
+	trs_output = os.path.join(target_path, f"{txt_name}.trs")
+	txt_input = open(trs_input, 'r', encoding='utf-8').read()
+	txt_input = txt_input.split("\n")
+	nb_l = len(txt_input)
+	for l in range(nb_l):
+		line = txt_input[l]
+		if re.search("<.*>", line):
+			pass
+		else:
+			is_entity = re.search('extent="begin" type="entities"', txt_input[l-1])
+			if is_entity:
+				try:
+					line = line[0].upper() + line[1:]
+					nb_maj += 1
+				except IndexError:
+					pass
+			elif  re.search("nontrans", line):
+				pass
+			else:
+				try:
+					line = line[0].lower() + line[1:]
+					nb_maj += 1
+				except IndexError:
+					pass
+		txt_dump += f"{line}\n"
+	with open(trs_output, 'w', encoding='utf-8') as f_out:
+ ## Dumb du texte dans le fichier de sortie
+			f_out.write(txt_dump)
+	print(f'\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {txt_name}')
 
 	return
