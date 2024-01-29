@@ -48,6 +48,7 @@ import os, re
 import parselmouth, textgrids
 from xml.etree import cElementTree as ElementTree
 from xml.etree.ElementTree import ParseError
+from utils_trsproc import praatSNRforSegment
 
 #----------
 class TRSParser():
@@ -228,7 +229,7 @@ class TRSParser():
 			os.makedirs(path_placeholders, exist_ok=True)
 			with open(file_placeholder, 'w', encoding='utf-8') as f_plh_trs:
 					f_plh_trs.write("".join(output_trs_ph))
-		path_txts = os.path.join(self.filepath, "txts")
+		path_txts = os.path.join(self.filepath, "txt")
 		os.makedirs(path_txts, exist_ok=True)
 		file_output = os.path.join(path_txts, f"{self.filename}.txt")
 		with open(file_output, 'w', encoding='utf-8') as f_txt:
@@ -506,6 +507,7 @@ class TRSParser():
 				f.write(dump_trs)
 			return 
 
+
 	def retrieveNEToTsv(self):
 		"""
 		>_ fichier trs 
@@ -533,6 +535,7 @@ class TRSParser():
 				f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{ne}\t{ne_info['class']}\t{ne_info['content']}\t{s}\t{self.contents[s]['content']}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}\t{ne_spk}")
 
 		return 
+
 
 	def trsTMP(self, section_type="report"):
 		"""

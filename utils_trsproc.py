@@ -12,7 +12,6 @@ import random
 random.seed(42)
 
 import os, re
-from xml.etree import cElementTree as ElementTree
 import json
 import parselmouth
 
@@ -22,18 +21,10 @@ from parsing_trs import TRSParser
 script_dir = os.path.dirname(__file__)
 
 #----------
-def warningArgs(args_dict):
-	print(f"Invalid flag, Please choose from the list below and call the program again:")
-	for p in args_dict:
-		print(f"{p} -> {args_dict[p][0]}")
-
-	return
-
-
 def importJson(json_input):
 	"""
-	>_ json contenant un dict
-	>>> dictionnaire
+	>_ json file
+	>>> python dict
 	"""
 	with open(json_input, 'r', encoding='utf-8') as f:
 
@@ -43,25 +34,24 @@ def importJson(json_input):
 def praatSNRforSegment(audio, seg_start, seg_end):
 	"""
 	>_audio file, timestaps for start and end of segment
-	>>> segment SNR
+	>>> segment SNR from Praat HNR computation
 	"""
 	sound = parselmouth.Sound(audio)
 	sound_part = sound.extract_part(seg_start, seg_end)
-	# parole superposée 20 < SNR > 45
+	# superimposed speech 20 < SNR > 45
 	hnr = sound_part.to_harmonicity()
 	mean_snr = parselmouth.praat.call(hnr, "Get mean", 0, 0)
 
 	return round(mean_snr, 2)
 
 
-def soge6ptsReport(trs_input, section_type="report"):
+def tmpReport(trs_input, section_type="report"):
 	"""
-	>_ Fichier TRS à valider selon les 6 points du projet SoGe (ELDA-0774)
-	- create TMP folder with copy of original TRS retaining only the report part ?
-	>>> Rapport de validation
+	>_ TRS file for statistical validation only in the specified section
+	>>> Section validation report, table with segments < 10s and pauses > 0.5s
 	"""
 	trs_tmp = TRSParser.trsTMP(trs_input, section_type)
-	folder_out = os.path.basename(trs_input.filepath)
+	folder_out = trs_input.corpus
 	tab_out = os.path.join(trs_input.filepath, "tmp", f'summary_report-{folder_out}.tsv')
 	for t in trs_tmp:
 		t = TRSParser(t, lang=trs_input.lang)
@@ -88,25 +78,18 @@ def soge6ptsReport(trs_input, section_type="report"):
 		try:
 			open(tab_out).close()
 		except FileNotFoundError:
-		 ## Teste si un tableau existe déjà sinon en crée un avec en-tête
 			with open(tab_out, 'w', encoding='utf-8') as f:
 				f.write("file_name\tdur_tot\tdur_section\tseg_type\tseg_dur\tseg_start\tseg_end\tnb_token\tcontent")
-			 ## Ajout des infos dans le tableau de récap
 		with open(tab_out, 'a', encoding='utf-8') as f_tsv:
-			print(f"Nombre de pauses supérieures à 0.5 s -> ", nb_silence_no)
+			print(f"Pauses longer than 0.5 s -> ", nb_silence_no)
 			for x in silence_no:
 				f_tsv.write(f"\n{t.filename}\t{trs_input.fileduration}\t{t.sectionduration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}")
-			print(f"Nombre de segments supérieures à 10 s -> ", nb_speech_no)
+			print(f"Segments longer than 10 s -> ", nb_speech_no)
 			for y in speech_no:
 				f_tsv.write(f"\n{t.filename}\t{trs_input.fileduration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}")
 	
-#TODO
-	# frontière ok ? audio = texte
-	# mots coupés ?
-	# bon locuteur
-#Si balise Who est detectee et que le segment n'est pas vide <- signaler dans tableau segments problematiques
-
 	return
+
 
 def sampleFromDict(input_dict, sample):
 	keys = random.sample(list(input_dict.keys()), sample)
@@ -117,8 +100,8 @@ def sampleFromDict(input_dict, sample):
 
 def randomSampling(list_trs, save_path):
 	"""
-	>_ TRS list from which extracting random segments
-	>>> minimum sample size based on population input, table with random sampled segments from population
+	>_ TRS list from which to extract random segments
+	>>> minimum sample size based on population input, table with random sampled segments from population, audio segment files
 	"""
 	population_size = int(input("Enter population size\t"))
 	minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
@@ -130,7 +113,7 @@ def randomSampling(list_trs, save_path):
 			if s not in ['NE', 0] and trs.contents[s]['content'] != "[nontrans]":
 				spk_name = trs.speakers[trs.contents[s]['speaker']][0]
 				spk_sex = trs.speakers[trs.contents[s]['speaker']][1]
-				population[(trs.filename, s)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex)
+				population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
 	sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
 	if re.search("y", sample_use.lower()):
 		population_sample = sampleFromDict(population, minimum_sample)
@@ -139,19 +122,26 @@ def randomSampling(list_trs, save_path):
 		sample_size = int(input("Provide new sample size\t"))
 		population_sample = sampleFromDict(population, sample_size)
 		tabSample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
-	#random_files = random.sample(docus, 3)
 	with open(tabSample, 'w', encoding='utf-8') as f:
-		f.write("file_name\tsegment_start\ttranscription\tcorrection\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex")
+		f.write("file_name\tsegment_start\ttranscription\tcorrection\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR")
 		for o in population_sample:
 			f.write("\n{}".format("\t".join(o)))
-	
-	return print(f"\N{BOOKMARK} Samples saved in {tabSample}")
+			try:
+				sample_audio = parselmouth.Sound(o[2])
+				sample_audio = sample_audio.extract_part(population_sample[o][1], population_sample[o][4])
+				sample_out = os.path.join(save_path, f"{population_sample[o][0]}_{o[1]}.wav")
+				sample_audio.save(sample_out, "WAV")
+			except(FileNotFoundError, parselmouth.PraatError, ValueError):
+				pass
+	print(f"\N{BOOKMARK} Samples saved in {tabSample}")
+
+	return
 
 
 def randomSamplingNE(list_trs, save_path):
 	"""
 	>_ TRS list from which extracting random named entities
-	>>> minimum sample size based on population input, table with random sampled named entities from population
+	>>> minimum sample size based on population input, table with random sampled named entities from population, 
 	"""
 	population_size = int(input("Enter population size\t"))
 	minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
@@ -173,26 +163,34 @@ def randomSamplingNE(list_trs, save_path):
 		sample_size = int(input("Provide new sample size\t"))
 		population_sample = sampleFromDict(population, sample_size)
 		tabSample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
-	#random_files = random.sample(docus, 3)
 	with open(tabSample, 'w', encoding='utf-8') as f:
 		f.write("file_name\tNE_start\tNE_class\ttranscription\tNE_class_correction\tcorrection\tNE_id\tspeaker_name\tspeaker_sex")
 		for o in population_sample:
 			f.write("\n{}".format("\t".join(o)))
+			try:
+				sample_audio = parselmouth.Sound(o[2])
+				sample_audio = sample_audio.extract_part(population_sample[o][1], population_sample[o][4])
+				sample_out = os.path.join(save_path, f"{population_sample[o][0]}_NE-{o[1]}.wav")
+				sample_audio.save(sample_out, "WAV")
+			except(FileNotFoundError, parselmouth.PraatError, ValueError):
+				pass
+	print(f"\N{BOOKMARK} NE Samples saved in {tabSample}")
 	
-	return print(f"\N{BOOKMARK} NE Samples saved in {tabSample}")
+	return
 
 
 def createUpdateDictNE(table_info, ne_dict, ne_origin):
 	"""
-	>_ table avec les NE extraites de trs
-	>>> dictionnaire de NE pour pre-annotation et sauvegarde de celui-ci
+	>_ table with extracted NE from TRS
+	>>> update or creation of NE-dict for pre-annotation
 	"""
 	try:
 		neSet = importJson(ne_dict)
 		neDict = neSet[1]
 		neSources = neSet[0]
-		neSources.append(ne_origin)
-		print(f'\N{CARD FILE BOX} Updating existing NE dict {ne_dict}...')
+		if ne_origin not in neSources:
+			neSources.append(ne_origin)
+			print(f'\N{CARD FILE BOX} Updating existing NE dict {ne_dict}...')
 	except FileNotFoundError:
 		neSources, neDict = [ne_origin], {}
 		print(f'\N{CARD FILE BOX} Creating NE dict {ne_dict}...')
@@ -203,11 +201,10 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
 		#file_name timecode NE_rank NE_type NE_content
 		ne_type, ne_content = i.split("\t")[3], i.split("\t")[4]
 		if ne_content in neDict.keys() and ne_type != neDict[ne_content]:
-			print(f'\N{WARNING SIGN} nouvelle classe trouvée pour "{ne_content}" : {neDict[ne_content]} vs. {ne_type}\n{i}')
+			print(f'\N{WARNING SIGN} found new class "{ne_content}" : {neDict[ne_content]} vs. {ne_type}\n{i}')
 		else:
 			neDict[ne_content] = ne_type
 	neSet = [neSources, neDict]
-	## Ajout des infos dans le tableau de recap
 	with open(ne_dict, 'w', encoding='utf-8') as f:
 		f.write(json.dumps(neSet))
 
@@ -216,22 +213,22 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
 
 def trsPreannotation(input_trs: TRSParser):
 	"""
-	>_ fichier trs
-	>>> trs preannoté en NE suivant le tableau fourni
+	>_ TRS file
+	>>> TRS pre-annotated using the specified NE-dict
 	"""
-	dictNE = os.path.join(script_dir, "langrsrc", f'{os.path.basename(input_trs.filepath)}_NE_reference.json')
-	tableInfo = os.path.join(input_trs.filepath, f'{os.path.basename(input_trs.filepath)}_NE_extraction.tsv')
+	dictNE = os.path.join(input_trs.filepath, f'{input_trs.corpus}_NE-reference.json')
+	tableInfo = os.path.join(input_trs.filepath, f'{input_trs.corpus}_NE-extraction.tsv')
 	if os.path.isfile(tableInfo):
 		dictNE = createUpdateDictNE(tableInfo, dictNE, os.path.basename(input_trs.filepath))
 	else:
 		dictNE = importJson(dictNE)
 	#print(dictNE) #DEBUG
-	#cpt = 0
+	#cpt = 0 #DEBUG
 	list_ne_len1_plus = []
 	for k in dictNE[1].keys():
 		if len(k.split()) > 1:
-			#cpt += 1
-			#print(cpt, k)
+			#cpt += 1 #DEBUG
+			#print(cpt, k) #DEBUG
 			list_ne_len1_plus.append(k)
 	new_d = preAnnotateNElen1(input_trs, dictNE[1])
 	preAnnotateNElenPlus(new_d, list_ne_len1_plus, dictNE[1])
@@ -241,8 +238,8 @@ def trsPreannotation(input_trs: TRSParser):
 
 def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
 	"""
-	>_ trs pour l'extraction d'entités nommées
-	>>> trs preannoté avec entités de longeur 1
+	>_ TRS for NE pre-annotation
+	>>> TRS pre-annotated with NE of length 1
 	"""
 	trs_preannotated = ""
 	trs_output = os.path.join(input_trs.filepath, "preannotated", f'{input_trs.filename}.trs')
@@ -251,7 +248,6 @@ def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
 	trs_input = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
 	trs_list = trs_input.split("\n")
 	for l in trs_list:
-	 ## Boucle sur le TRS et extraction des infos
 		if re.search("<.*>", l) or l == "":
 			trs_preannotated += f'{l}\n'
 		else:
@@ -273,7 +269,6 @@ def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
 			new_l = new_l.replace("' ", "'")
 			trs_preannotated += f'{new_l}\n'
 	with open(trs_output, 'w', encoding='utf-8') as f_trs:
-	 ## Dump du texte de sortie dans le nouveau TRS
 		f_trs.write(trs_preannotated)
 
 	return trs_output
@@ -281,16 +276,14 @@ def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
 
 def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
 	"""
-	>_ trs pour la pre-annotation de NE de longeurs 2+
-	>>> trs preannoté avec NE de longueur 2+
+	>_ TRE for pre-annotation of NE of length 2+
+	>>> TRS pre-annotated with NE of length 2+
 	"""
 	trs_preannotated = ""
 	print(f'\N{CARD FILE BOX} Preannotating complex NE...')
-	## Répère les différents noms de fichiers et chemins
 	trs_input = open(input_file, 'r', encoding='utf-8').read()
 	trs_list = trs_input.split("\n")
 	for l in trs_list:
-		## Boucle sur le TRS et extraction des infos
 		has_ne = False
 		if re.search("<.*>", l) or l == "":
 			if re.search("nontrans", l):
@@ -311,59 +304,43 @@ def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
 			else:
 				trs_preannotated += f'{l}\n'
 	with open(input_file, 'w', encoding='utf-8') as f_trs:
-		## Dump du texte de sortie dans le nouveau TRS
 		f_trs.write(trs_preannotated)
 
 	return
 
 
-
 ## Ad hoc correction functions ---------------
-
-def turnDifferenceTRS(trs_t, folder_q, tag=["Turn"]):
+def turnDifferenceTRS(input_trs: TRSParser):
 	"""
-	>_ Nom d'un TRS pour lequel identifier une différence de Turn ou Sync avec son jumeau
-	>>> Liste des différences
+	>_ TRS for which differences in segments might be identified with its twin
+	>>> Differences list
 	"""
-	path_trs_t, trs_name = os.path.split(trs_t)
-	folder_trs_t = os.path.basename(path_trs_t)
-	path_trs_q = path_trs_t.rstrip(folder_trs_t)
-	trs_q = os.path.join(path_trs_q, folder_q, f"{trs_name[:-4]}_*.trs")
-#	print(trs_t, trs_q)
-	trs_q_name = os.path.split(trs_q)[1]
-	for t in tag:
-		print(f"\N{ABACUS} Searching differences in {t} between {trs_name} and {trs_q_name}")
-		if t == "Turn":
-		 ## Retrieve tag information for reference TRS
-			tag_list_t, tag_list_q = [], []
-			tree_t = ElementTree.parse(trs_t)
-			root_t = tree_t.getroot()
-			for tags_t in root_t.iter(t):
-				tag_t_start, tag_t_end = tags_t.attrib['startTime'], tags_t.attrib['endTime']
-				tag_list_t.append((tag_t_start, tag_t_end))
-		 ## Retrieve tag information for test TRS
-			tree_q = ElementTree.parse(trs_q)
-			root_q = tree_q.getroot()
-			for tags_q in root_q.iter(t):
-				tag_q_start, tag_q_end = tags_q.attrib['startTime'], tags_q.attrib['endTime']
-				tag_list_q.append((tag_q_start, tag_q_end))
-		print(f"Ref {tag_list_t} vs Test {len(tag_list_q)}")
+	twin_trs_path = os.path.join(input_trs.filepath, "twins", f"{input_trs.filename}.trs")
+	twin_trs = TRSParser(twin_trs_path)
+	print(f"\N{ABACUS} Searching for segmentation differences between {input_trs.filename} and {twin_trs.filename}")
+	for s in input_trs.contents:
+		if s in [0, 'NE']:
+			pass
+		else:
+			input_s = input_trs.contents[s]
+			twin_s = twin_trs.contents[s]
+			if input_s['xmin'] != twin_s['xmin']:
+				print(f"Difference found in starting of segment {s} -> {input_s['xmin']} vs. {twin_s['xmin']}")
+			if input_s['xmax'] != twin_s['xmax']:
+				print(f"Difference found in ending of segment {s} -> {input_s['xmax']} vs. {twin_s['xmax']}")
 
 	return
 
 
-def trsFinalCorrection(input_trs):
+def trsEmptySpaceBeforeNE(input_trs: TRSParser):
 	"""
-	>_ fichier trs sur lequel appliquer une correction
-	>>> fichier trs corrigé
+	>_ TRS file in which to add an empty space before each NE
+	>>> corrected TRS
 	"""
 	output_trs = ""
-	trs_folder, trs_name = os.path.split(input_trs)
-	trs_name = input_trs[:-4]
-	trs = open(input_trs, 'r', encoding='utf-8').read()
+	trs = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
 	trs_list = trs.split("\n")
-	print(f"\N{LINKED PAPERCLIPS} Correcting {trs_name}")
-	 ### Boucle sur les lignes du TRS
+	print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
 	for l in range(len(trs_list)):
 		line = trs_list[l]
 		if len(line) == 0 or re.search("<.*>", line):
@@ -375,33 +352,28 @@ def trsFinalCorrection(input_trs):
 				line = line + " "
 			if re.search("<Event.*entities.*", line_prec) and re.search('extent="end"', line_prec) and line[0] not in [",", "."]:
 				line = " " + line
-				### Correction majuscules dans date et amount
-				#if re.search('desc="time.*', line_prec) or re.search('desc="amount.*', line_prec):
-				#	line = line.lower()
 		line = line.replace("  ", " ")
 		output_trs += f"{line}\n"
-
-	path_correction = os.path.join(trs_folder, "correction")
+	path_correction = os.path.join(input_trs.filepath, "correction", "NE")
 	os.makedirs(path_correction, exist_ok=True)
-	file_output = os.path.join(path_correction, f"{trs_name}.trs")
+	file_output = os.path.join(path_correction, f"{input_trs.filename}.trs")
 	with open(file_output, 'w', encoding='utf-8') as f_txt:
 		f_txt.write("".join(output_trs))
 	
 	return
 
 
-def correctionLà(txt_input):
+def correctionLà(input_trs: TRSParser):
 	"""
-	>_ text file for correction of là
-	>>> writing of the corrected file
+	>_ TRS file for correction of sentences ending with là
+	>>> corrected txt from the origin TRS
 	"""
 	txt_dump, nb_la = "", 0
-	txt_path, txt_name = os.path.split(txt_input)
-	txt_folder = os.path.basename(txt_path)
-	origin_path = txt_path.rstrip(txt_folder)
-	target_path = os.path.join(origin_path, "corrections", "la")
+	txt_folder = os.path.join(input_trs.filepath, "txt")
+	txt_input = os.path.join(txt_folder, f"{input_trs.filename}.txt")
+	target_path = os.path.join(input_trs.filepath, "corrections", "la")
 	os.makedirs(target_path, exist_ok=True)
-	txt_output = os.path.join(target_path, txt_name)
+	txt_output = os.path.join(target_path, f"{input_trs.filename}.txt")
 	txt_input = open(txt_input, 'r', encoding='utf-8').read()
 	txt_input = txt_input.split("\n")
 	for l in txt_input:
@@ -412,28 +384,22 @@ def correctionLà(txt_input):
 			l = " ".join(l_splitted)
 		txt_dump += f"{l}\n"
 	with open(txt_output, 'w', encoding='utf-8') as f_txt:
- ## Dump du texte dans le fichier de sortie
 			f_txt.write(txt_dump)
-	print(f'\N{CHECK MARK} Corrected {nb_la} misplaced "là" in {txt_name}')
+	print(f'\N{CHECK MARK} Corrected {nb_la} misplaced "là" in {input_trs.filename}')
 
 	return
 
 
-def correctionMaj(txt_input):
+def correctionMaj(input_trs: TRSParser):
 	"""
-	>_ text file for correction of capiral letters
-	>>> writing of the corrected file
+	>_ TRS file for correction of misplaced capiral letters
+	>>> corrected TRS
 	"""
 	txt_dump, nb_maj = "", 0
-	txt_path, txt_name = os.path.split(txt_input)
-	txt_name = txt_name.split(".")[0]
-	txt_folder = os.path.basename(txt_path)
-	origin_path = txt_path.rstrip(txt_folder)
-	trs_input = os.path.join(origin_path, f"{txt_name}.trs")
-	target_path = os.path.join(origin_path, "corrections", "maj")
+	target_path = os.path.join(input_trs.filepath, "corrections", "maj")
 	os.makedirs(target_path, exist_ok=True)
-	trs_output = os.path.join(target_path, f"{txt_name}.trs")
-	txt_input = open(trs_input, 'r', encoding='utf-8').read()
+	trs_output = os.path.join(target_path, f"{input_trs.filename}.trs")
+	txt_input = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
 	txt_input = txt_input.split("\n")
 	nb_l = len(txt_input)
 	for l in range(nb_l):
@@ -458,8 +424,7 @@ def correctionMaj(txt_input):
 					pass
 		txt_dump += f"{line}\n"
 	with open(trs_output, 'w', encoding='utf-8') as f_out:
- ## Dumb du texte dans le fichier de sortie
 			f_out.write(txt_dump)
-	print(f'\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {txt_name}')
+	print(f'\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {input_trs.filename}')
 
 	return

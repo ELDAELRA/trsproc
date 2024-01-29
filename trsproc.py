@@ -24,7 +24,7 @@ dicoPhases = {
 	'-crt':("Correction de TRS selon problèmes rencontrées", "TRS custom correction in", 'trs', None),
 	'-ne':("extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.", "NE extraction from", 'trs', TRSParser.retrieveNEToTsv),
 	'-pne':("pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.", "NE pre-annotation for TRS in", 'trs', utils_trsproc.trsPreannotation),
-	'-rpt':("performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation.", "Creating validation report for target Section", 'trs', utils_trsproc.soge6ptsReport),
+	'-rpt':("performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.", "Creating validation report for target Section", 'trs', utils_trsproc.tmpReport),
 	'-rs':("calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (~~audio~~ and text, the latter in a tabular file) according to a given quantity.", "Extracting random segments from", 'trs', utils_trsproc.randomSampling),
 	'-rsne':("calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (~~audio segments~~ and text, the latter in a tabular file) randomly by a given amount.", "Extracting random NE from", 'trs', utils_trsproc.randomSamplingNE),
 	'-tg':("converts TRS files to TextGrid files.", "Converting to TextGrid in", 'trs', TRSParser.trsToTextGrid),
@@ -37,10 +37,10 @@ dicoPhases = {
 	'-vsi':("produces a tabular file containing basic lexical information and statistics concerning the input TRS.", "Extracting TRS statistics in", 'trs', TRSParser.validateTRS)
 }
 possible_corrections = {
-	'turnDifferenceTRS':"",
-	'trsFinalCorrection':"",
-	'correctionLà':"",
-	'correctionMaj':""
+	1:('turnDifferenceTRS', "search for differences in segmentation for the input TRS and its twin placed in a subfolder named 'twin'.", utils_trsproc.turnDifferenceTRS),
+	2:('trsEmptySpaceBeforeNE', "adds an empty space before each NE annotation and save the new TRS in a separate subfolder", utils_trsproc.trsEmptySpaceBeforeNE),
+	3:('correctionLà', "corrects sentences ending with là in la. This needs the execution of -txt flag beforehand.", utils_trsproc.correctionLà),
+	4:('correctionMaj', "corrects misplaced capiral letters.", utils_trsproc.correctionMaj)
 }
 
 #----------
@@ -78,8 +78,9 @@ def main():
 		else:
 			if p == '-crt':
 				for c in possible_corrections:
-					print(f"{c} -> {possible_corrections[c]}")
-				fun = input("Insert the desired correction function (list above)\t")
+					print(f"{c} -> {possible_corrections[c][0]}, {possible_corrections[c][1]}")
+				funChoice = int(input("Insert the desired correction function number (list above)\t"))
+				fun = possible_corrections[funChoice][-1]
 			with console.status(f"{procParam[1]} {docPath} with {len(docus)} files", spinner='point') as status:
 				for d in docus:
 					if procParam[2] == 'trs':
@@ -94,7 +95,9 @@ def main():
 						fun(d)
 			console.print(status)
 	except (IndexError, KeyError):
-		utils_trsproc.warningArgs(dicoPhases)
+		print(f"Invalid flag, Please choose from the list below and call the program again:")
+		for p in dicoPhases:
+			print(f"{p} -> {dicoPhases[p][0]}")
 
 	print("--- %s sec taken ---" % round((time.time() - start_time), 2))
 

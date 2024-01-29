@@ -2,7 +2,7 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
 
-[French version below][fr]
+*French version below*
 
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
@@ -44,16 +44,20 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-cne` deletes the Named Entity annotations if any are present in the input TRS.
 
 * `-crt` applies specific corrections according to the function chosen from the prompted list.
+  * `turnDifferenceTRS` search for differences in segmentation for the input TRS and its twin placed in a subfolder named "twin";
+  * `trsEmptySpaceBeforeNE` adds an empty space before each NE annotation and save the new TRS in a separate subfolder;
+  * `correctionLà` corrects sentences ending with là in la. This needs the execution of `-txt` flag beforehand;
+  * `correctionMaj` corrects misplaced capiral letters.
 
 * `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
 
 * `-pne` pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.
 
-* `-rpt` performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation.
+* `-rpt` performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.
 
-* `-rs` calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (~~audio~~ and text, the latter in a tabular file) according to a given quantity.
+* `-rs` calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.
 
-* `-rsne` calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (~~audio segments~~ and text, the latter in a tabular file) randomly by a given amount.
+* `-rsne` calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.
 
 * `-tg` converts TRS files to TextGrid files.
 
@@ -72,7 +76,9 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
 ---
+
 [fr]:
+
 # Version française
 
 *trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber](https://sourceforge.net/projects/trans/ "lien de téléchargement").
@@ -116,16 +122,20 @@ En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions 
 * `-cne` supprime les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée.
 
 * `-crt` applique des corrections spécifiques selon la fonction choisie dans la liste proposée.
+  * `turnDifferenceTRS` recherche les différences de segmentation pour le TRS d'entrée et son jumeau placé dans un sous-répertoire nommé "twin" ;
+  * `trsEmptySpaceBeforeNE` ajoute un espace vide avant chaque annotation NE et enregistre le nouveau TRS dans un sous-répertoire séparé ;
+  * `correctionLà` corrige les phrases se terminant par là en la. Cela nécessite l'exécution du drapeau `-txt` au préalable ;
+  * `correctionMaj` corrige les majuscules mal placées.
 
 * `-ne` extrait les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée et les met dans un fichier tabulaire.
 
 * `-pne` pré-annote le TRS d'entrée en utilisant le tableau créé avec le drapeau `-ne` comme un dictionnaire d'annotations personnalisé.
 
-* `-rpt` effectue les opérations des drapeaux `-tmp` et `-vsi` afin d'obtenir les éléments de base pour la validation des données.
+* `-rpt` effectue les opérations des drapeaux `-tmp` et `-vsi` afin d'obtenir les éléments de base pour la validation des données. Un rapport supplémentaire est produit avec les segments de pause de plus de 0,5s et les segments de parole de moins de 10s.
 
 * `-rs` calcule l'échantillon minimum nécessaire à la validation de la transcription de TRS d'entrée et extrait des segments aléatoires (~~audio~~ et texte, ce dernier dans un fichier tabulaire) en fonction d'une quantité donnée.
 
-* `-rsne` calcule l'échantillon minimum nécessaire pour la validation des Entités Nommées du TRS d'entrée et les extrait (~~ segments audio~~ et texte, ce dernier dans un fichier tabulaire) aléatoirement selon une quantité donnée.
+* `-rsne` calcule l'échantillon minimum nécessaire pour la validation des Entités Nommées du TRS d'entrée et les extrait (~~audio~~ et texte, ce dernier dans un fichier tabulaire) aléatoirement selon une quantité donnée.
 
 * `-tg` convertit le fichier TRS en fichier TextGrid.
 
