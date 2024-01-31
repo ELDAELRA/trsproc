@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# complementary functions for TRS processing
-## trsproc.py dependency
-###
-####
+##
+### complementary functions for TRS processing
+#### trsproc.py dependency
 #####
 
 #Global imports

@@ -100,7 +100,6 @@ sudo python -m setup.py install
 
 *trsproc* peut être appelé directement depuis le terminal et il exécutera le drapeau spécifié dans le répertoire courant par défaut.
 
-
 ### ARGUMENTS FACULTATIFS
 
 Certains arguments optionnels sont disponibles pour un traitement avancé. `trsproc -drapeau [-option [argument_si_besoin]]`.

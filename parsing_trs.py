@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# TRS parsing class
-## trsproc.py dependency
-###
-####
+##
+### TRS parsing class
+#### trsproc.py dependency
 #####
 
 """
 TODO
 
-add other language tag summary
+add language summary
 
 add prompt funciton
 def prmptTRS()
@@ -19,29 +18,75 @@ self.speakers
 self.contents
 
 def addLangTag(self):
-dicolang = importJSON ?
-trs = open(self.inputTRS, 'r', encoding).read()
-trs_list = trs.split("\n)
-for i in range(len(trs_list)):
+	dicolang = importJSON ?
+	output_trs, lang_open, lang_close = "", 0, 0
+	trs = open(self.inputTRS, 'r', encoding).read()
+	trs_list = trs.split("\n)
+	for i in range(len(trs_list)):
 	l = trs_list[i]
-	if re.search("<Event.*", l)
-		et_s = ElementTree.fromstring(l)
-		if et_s.attrib['type'] == "language"
-			lang_s = et_s.attrib['desc]
-			ext_s = et_s.attrib['extent]
-			l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
-		if re.search("<Sync.*, l) and trs_list[i+1] != "":
-			output_trs +=f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>\n'
-		elif re.search("</Turn.*, l) and trs_list[i-1] != "":
-			output_trs +=f'{l}\n<Event desc="*langtoadd*" type="language" extent="end"/>\n'
-		else:
-			output_trs += f"{l}\n"
+		if re.search("<Event.*", l)
+			et_s = ElementTree.fromstring(l)
+			if et_s.attrib['type'] == "language"
+				lang_s = et_s.attrib['desc]
+				ext_s = et_s.attrib['extent]
+				l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
+		elif re.search("<Sync.*, l) and lang_open == lang_close:
+			if trs_list[i+1] != ""
+				l =f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>'
+				lang_open += 1
+			elif re.seach("<Event.*, trs_list[i+2]):
+				et_s = ElementTree.fromstring(trs_list[i+2])
+				if et_s.attrib['type'] in ["entities, pronounce]:
+					l =f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>'
+					lang_open += 1
+		elif re.search("</Turn.*, l) and lang_open-langclose == 1:
+			l=f'<Event desc="*langtoadd*" type="language" extent="end"/>\n{l}'
+			lang_close +=1
+		output_trs += f"{l}\n"
+	if lang_open != lang_close:
+		print(f'{lang_open} open tags vs. {lang_close} closing tags)
 	path_out = os.path.join(self.filepath, "lang")
 	os.makedirs(path_out, exist_ok=True)
 	file_output = os.path.join(path, f"{self.filename}.trs")
 	with open(file_output, 'w', encoding) as f_out:
 	f_out.write(""join(output_trs))
 	return
+
+def sanityCheckLangTag(self)
+	trs = open(self.inputTRS).read()
+	trs_list = trs.split("\n)
+	lang_tag = ("none, 0)
+	for i in range(len(trs_list))
+		l = trs_list[i]
+		if re.search("<Event.*", l)
+			et_s = ElementTree.fromstring(l)
+			if et_s.attrib['type'] == "language"
+				if et_s.attrib['extent'] == "begin"
+					if lang_tag[0] == "open:
+						print(f"!!! second open tag at line {i} after {lang_tag[1]})
+					else:
+						lang_open = ("open", i)
+				if et_s.attrib['extent'] == "end"
+					if lang_close[0] == "closed:
+						print(f"!!! second closing tag at line {i} after {lang_tag[1]})
+					else:
+						lang_tag = ("closed", i)
+	
+	return
+
+def summaryLangTRS(self):
+tab_out = os.path.join(self.filepath, f'summary_languages-{self.corpus}.tsv)
+print(\N{CARD FILE BOX} Retriveving languages from self.filename)
+try:
+open(tab_out).close()
+except FilenotFound
+with open tabs_out as f:
+f.wirte(file_name filepath dur_tot dur_trans dur_other_lang nb_seg nb_otherlang language segment_id seg_start seg_end seg_dur)
+
+with open tab_out 'a
+for s in self.contents:
+if s not in [NE, 0] and self[s]['content'][:6] == 'lang:
+	self.filename self.filepath self.fileduration self.contents[0]['durationTrans] self.contents[0][durationOtherLang] self.contents[s][totalsegments] self-contents[0][totalOtherLang] self.contents[s]['content] {s} self.contents[s][xmin] self.contents[s][xmax] self.contents[s][duration]
 """
 # Global imports
 import os, re
@@ -94,7 +139,9 @@ class TRSParser():
 		>>> Dictionary of all segments and Named Entities information
 		"""
 		seg_dict, seg_id, seg_start, seg_end = {}, 0, 0, 0
-		nb_nontrans, nb_pronpi, dur_trans, dur_nontrans, dur_pronpi, nb_words = 0, 0, 0, 0, 0, 0
+		nb_nontrans, nb_pronpi, nb_lang, nb_words = 0, 0, 0, 0
+		dur_trans, dur_nontrans, dur_pronpi, dur_other_lang = 0, 0, 0, 0
+		langs = []
 		turn_id, turn_end = 0, 0
 		ne_dict, ne_id = {}, 0
 		trs = open(self.inputTRS, 'r', encoding='utf-8').read()
@@ -142,8 +189,10 @@ class TRSParser():
 								seg_trans = "[nontrans]"
 							elif et_s.attrib['desc'] == "pi":
 								seg_trans = "[pronpi]"
-							elif et_s.attrib['type'] == "language":
+							if et_s.attrib['type'] == "language":
+								nb_lang += 1
 								lang_oth = et_s.attrib['desc']
+								langs.append(lang_oth)
 								seg_trans = f'[lang={lang_oth}]'
 							elif et_s.attrib['type'] == "entities" and et_s.attrib['extent'] == "begin":
 								ne_id += 1
@@ -171,6 +220,10 @@ class TRSParser():
 				seg_dict[seg_id]['tokens'] = seg_tokens
 				seg_dict[seg_id]['content'] = seg_trans.replace('\n', '')
 				seg_dict[seg_id]['speaker'] = turn_spk
+				try:
+					seg_dict[seg_id]['SNR'] = praatSNRforSegment(self.audiofile, seg_start, seg_end)
+				except parselmouth.PraatError:
+					seg_dict[seg_id]['SNR'] = 'NA'
 		#print(f'Total SEGMENTS {seg_dict}') ### DEBUG
 		#print(f'\tTotal NE {ne_dict}') ### DEBUG
 		for x in seg_dict:
@@ -181,6 +234,8 @@ class TRSParser():
 				elif seg_dict[x]['content'] == '[pronpi]':
 					dur_pronpi += seg_dict[x]['duration']
 					nb_pronpi += 1
+				elif re.search("lang=", seg_dict[x]['content']):
+					dur_other_lang += seg_dict[x]['duration']
 				else:
 					nb_words += seg_dict[x]['tokens']
 					dur_trans += seg_dict[x]['duration']
@@ -192,10 +247,16 @@ class TRSParser():
 		seg_dict[0]['totalNonTrans'] = nb_nontrans
 		seg_dict[0]['totalPronPi'] = nb_pronpi
 		seg_dict[0]['totalTrans'] = seg_id-(nb_nontrans+nb_pronpi)
+		seg_dict[0]['totalLang'] = nb_lang
+		seg_dict[0]['otherLang'] = set(langs)
 		seg_dict[0]['duration'] = round(dur_trans+dur_nontrans+dur_pronpi, 3)
 		seg_dict[0]['durationTrans'] = round(dur_trans, 3)
 		seg_dict[0]['durationNonTrans'] = round(dur_nontrans, 3)
 		seg_dict[0]['durationPronPi'] = round(dur_pronpi, 3)
+		try:
+			seg_dict[0]['meanSNR'] = praatSNRforSegment(self.audiofile, 0, self.fileduration)
+		except parselmouth.PraatError:
+			seg_dict[0]['meanSNR'] = 'NA'
 
 		return seg_dict
 
