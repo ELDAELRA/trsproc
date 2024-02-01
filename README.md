@@ -29,6 +29,16 @@ Some optional arguments are available for advanced processing. `trsproc -flag [-
 
 * `-a` or `--audio` followed by the audio format used for the audio data corresponding to the input TRS if it is different from WAV.
 
+* `-cl` or `--correctionlevel` followed by the number corresponding to the correction applied to the original text according to the [lexicalproc] library (https://github.com/ELDAELRA/lexicalproc):
+  * 0, no corrections;
+  * 1, custom spelling corrections (_csp);
+  * 2, automatic spelling corrections (_sp);
+  * 3, automatic grammatical corrections (_gram);
+  * 12, custom and automatic spelling corrections (_csp_sp) ;
+  * 13, custom spelling and grammatical corrections (_csp_gram);
+  * 23, automatic spelling and grammatical corrections (_sp_gram);
+  * 123, custom spelling, automatic one and grammatical corrections (_csp_sp_gram).
+
 * `-f` or `--folder` followed by a path allows to target the specified directory instead of the current one.
 
 * `-jkz` must be specified if the language to be processed in the input TRS does not use ASCII/Latin based characters.
@@ -52,6 +62,8 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
 
 * `-pne` pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.
+
+* `-prt` print the parsed TRS contents directly in the console.
 
 * `-rpt` performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.
 
@@ -106,6 +118,16 @@ Certains arguments optionnels sont disponibles pour un traitement avancé. `trsp
 
 * `-a` ou `--audio` suivi par le format audio utilisé pour les données audio correspondant au TRS d'entrée s'il est différent de WAV.
 
+* `-cl` ou `--correctionlevel` suivi du chiffre corréspondant à la correction qui a été appliqué au texte d'origine selon la bibliothèque [lexicalproc](https://github.com/ELDAELRA/lexicalproc) :
+  * 0, aucune correction ;
+  * 1, corrections orthographiques personnalisées (_csp) ;
+  * 2, corrections orthographiques automatiques (_sp) ;
+  * 3, corrections grammaticales automatiques (_gram) ;
+  * 12, corrections orthographiques personnalisées et automatiques (_csp_sp) ;
+  * 13, corrections orthographiques personnalisées et grammaticales (_csp_gram) ;
+  * 23, corrections orthographiques et grammaticales automatiques (_sp_gram) ;
+  * 123, corrections orthographiques personnalisées, automatiques et grammaticales (_csp_sp_gram).
+
 * `-f` ou `--folder` suivi d'un chemin permet de cibler le répertoire spécifié au lieu du répertoire courant.
 
 * `-jkz` doit être spécifié si la langue à traiter dans le TRS d'entrée n'utilise pas de caractères ASCII/Latins.
@@ -129,6 +151,8 @@ En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions 
 * `-ne` extrait les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée et les met dans un fichier tabulaire.
 
 * `-pne` pré-annote le TRS d'entrée en utilisant le tableau créé avec le drapeau `-ne` comme un dictionnaire d'annotations personnalisé.
+
+* `-prt` imprime le contenu du TRS parsé directement dans la console.
 
 * `-rpt` effectue les opérations des drapeaux `-tmp` et `-vsi` afin d'obtenir les éléments de base pour la validation des données. Un rapport supplémentaire est produit avec les segments de pause de plus de 0,5s et les segments de parole de moins de 10s.
 

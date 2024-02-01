@@ -90,6 +90,19 @@ def tmpReport(trs_input, section_type="report"):
 	return
 
 
+def replacingPunctuations(sentence):
+	"""
+	>_ sentence to delete punctuation from
+	>>> original sentence without punctuation
+	"""
+	sentence = sentence.strip()
+	punct_list = ["\ufeff", "\u00A0", "\u2019", ".", "?", ":", ";", "!", ",", '"', "/", "\\", "%", "'"]
+	for t in punct_list:
+		sentence = sentence.replace(t, "")
+
+	return sentence
+
+
 def sampleFromDict(input_dict, sample):
 	keys = random.sample(list(input_dict.keys()), sample)
 	values = [input_dict[k] for k in keys]

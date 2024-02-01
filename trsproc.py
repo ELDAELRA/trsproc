@@ -24,6 +24,7 @@ dicoPhases = {
 	'-crt':("Correction de TRS selon problèmes rencontrées", "TRS custom correction in", 'trs', None),
 	'-ne':("extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.", "NE extraction from", 'trs', TRSParser.retrieveNEToTsv),
 	'-pne':("pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.", "NE pre-annotation for TRS in", 'trs', utils_trsproc.trsPreannotation),
+	'-prt':("print the parsed TRS contents directly in the console.", "Printing TRS contents", 'trs', TRSParser.print),
 	'-rpt':("performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.", "Creating validation report for target Section", 'trs', utils_trsproc.tmpReport),
 	'-rs':("calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (~~audio~~ and text, the latter in a tabular file) according to a given quantity.", "Extracting random segments from", 'trs', utils_trsproc.randomSampling),
 	'-rsne':("calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (~~audio segments~~ and text, the latter in a tabular file) randomly by a given amount.", "Extracting random NE from", 'trs', utils_trsproc.randomSamplingNE),
@@ -33,9 +34,10 @@ dicoPhases = {
 	'-trs':("rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.", "Re-writing TRS in", 'txt', TRSParser.txtToTrs),
 	'-tsv':("produces a tabular file with the structures and contents of the TRS files.", "Writing tsv from TRS in", 'trs', TRSParser.trsToTsv),
 	'-txt':("creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.", "Extracting txt and TRS-placeholder in", 'trs', TRSParser.trsToTxt),
-	'-vad':("converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.", "Converting TextGrid in", 'TextGrid', TRSParser.vadToTRS),
+	'-vad':("converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.", "Converting TextGrid-VAD in", 'TextGrid', TRSParser.vadToTRS),
 	'-vsi':("produces a tabular file containing basic lexical information and statistics concerning the input TRS.", "Extracting TRS statistics in", 'trs', TRSParser.validateTRS)
 }
+
 possible_corrections = {
 	1:('turnDifferenceTRS', "search for differences in segmentation for the input TRS and its twin placed in a subfolder named 'twin'.", utils_trsproc.turnDifferenceTRS),
 	2:('trsEmptySpaceBeforeNE', "adds an empty space before each NE annotation and save the new TRS in a separate subfolder", utils_trsproc.trsEmptySpaceBeforeNE),
@@ -53,6 +55,7 @@ def main():
 	parser.add_argument('-jkz', required=False, nargs='?')
 	parser.add_argument('-plh', required=False, nargs='?')
 	parser.add_argument('-s', '--section', required=False)
+	parser.add_argument('-cl', '--correctionlevel', required=False)
 	args = parser.parse_args()
 
 	try:
@@ -89,6 +92,8 @@ def main():
 							fun(ff, section_type=args.section)
 						elif args.plh:
 							fun(ff, False)
+						elif args.correctionlevel:
+							fun(ff, from_correction=args.correctionlevel)
 						else:
 							fun(ff)
 					else:
