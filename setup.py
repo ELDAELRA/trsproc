@@ -25,7 +25,7 @@ setuptools.setup(
     install_requires=requirements,
     entry_points={
         'console_scripts': [
-            'trsproc = trsproc',
+            'trsproc = trsproc:main',
         ]
     },
     keywords=['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
