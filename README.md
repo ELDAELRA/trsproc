@@ -2,7 +2,7 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
 
-*French version below*
+*Version française plus bas*
 
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
@@ -88,8 +88,6 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
 ---
-
-[fr]:
 
 # Version française
 
