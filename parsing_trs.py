@@ -70,9 +70,35 @@ import os, re
 import parselmouth, textgrids
 from xml.etree import cElementTree as ElementTree
 from xml.etree.ElementTree import ParseError
-from utils_trsproc import praatSNRforSegment, replacingPunctuations
 
 #----------
+def replacingPunctuations(sentence):
+	"""
+	>_ sentence to delete punctuation from
+	>>> original sentence without punctuation
+	"""
+	sentence = sentence.strip()
+	punct_list = ["\ufeff", "\u00A0", "\u2019", ".", "?", ":", ";", "!", ",", '"', "/", "\\", "%", "'"]
+	for t in punct_list:
+		sentence = sentence.replace(t, "")
+
+	return sentence
+
+
+def praatSNRforSegment(audio, seg_start, seg_end):
+	"""
+	>_audio file, timestaps for start and end of segment
+	>>> segment SNR from Praat HNR computation
+	"""
+	sound = parselmouth.Sound(audio)
+	sound_part = sound.extract_part(seg_start, seg_end)
+	# superimposed speech 20 < SNR > 45
+	hnr = sound_part.to_harmonicity()
+	mean_snr = parselmouth.praat.call(hnr, "Get mean", 0, 0)
+
+	return round(mean_snr, 2)
+
+
 class TRSParser():
 	def __init__(self, trs_in, audio_format='wav', lang='eu'):
 		tree = ElementTree.parse(trs_in)

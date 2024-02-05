@@ -30,20 +30,6 @@ def importJson(json_input):
 		return json.load(f)
 
 
-def praatSNRforSegment(audio, seg_start, seg_end):
-	"""
-	>_audio file, timestaps for start and end of segment
-	>>> segment SNR from Praat HNR computation
-	"""
-	sound = parselmouth.Sound(audio)
-	sound_part = sound.extract_part(seg_start, seg_end)
-	# superimposed speech 20 < SNR > 45
-	hnr = sound_part.to_harmonicity()
-	mean_snr = parselmouth.praat.call(hnr, "Get mean", 0, 0)
-
-	return round(mean_snr, 2)
-
-
 def tmpReport(trs_input, section_type="report"):
 	"""
 	>_ TRS file for statistical validation only in the specified section
@@ -88,20 +74,6 @@ def tmpReport(trs_input, section_type="report"):
 				f_tsv.write(f"\n{t.filename}\t{trs_input.fileduration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}")
 	
 	return
-
-
-def replacingPunctuations(sentence):
-	"""
-	>_ sentence to delete punctuation from
-	>>> original sentence without punctuation
-	"""
-	sentence = sentence.strip()
-	punct_list = ["\ufeff", "\u00A0", "\u2019", ".", "?", ":", ";", "!", ",", '"', "/", "\\", "%", "'"]
-	for t in punct_list:
-		sentence = sentence.replace(t, "")
-
-	return sentence
-
 
 def sampleFromDict(input_dict, sample):
 	keys = random.sample(list(input_dict.keys()), sample)
