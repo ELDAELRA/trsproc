@@ -16,6 +16,7 @@ def main():
         description="A Python library to process Transcriber TRS files.",
         long_description=long_description,
         long_description_content_type="text/markdown",
+        package_dir={'':"src"},
         packages=setuptools.find_packages(),
         classifiers=[
             "Programming Language :: Python :: 3",
