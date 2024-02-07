@@ -2,7 +2,7 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
 
-*Version française plus bas*
+[*Version française plus bas*][frVersion]
 
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
@@ -91,7 +91,7 @@ In case of incorrect flag the list of possible ones and their function will be p
 
 # Version française
 
-*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber](https://sourceforge.net/projects/trans/ "lien de téléchargement").
+[frVersion]:*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber](https://sourceforge.net/projects/trans/ "lien de téléchargement").
 
 Une installation préalable de Python 3.6+ est nécessaire. Pour installer *trsproc* à l'aide de pip et du lien direct GitHub, procédez comme suit.
 
