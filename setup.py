@@ -17,7 +17,7 @@ def main():
         long_description=long_description,
         long_description_content_type="text/markdown",
         package_dir={'':"src"},
-        packages=setuptools.find_packages(),
+        packages=setuptools.find_packages("src"),
         classifiers=[
             "Programming Language :: Python :: 3",
             "Operating System :: OS Independent",
