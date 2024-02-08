@@ -18,6 +18,7 @@ def main():
         long_description_content_type="text/markdown",
         package_dir={'':"src"},
         packages=setuptools.find_packages("src"),
+        url="https://github.com/ELDAELRA/trsproc",
         classifiers=[
             "Programming Language :: Python :: 3",
             "Operating System :: OS Independent",
