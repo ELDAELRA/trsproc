@@ -2,34 +2,31 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
 
-*Version française plus bas*
-
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
-Prior installation of Python 3.6+ is necessary. To install *trsproc* using pip and GitHub direct link call as follows.
+Prior installation of Python 3.6+ is necessary. Install *trsproc* using pip and fork it on GitHub.
 
 ```
-pip install git+https://github.com/ELDAELRA/trsproc.git
-```
-
-or using git.
-
-```
-git clone https://github.com/ELDAELRA/trsproc.git
-sudo python -m setup.py install
+pip install trsproc
 ```
 
 ## USAGE
 
 *trsproc* may be called directly from the Terminal and it will perform the specified flag on the current directory by default.
 
+The class *TRSParser* may be imported in a Python for scripting pusposes using `from trsproc.parser import TRSParser`. It may be used to convert a TRS file into a Python TRSParser object retaining the transcription information in a dictionary form. 
+
 ### OPTIONAL ARGUMENTS
 
-Some optional arguments are available for advanced processing. `trsproc -flag [-option [option_argument_if_needed]]`.
+Some optional arguments are available for advanced processing.
+
+```
+trsproc -flag [-option [option_argument_if_needed]]
+```
 
 * `-a` or `--audio` followed by the audio format used for the audio data corresponding to the input TRS if it is different from WAV.
 
-* `-cl` or `--correctionlevel` followed by the number corresponding to the correction applied to the original text according to the [lexicalproc] library (https://github.com/ELDAELRA/lexicalproc):
+* `-cl` or `--correctionlevel` followed by the number corresponding to the correction applied to the original text according to the library [lexicalproc](https://github.com/ELDAELRA/lexicalproc "Work in progress"):
   * 0, no corrections;
   * 1, custom spelling corrections (_csp);
   * 2, automatic spelling corrections (_sp);
@@ -87,89 +84,63 @@ In case of incorrect flag the list of possible ones and their function will be p
 
 * `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
----
+### TRSParser class
 
-# Version française
+When the class is initiated only the TRS file path must be provided. parameters `audio_format` and `lang` may be modified from their default values if needed. `audio_format` defaults to `'wav'` and is used to find an audio file with the same name and location of the TRS. `lang` defaults to `'eu'` and is used This is mainly used for word count in the transcription and can be changed to `'jkz'` in order to process a character count instead based on UNICODE characters.  
 
-*trsproc* est un module Python permettant plusieurs opérations et le traitement automatique des fichiers TRS à partir du [Transcriber](https://sourceforge.net/projects/trans/ "lien de téléchargement").
+#### Attributes
 
-Une installation préalable de Python 3.6+ est nécessaire. Pour installer *trsproc* à l'aide de pip et du lien direct GitHub, procédez comme suit.
+* `tree` is the parsed XML tree.
 
-```
-pip install git+https://github.com/ELDAELRA/trsproc.git
-```
+* `root` is the root of the parsed XML tree.
 
-ou en utilisant git.
+* `inputTRS` is the complete path to the parsed TRS file.
 
-```
-git clone https://github.com/ELDAELRA/trsproc.git
-sudo python -m setup.py install
-```
+* `filepath` is the path to the folder of the parsed TRS file.
 
-## UTILISATION
+* `corpus` is the name of the folder where the TRS file is located.
 
-*trsproc* peut être appelé directement depuis le terminal et il exécutera le drapeau spécifié dans le répertoire courant par défaut.
+* `filename` is the name of the parsed TRS file.
 
-### ARGUMENTS FACULTATIFS
+* `lang` refers to the lang parameter from the TRSParser call.
 
-Certains arguments optionnels sont disponibles pour un traitement avancé. `trsproc -drapeau [-option [argument_si_besoin]]`.
+* `sectionduration` represents the sum of the duration of all the sections present in the TRS file. Returns 'Section not found' value if there is no section tag in the TRS file.
 
-* `-a` ou `--audio` suivi par le format audio utilisé pour les données audio correspondant au TRS d'entrée s'il est différent de WAV.
+* `fileduration` represents the duration of an audio file having the same name and location of the TRS. Returns 'audio not found' value if it fails to find an audio file.
 
-* `-cl` ou `--correctionlevel` suivi du chiffre corréspondant à la correction qui a été appliqué au texte d'origine selon la bibliothèque [lexicalproc](https://github.com/ELDAELRA/lexicalproc) :
-  * 0, aucune correction ;
-  * 1, corrections orthographiques personnalisées (_csp) ;
-  * 2, corrections orthographiques automatiques (_sp) ;
-  * 3, corrections grammaticales automatiques (_gram) ;
-  * 12, corrections orthographiques personnalisées et automatiques (_csp_sp) ;
-  * 13, corrections orthographiques personnalisées et grammaticales (_csp_gram) ;
-  * 23, corrections orthographiques et grammaticales automatiques (_sp_gram) ;
-  * 123, corrections orthographiques personnalisées, automatiques et grammaticales (_csp_sp_gram).
+* `speakers` is a Python dictionary containing the speakers' information provided in the TRS header if any. The speaker's id is used as key, the value is a tuple of speaker's name and sex.
+        
+* `contents` is a Python dictionary containing all the information about the TRS' segments and the overall transcription.
+  * `contents[n]` represents a segment where n is its rank in the transcription. Each segment has seven keys:
+    * `contents[n]['xmin']` is the segment starting point in seconds.
+    * `contents[n]['xmax']` is the segment ending point in seconds.
+    * `contents[n]['duration']` is the segment duration in seconds.
+    * `contents[n]['tokens']` is the number of tokens present in the segment.
+    * `contents[n]['content']` is the segment transcription.
+    * `contents[n]['speaker']` is the segment speaker if any.
+    * `contents[n]['SNR']` is the Signal-to-noise ratio of the segment. It returns `'NA'` if the SNR computation fails.
+  * `contents['NE']` is a dictionary of all the Named Entities present in the TRS if any.  
+    * `contents['NE'][n]` represents a Named Entity entry where n is its rank in the transcription. Each NE has four keys:
+    * `contents['NE'][n]['class']` is the Named Entity class.
+    * `contents['NE'][n]['xmin']` is the Named Entity starting point in seconds.
+    * `contents['NE'][n]['segmentID']` is the id of the segment where the Named Entity has been annotated.
+    * `contents['NE'][n]['content']` is the transcription associated with the Named Entity.
 
-* `-f` ou `--folder` suivi d'un chemin permet de cibler le répertoire spécifié au lieu du répertoire courant.
+  * `contents[0]` contains overall statistics about the TRS file.
+    * `contents[0]['totalSegments']` returns the total number of segments in the TRS.
+    * `contents[0]['totalWords']` returns the total number of word (separated by a white space in case of `lang='eu'`. It returns the total number of UNICODE characters in case of `lang='jkz'`
+    * `contents[0]['totalNE']` returns the total number of Named Entities in the TRS if any.
+    * `contents[0]['totalNonTrans']` returns the total number of nontrans tags in the TRS if any.
+    * `contents[0]['totalPronPi']` returns the total number of pi tags in the TRS if any.
+    * `contents[0]['totalTrans']` returns the total number of segments having an actual transcription.
+    * `contents[0]['totalLang']` returns the total number of language tags in the TRS if any.
+    * `contents[0]['otherLang']` contains a list of the different languages annotated in the TRS.
+    * `contents[0]['duration']` returns the total duration of the segments having transcription, pi and nontrans annotations.
+    * `contents[0]['durationTrans']` returns the duration of the transcribed segments.
+    * `contents[0]['durationNonTrans']` returns the duration of the nontrans segments.
+    * `contents[0]['durationPronPi']` returns the duration of the pi segments.
+    * `contents[0]['meanSNR']` returns the mean SNR of the audio file or `'NA'` if it fails to compute it.
+    
+#### Functions
 
-* `-jkz` doit être spécifié si la langue à traiter dans le TRS d'entrée n'utilise pas de caractères ASCII/Latins.
-
-* `-plh` doit être spécifié si, lors du traitement du drapeau `-txt`, seuls des fichiers txt doivent être produits.
-
-* `-s` ou `--section` suivi du nom de section cible alternative si, lors du traitement du drapeau `-rpt` ou `-tmp`, une section différente que celle par défaut, i.e. "report", doit être ciblée.
-
-### DRAPEAUX
-
-En cas de drapeau incorrect, la liste des drapeaux possibles et leurs fonctions seront affichées dans la console. La même liste apparaîtra également si aucun drapeau n'est fourni.
-
-* `-cne` supprime les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée.
-
-* `-crt` applique des corrections spécifiques selon la fonction choisie dans la liste proposée.
-  * `turnDifferenceTRS` recherche les différences de segmentation pour le TRS d'entrée et son jumeau placé dans un sous-répertoire nommé "twin" ;
-  * `trsEmptySpaceBeforeNE` ajoute un espace vide avant chaque annotation NE et enregistre le nouveau TRS dans un sous-répertoire séparé ;
-  * `correctionLà` corrige les phrases se terminant par là en la. Cela nécessite l'exécution du drapeau `-txt` au préalable ;
-  * `correctionMaj` corrige les majuscules mal placées.
-
-* `-ne` extrait les annotations d'Entités Nommées si elles sont présentes dans le TRS d'entrée et les met dans un fichier tabulaire.
-
-* `-pne` pré-annote le TRS d'entrée en utilisant le tableau créé avec le drapeau `-ne` comme un dictionnaire d'annotations personnalisé.
-
-* `-prt` imprime le contenu du TRS parsé directement dans la console.
-
-* `-rpt` effectue les opérations des drapeaux `-tmp` et `-vsi` afin d'obtenir les éléments de base pour la validation des données. Un rapport supplémentaire est produit avec les segments de pause de plus de 0,5s et les segments de parole de moins de 10s.
-
-* `-rs` calcule l'échantillon minimum nécessaire à la validation de la transcription de TRS d'entrée et extrait des segments aléatoires (~~audio~~ et texte, ce dernier dans un fichier tabulaire) en fonction d'une quantité donnée.
-
-* `-rsne` calcule l'échantillon minimum nécessaire pour la validation des Entités Nommées du TRS d'entrée et les extrait (~~audio~~ et texte, ce dernier dans un fichier tabulaire) aléatoirement selon une quantité donnée.
-
-* `-tg` convertit le fichier TRS en fichier TextGrid.
-
-* `-tgrs` convertit le fichier TextGrid en fichier TRS.
-
-* `-tmp` crée un fichier TRS temporaire dans un répertoire nommé "tmp". Par défaut, ce fichier ne contiennent que la section "report" du TRS original.
-
-* `-trs` réécrit un fichier TRS en utilisant un fichier txt d'entrée et un TRS-placeholder placé dans un sous-dossier du dossier parent d'entrée. Le TRS réécrit aura le contenu du fichier txt et la structure du TRS-placeholder.
-
-* `-tsv` produit un fichier tabulaire avec les structures et les contenus des fichiers TRS.
-
-* `-txt` crée des fichiers txt et TRS-placeholder. Le premier ne contenant la transcription du TRS original, le second contenant sa structure XML.
-
-* `-vad` convertit le fichier TextGrid résultant de l'utilisation d'un algorithme de détection de l'activité vocale (VAD) en fichier TRS.
-
-* `-vsi` produit un fichier tabulaire contenant des informations lexicales de base et des statistiques concernant le TRS d'entrée.
+Coming soon.

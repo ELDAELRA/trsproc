@@ -3,7 +3,7 @@
 #
 ##
 ### TRS parsing class
-#### trsproc.py dependency
+#### trsproc direct dependency
 #####
 
 """
@@ -101,8 +101,8 @@ def praatSNRforSegment(audio, seg_start, seg_end):
 
 class TRSParser():
     def __init__(self, trs_in, audio_format='wav', lang='eu'):
-        tree = ElementTree.parse(trs_in)
-        root = tree.getroot()
+        self.tree = ElementTree.parse(trs_in)
+        self.root = self.tree.getroot()
 
         self.inputTRS = trs_in
         self.filepath, self.filename = os.path.split(trs_in)
@@ -112,7 +112,7 @@ class TRSParser():
 
         try:
             self.sectionduration = []
-            for sec in root.iter('Section'):
+            for sec in self.root.iter('Section'):
                 self.sectionduration.append(round(float(sec.attrib['endTime'])-float(sec.attrib['startTime']), 3))
             self.sectionduration = sum(self.sectionduration)
         except ValueError:
@@ -125,7 +125,7 @@ class TRSParser():
 
         self.speakers = {}
          ## Retrieve speakers information when present in header of TRS
-        for spks in root.iter('Speaker'):
+        for spks in self.root.iter('Speaker'):
             spk_id = spks.attrib['id']
             if "type" in spks.attrib:
                 spk_sex = spks.attrib['type']

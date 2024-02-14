@@ -3,7 +3,7 @@
 #
 ##
 ### complementary functions for TRS processing
-#### trsproc.py dependency
+#### trsproc direct dependency
 #####
 
 #Global imports
