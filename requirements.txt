@@ -3,3 +3,4 @@
 praat-parselmouth==0.4.3
 praat-textgrids==1.4.0
 rich==13.7.0
+tomli; python_version < "3.11"

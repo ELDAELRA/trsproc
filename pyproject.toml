@@ -1,3 +1,44 @@
 [build-system]
 requires = ["setuptools >= 61.0", "wheel", "versioneer"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "trsproc"
+version = "1.4.1"
+description = "A Python library to process Transcriber TRS files"
+readme = "README.md"
+authors = [{ name = "Gabriele Chingoli", email = "gabriele@elda.org" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords=['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/ELDAELRA/trsproc"
+
+[project.scripts]
+realpython = "trsproc.__main__:main"
+
+[requirements-files]
+install_requires = "requirements.txt"
+
+[tool.bumpver]
+current_version = "1.4.1"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "Bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = false
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    '^current_version = "{version}"$',
+    '^version = "{version}"$',
+]
+"src/trsproc/__init__.py" = [
+    '^__version__ = "{version}"$',
+]
