@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools >= 61.0", "wheel", "versioneer"]
+requires = ["setuptools >= 61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -15,16 +15,19 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 keywords=['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
-requires-python = ">=3.9"
+dependencies = [
+    "praat-parselmouth",
+    "praat-textgrids",
+    "rich",
+    'tomli; python_version < "3.11"',
+]
+requires-python = ">=3.6"
 
 [project.urls]
 Homepage = "https://github.com/ELDAELRA/trsproc"
 
 [project.scripts]
 trsproc = "trsproc.__main__:main"
-
-[requirements-files]
-install_requires = "requirements.txt"
 
 [tool.bumpver]
 current_version = "1.4.8"
