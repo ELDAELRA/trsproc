@@ -2,7 +2,7 @@
 
 ![GitHub Tag](https://img.shields.io/github/v/tag/ELDAELRA/trsproc)
 
-*trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from the [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
+*trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
 Prior installation of Python 3.6+ is necessary. Install *trsproc* using pip and fork it on GitHub.
 
@@ -10,11 +10,9 @@ Prior installation of Python 3.6+ is necessary. Install *trsproc* using pip and 
 pip install trsproc
 ```
 
-## USAGE
+## USAGE FROM THE COMMAND LINE
 
 *trsproc* may be called directly from the Terminal and it will perform the specified flag on the current directory by default.
-
-The class *TRSParser* may be imported in a Python for scripting pusposes using `from trsproc.parser import TRSParser`. It may be used to convert a TRS file into a Python TRSParser object retaining the transcription information in a dictionary form. 
 
 ### OPTIONAL ARGUMENTS
 
@@ -84,6 +82,10 @@ In case of incorrect flag the list of possible ones and their function will be p
 
 * `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
+## IMPORTING AS A MODULE
+
+The class *TRSParser* may be imported in Python for scripting pusposes using `from trsproc.parser import TRSParser`. It may be used to convert a TRS file into a Python TRSParser object. 
+
 ### TRSParser class
 
 When the class is initiated only the TRS file path must be provided. parameters `audio_format` and `lang` may be modified from their default values if needed. `audio_format` defaults to `'wav'` and is used to find an audio file with the same name and location of the TRS. `lang` defaults to `'eu'` and is used This is mainly used for word count in the transcription and can be changed to `'jkz'` in order to process a character count instead based on UNICODE characters.  
@@ -143,4 +145,63 @@ When the class is initiated only the TRS file path must be provided. parameters 
     
 #### Functions
 
-Coming soon.
+**retrieveContents(self)** is a basic function used to retrieve all the contents information from the input TRS file into a dictionnary structure.
+
+**print(self)** prints the TRS contents in the console.
+
+**summaryLangTRS(self)** creates a tsv file containing the information about the languages spoken in the TRS.
+ 
+**trsToTxt(self, need_placeholder=True)** creates a txt file and a TRS-placeholder from the input TRS.
+ 
+**txtToTrs(input_txt, from_correction=0)** creates a TRS file from the content of a txt file and the structure of a TRS-placeholder one.
+ 
+**cleanNEfromTRS(self)** creates a new TRS file without the Named Entity annotations of the origin one.
+ 
+**validateTRS(self)** creates a tsv file with the contents information and statistics from the input TRS.
+ 
+**trsToTsv(self)** transforms the input TRS structure and content into a tsv file.
+ 
+**vadToTRS(input_tg)** creates a TRS file following the structure of the input TextGrid file having only one Tier called 'VAD'.
+ 
+**trsToTextGrid(self, tiers_list=['transcription', 'speaker', 'sex', 'NE'])** creates a TextGrid file based on the segmentation and content of the input TRS. the newly created TextGrid will have 'transcription', 'speaker', 'sex', 'NE' as Tiers.
+ 
+**textGridToTRS(input_tg)** creates a TRS file following the structure of the input TextGrid. Textgrid's Tiers must contain 'speaker', 'transcription' and 'sex'.
+ 
+**retrieveNEToTsv(self)** retrieves all the Named Entity annotations from the input TRS and wrties them in a tsv file.
+ 
+**trsTMP(self, section_type="report")** creates a partial TRS file retaining only the target section content.
+
+### Other functions
+
+**parser.replacingPunctuations(sentence)** deletes the punctuations in the following list from the input: `["\ufeff", "\u00A0", "\u2019", ".", ":", ";", "!", '"', "/", "\\", "%", "'"]`
+ 
+**parser.praatSNRforSegment(audio, seg_start, seg_end)** computes Signal-to-Noise ratio using Praat parselmouth formula on the selected start and end frames of the input audio signal.
+ 
+**utils.importJson(json_input)** returns a Python dictionary from the input json file.
+
+**utils.tmpReport(trs_input, section_type="report")** creates a tsv file containing the statistical information of the input TRS and the target section validation report with segments < 10s and pauses > 0.5s.
+
+**utils.sampleFromDict(input_dict, sample)** returns random keys from the input dictionary.
+ 
+**utils.randomSampling(list_trs, save_path)** asks user for population size input and returns the minimum sample size, a tsv file table with random sampled segments from the population and audio segment files.
+ 
+**utils.randomSamplingNE(list_trs, save_path)** asks user for population size input and returns the minimum sample size, a table with random sampled named entities from the population and audio segments files.
+ 
+**utils.createUpdateDictNE(table_info, ne_dict, ne_origin)** creates or updates the table with extracted Named Entities from TRS annotations.
+ 
+**utils.trsPreannotation(input_trs: TRSParser)** creates a new TRS pre-annotated using the previously created Named Entities table.
+ 
+**utils.preAnnotateNElen1(input_trs: TRSParser, dict_ne)** pre-annotates the input TRS with Named Entoties of length 1.
+ 
+**utils.preAnnotateNElenPlus(input_file, list_ne, dict_ne)** pre-annotates the input TRS with Named Entoties of length higher than 1.
+ 
+The following functions are used in case of custom corrections:
+
+**utils.turnDifferenceTRS(input_trs: TRSParser)** returns the list in segmetnation between the input TRS and its twin.
+ 
+**utils.trsEmptySpaceBeforeNE(input_trs: TRSParser)** creates a new TRS with an empty space before each Named Entity annotation.
+ 
+**utils.correctionLà(input_trs: TRSParser)** creates a new txt correcting 'là' to 'la' and the end of its sentences.
+ 
+**utils.correctionMaj(input_trs: TRSParser)** creates a new TRS with the corrected misplaced capital letters from the input one.
+ 

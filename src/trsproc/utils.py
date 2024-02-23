@@ -376,7 +376,7 @@ def correctionLà(input_trs: TRSParser):
 
 def correctionMaj(input_trs: TRSParser):
     """
-    >_ TRS file for correction of misplaced capiral letters
+    >_ TRS file for correction of misplaced capital letters
     >>> corrected TRS
     """
     txt_dump, nb_maj = "", 0

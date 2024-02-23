@@ -6,7 +6,7 @@
 #### trsproc direct dependency
 #####
 
-"""
+"""TODO
 def addLangTag(self):
     dicolang = importJSON ?
     output_trs, lang_open, lang_close = "", 0, 0
@@ -533,8 +533,8 @@ class TRSParser():
 
     def textGridToTRS(input_tg):
         """
-        >_ fichier TextGri
-        >>> TRS formatté selon specs du projet ELDA-0773
+        >_ TextGrid file
+        >>> TRS following textgrid segmentations
         """
         tg_path, tg_name = os.path.split(input_tg)
         tg_name = tg_name.split(".")[0]
@@ -552,7 +552,10 @@ class TRSParser():
         spk_sex_tuple_list = []
         for x in range(nb_int):
      ## analyse the speaker and sexe Tiers to retrieve speakers info and write them in preambule
-            spk_sex_tuple_list.append((grid["speaker"][x].text, grid["sexe"][x].text))
+            try:
+                spk_sex_tuple_list.append((grid["speaker"][x].text, grid["sex"][x].text))
+            except parselmouth.PraatError:
+                spk_sex_tuple_list.append(("", ""))
      ##### CHANGE TO DICT for better looping
      ##### { spk_id:(name, type)}
         spk_sex_tuple_list = set(spk_sex_tuple_list)

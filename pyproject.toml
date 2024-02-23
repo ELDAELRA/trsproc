@@ -21,7 +21,7 @@ requires-python = ">=3.9"
 Homepage = "https://github.com/ELDAELRA/trsproc"
 
 [project.scripts]
-realpython = "trsproc.__main__:main"
+trsproc = "trsproc.__main__:main"
 
 [requirements-files]
 install_requires = "requirements.txt"

@@ -15,7 +15,7 @@ from rich.console import Console
 
 # Custom imports
 import trsproc
-from trsproc import parser, utils
+from trsproc import parser
 
 console = Console()
 
@@ -60,7 +60,7 @@ def main():
             with console.status(f"{procParam[1]} {docPath} with {len(docus)} files", spinner='point') as status:
                 for d in docus:
                     if procParam[2] == 'trs':
-                        ff = trsproc.parser.TRSParser(d, audioFormat, langT)
+                        ff = parser.TRSParser(d, audioFormat, langT)
                         if args.section:
                             func = f"{procParam[-1]}(ff, section_type={args.section})"
                         elif args.plh:
