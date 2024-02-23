@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trsproc"
-version = "1.4.8"
+version = "1.4.9"
 description = "A Python library to process Transcriber TRS files"
 readme = "README.md"
 authors = [{ name = "Gabriele Chingoli", email = "gabriele@elda.org" }]
@@ -30,7 +30,7 @@ Homepage = "https://github.com/ELDAELRA/trsproc"
 trsproc = "trsproc.__main__:main"
 
 [tool.bumpver]
-current_version = "1.4.8"
+current_version = "1.4.9"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
 commit = true
