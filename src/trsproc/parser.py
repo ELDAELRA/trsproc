@@ -6,65 +6,6 @@
 #### trsproc direct dependency
 #####
 
-"""TODO
-def addLangTag(self):
-    dicolang = importJSON ?
-    output_trs, lang_open, lang_close = "", 0, 0
-    trs = open(self.inputTRS, 'r', encoding).read()
-    trs_list = trs.split("\n)
-    for i in range(len(trs_list)):
-    l = trs_list[i]
-        if re.search("<Event.*", l)
-            et_s = ElementTree.fromstring(l)
-            if et_s.attrib['type'] == "language"
-                lang_s = et_s.attrib['desc]
-                ext_s = et_s.attrib['extent]
-                l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
-        elif re.search("<Sync.*, l) and lang_open == lang_close:
-            if trs_list[i+1] != ""
-                l =f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>'
-                lang_open += 1
-            elif re.seach("<Event.*, trs_list[i+2]):
-                et_s = ElementTree.fromstring(trs_list[i+2])
-                if et_s.attrib['type'] in ["entities, pronounce]:
-                    l =f'{l}\n<Event desc="*langtoadd*" type="language" extent="begin"/>'
-                    lang_open += 1
-        elif re.search("</Turn.*, l) and lang_open-langclose == 1:
-            l=f'<Event desc="*langtoadd*" type="language" extent="end"/>\n{l}'
-            lang_close +=1
-        output_trs += f"{l}\n"
-    if lang_open != lang_close:
-        print(f'{lang_open} open tags vs. {lang_close} closing tags)
-    path_out = os.path.join(self.filepath, "lang")
-    os.makedirs(path_out, exist_ok=True)
-    file_output = os.path.join(path, f"{self.filename}.trs")
-    with open(file_output, 'w', encoding) as f_out:
-    f_out.write(""join(output_trs))
-    return
-
-def sanityCheckLangTag(self)
-    trs = open(self.inputTRS).read()
-    trs_list = trs.split("\n)
-    lang_tag = ("none, 0)
-    for i in range(len(trs_list))
-        l = trs_list[i]
-        if re.search("<Event.*", l)
-            et_s = ElementTree.fromstring(l)
-            if et_s.attrib['type'] == "language"
-                if et_s.attrib['extent'] == "begin"
-                    if lang_tag[0] == "open:
-                        print(f"!!! second open tag at line {i} after {lang_tag[1]})
-                    else:
-                        lang_open = ("open", i)
-                if et_s.attrib['extent'] == "end"
-                    if lang_close[0] == "closed:
-                        print(f"!!! second closing tag at line {i} after {lang_tag[1]})
-                    else:
-                        lang_tag = ("closed", i)
-    
-    return
-
-"""
 # Global imports
 import os, re
 import parselmouth, textgrids
@@ -78,7 +19,7 @@ def replacingPunctuations(sentence):
     >>> original sentence without punctuation
     """
     sentence = sentence.strip()
-    punct_list = ["\ufeff", "\u00A0", "\u2019", ".", ":", ";", "!", '"', "/", "\\", "%", "'"]
+    punct_list = ["\ufeff", "\u00A0", "\u2019", ".", ",", ":", ";", "!", '"', "/", "\\", "%", "'"]
     for t in punct_list:
         sentence = sentence.replace(t, "")
 
@@ -292,7 +233,7 @@ class TRSParser():
         return
 
 
-    def trsToTxt(self, need_placeholder=True):
+    def trsToTxt(self, need_placeholder=True, delete_punct=False):
         """
         >_ TRS file 
         >>> txt file having transcribed text
@@ -307,7 +248,8 @@ class TRSParser():
                 output_trs_plh += f"{l}\n"
             else:
                  ### Character entities representation correction and deletion of punctuation
-                l = replacingPunctuations(l)
+                if delete_punct:
+                    l = replacingPunctuations(l)
                 if placeholder == 0:
                     output_txt += l
                 else:

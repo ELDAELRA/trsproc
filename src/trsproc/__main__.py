@@ -5,8 +5,6 @@
 ### ELDA-R&D-2023
 #### Gabriele CHIGNOLI
 #####
-# USAGE
-# python3 trsproc.py -flag [-option (folder)]
 
 # Global imports
 import glob, os, sys, time
@@ -21,6 +19,7 @@ console = Console()
 FLAGS = {
     '-cne':("deletes the Named Entity annotations if any are present in the input TRS.", "Cleaning NE annotation from TRS in", "trs", "parser.TRSParser.cleanNEfromTRS"),
     '-crt':("Correction de TRS selon problèmes rencontrées", "TRS custom correction in", "trs", "None"),
+    '-lang':("adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named \"lang-tag.json\" in the same input folder.", "Adding language tags to", "trs", "utils.addLangTag"),
     '-ne':("extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.", "NE extraction from", "trs", "parser.TRSParser.retrieveNEToTsv"),
     '-pne':("pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.", "NE pre-annotation for TRS in", "trs", "utils.trsPreannotation"),
     '-prt':("print the parsed TRS contents directly in the console.", "Printing TRS contents", "trs", "parser.TRSParser.print"),
@@ -34,6 +33,7 @@ FLAGS = {
     '-tsv':("produces a tabular file with the structures and contents of the TRS files.", "Writing tsv from TRS in", "trs", "parser.TRSParser.trsToTsv"),
     '-txt':("creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.", "Extracting txt and TRS-placeholder in", "trs", "parser.TRSParser.trsToTxt"),
     '-vad':("converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.", "Converting TextGrid-VAD in", "TextGrid", "parser.TRSParser.vadToTRS"),
+    '-vsi-lang':("produces a tabular file containing basic information abouth the language tags present in the input TRS.", "Language summary from", "trs", "parser.TRSParser.summaryLangTRS"),
     '-vsi':("produces a tabular file containing basic lexical information and statistics concerning the input TRS.", "Extracting TRS statistics in", "trs", "parser.TRSParser.validateTRS")
 }
 
@@ -50,11 +50,13 @@ def main():
     p = sys.argv[1]
     argparser = argparse.ArgumentParser()
     argparser.add_argument('-a', '--audio', required=False)
+    argparser.add_argument('-cl', '--correctionlevel', required=False)
     argparser.add_argument('-f', '--folder', required=False)
     argparser.add_argument('-jkz', required=False, nargs='?')
     argparser.add_argument('-plh', required=False, nargs='?')
+    argparser.add_argument('-punct', required=False, nargs='?')
     argparser.add_argument('-s', '--section', required=False)
-    argparser.add_argument('-cl', '--correctionlevel', required=False)
+    argparser.add_argument('-t', '--tag', required=False)
     args = argparser.parse_args(sys.argv[2:])
 
     try:
@@ -89,9 +91,14 @@ def main():
                         if args.section:
                             func = f"{procParam[-1]}(ff, section_type={args.section})"
                         elif args.plh:
-                            func = f"{procParam[-1]}(ff, False)"
+                            if args.punct:
+                                func = f"{procParam[-1]}(ff, need_placeholder=False, delete_punct=True)"
+                            else:
+                                func = f"{procParam[-1]}(ff, need_placeholder=False)"
                         elif args.correctionlevel:
                             func = f"{procParam[-1]}(ff, from_correction={args.correctionlevel})"
+                        elif args.tag:
+                            func = f"{procParam[-1]}(ff, {args.section})"
                         else:
                             func = f"{procParam[-1]}(ff)"
                     else:

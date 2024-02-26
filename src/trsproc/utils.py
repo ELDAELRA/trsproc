@@ -13,6 +13,7 @@ random.seed(42)
 import os, re
 import json
 import parselmouth
+from xml.etree import cElementTree as ElementTree
 
 # Custom imports
 from .parser import TRSParser
@@ -20,7 +21,7 @@ from .parser import TRSParser
 script_dir = os.path.dirname(__file__)
 
 #----------
-def importJson(json_input):
+def importJSON(json_input):
     """
     >_ json file
     >>> python dict
@@ -169,7 +170,7 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
     >>> update or creation of NE-dict for pre-annotation
     """
     try:
-        neSet = importJson(ne_dict)
+        neSet = importJSON(ne_dict)
         neDict = neSet[1]
         neSources = neSet[0]
         if ne_origin not in neSources:
@@ -205,7 +206,7 @@ def trsPreannotation(input_trs: TRSParser):
     if os.path.isfile(tableInfo):
         dictNE = createUpdateDictNE(tableInfo, dictNE, os.path.basename(input_trs.filepath))
     else:
-        dictNE = importJson(dictNE)
+        dictNE = importJSON(dictNE)
     #print(dictNE) #DEBUG
     #cpt = 0 #DEBUG
     list_ne_len1_plus = []
@@ -289,6 +290,53 @@ def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
                 trs_preannotated += f'{l}\n'
     with open(input_file, 'w', encoding='utf-8') as f_trs:
         f_trs.write(trs_preannotated)
+
+    return
+
+
+def addLangTag(input_trs: TRSParser, lang_to_add):
+    """
+    >_ TRS in which language tags must be annotated, language tag dictionary (JSON)
+    >>> TRS with new language tag annotation
+    """
+    try:
+        dicolang = importJSON(os.path.join(input_trs.filepath, "lang-tag.json"))
+    except FileNotFoundError:
+        dicolang = {}
+    output_trs, lang_open, lang_close = "", 0, 0
+    trs = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
+    trs_list = trs.split("\n")
+    for i in range(len(trs_list)):
+        l = trs_list[i]
+        if re.search("<Event.*", l):
+            et_s = ElementTree.fromstring(l)
+            if et_s.attrib['type'] == "language":
+                lang_s = et_s.attrib['desc']
+                ext_s = et_s.attrib['extent']
+                try:
+                    l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
+                except KeyError:
+                    pass
+        elif re.search("<Sync.*", l) and lang_open == lang_close:
+            if trs_list[i+1] != "":
+                l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
+                lang_open += 1
+            elif re.seach("<Event.*", trs_list[i+2]):
+                et_s = ElementTree.fromstring(trs_list[i+2])
+                if et_s.attrib['type'] in ["entities", "pronounce"]:
+                    l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
+                    lang_open += 1
+        elif re.search("</Turn.*", l) and lang_open>lang_close:
+            l=f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
+            lang_close +=1
+        output_trs += f"{l}\n"
+    if lang_open != lang_close:
+        print(f'{lang_open} open tags vs. {lang_close} closing tags')
+    path_out = os.path.join(input_trs.filepath, "lang")
+    os.makedirs(path_out, exist_ok=True)
+    file_output = os.path.join(path_out, f"{input_trs.filename}.trs")
+    with open(file_output, 'w', encoding='utf-8') as f_out:
+        f_out.write("".join(output_trs))
 
     return
 

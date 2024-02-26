@@ -40,7 +40,11 @@ trsproc -flag [-option [option_argument_if_needed]]
 
 * `-plh` must be specified if the processing of the `-txt` flag must only produce txt files.
 
+* `-punct` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replacingPunctuations(sentence)`.
+
 * `-s` or `--section` followed by the alternative target section name if the processing of the `-rpt` or `-tmp` flag must target a section other than the default one, i.e. "report".
+
+* `-t` or `--tag` followed by the alternative language to be added during the processing of the `-lang` flag.
 
 ### FLAGS
 
@@ -55,6 +59,8 @@ In case of incorrect flag the list of possible ones and their function will be p
   * `correctionMaj` corrects misplaced capiral letters.
 
 * `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
+
+* `-lang` adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named "lang-tag.json" in the same input folder.
 
 * `-pne` pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.
 
@@ -79,6 +85,8 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `-txt` creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.
 
 * `-vad` converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.
+
+* `-vsi-lang` produces a tabular file containing basic information abouth the language tags present in the input TRS.
 
 * `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
@@ -177,7 +185,7 @@ When the class is initiated only the TRS file path must be provided. parameters 
  
 * `parser.praatSNRforSegment(audio, seg_start, seg_end)` computes Signal-to-Noise ratio using Praat parselmouth formula on the selected start and end frames of the input audio signal.
  
-* `utils.importJson(json_input)` returns a Python dictionary from the input json file.
+* `utils.importJSON(json_input)` returns a Python dictionary from the input json file.
 
 * `utils.tmpReport(trs_input, section_type="report")` creates a tsv file containing the statistical information of the input TRS and the target section validation report with segments < 10s and pauses > 0.5s.
 
