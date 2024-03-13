@@ -366,9 +366,9 @@ class TRSParser():
         except FileNotFoundError:
          ## create a header if the table does not exist
             with open(tab_out, 'w', encoding='utf-8') as f:
-                f.write("file_name\tfile_path\tnb_spk\tnb_lang\tdur_tot\tdur_trans\tdur_nontrans\tdur_pronpi\tnb_seg\tnb_trans\tnb_nontrans\tnb_pronpi\tnb_words\tnb_NE")
+                f.write("file_name\tfile_path\tnb_spk\tnb_lang\tdur_tot\tdur_trans\tdur_nontrans\tdur_pronpi\tnb_seg\tnb_trans\tnb_nontrans\tnb_pronpi\tnb_words\tnb_NE\tmean_SNR")
         with open(tab_out, 'a', encoding='utf-8') as f_tsv:
-            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['oterhLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['durationPronPi']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}")
+            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['oterhLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['durationPronPi']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}")
     
         return 
 
@@ -437,7 +437,7 @@ class TRSParser():
         """
         tg_out = os.path.join(self.filepath, f"{self.filename}.TextGrid")
         nb_tiers = len(tiers_list)
-        nb_intervals = self.contents[0]['total']
+        nb_intervals = self.contents[0]['totalSegments']
         with open(tg_out, 'w', encoding='utf-8') as tg:
             tg.write(f'File type = "ooTextFile"\nObject class = "TextGrid"\n\nxmin = 0\nxmax = {self.fileduration}\ntiers? <exists>\nsize = {nb_tiers}\nitem []:')
             for tier_name in tiers_list:

@@ -19,12 +19,14 @@ pip install trsproc
 Some optional arguments are available for advanced processing.
 
 ```
-trsproc -flag [-option [option_argument_if_needed]]
+trsproc flag [-option [option_argument_if_needed]]
 ```
+
+**NB** `-h` produces a help summary including the possible arguments and the links to the documentation.
 
 * `-a` or `--audio` followed by the audio format used for the audio data corresponding to the input TRS if it is different from WAV.
 
-* `-cl` or `--correctionlevel` followed by the number corresponding to the correction applied to the original text according to the library [lexicalproc](https://github.com/ELDAELRA/lexicalproc "Work in progress"):
+* `-cl` or `--correctionlevel` followed by the number corresponding to the correction applied to the original text according to the ELDA's interlnal script lexicalproc:
   * 0, no corrections;
   * 1, custom spelling corrections (_csp);
   * 2, automatic spelling corrections (_sp);
@@ -36,59 +38,59 @@ trsproc -flag [-option [option_argument_if_needed]]
 
 * `-f` or `--folder` followed by a path allows to target the specified directory instead of the current one.
 
-* `-jkz` must be specified if the language to be processed in the input TRS does not use ASCII/Latin based characters.
+* `-jkz` or `--japkorzh` must be specified if the language to be processed in the input TRS does not use ASCII/Latin based characters.
 
-* `-plh` must be specified if the processing of the `-txt` flag must only produce txt files.
+* `-plh` or `--placeholder` must be specified if the processing of the `txt` flag must only produce txt files.
 
-* `-punct` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replacingPunctuations(sentence)`.
+* `-punct` or `--punctuation` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replacingPunctuations(sentence)`.
 
-* `-s` or `--section` followed by the alternative target section name if the processing of the `-rpt` or `-tmp` flag must target a section other than the default one, i.e. "report".
+* `-s` or `--section` followed by the alternative target section name if the processing of the `rpt` or `tmp` flag must target a section other than the default one, i.e. "report".
 
-* `-t` or `--tag` followed by the alternative language to be added during the processing of the `-lang` flag.
+* `-t` or `--tag` followed by the alternative language to be added during the processing of the `lang` flag.
 
 ### FLAGS
 
-In case of incorrect flag the list of possible ones and their function will be printed in the console. The same list will also appear if no flag is provided. 
+In case of incorrect flag the list of possible ones and their function will be printed in the console. The same list will also appear if no flag is provided.
 
-* `-cne` deletes the Named Entity annotations if any are present in the input TRS.
+* `cne` deletes the Named Entity annotations if any are present in the input TRS.
 
-* `-crt` applies specific corrections according to the function chosen from the prompted list.
+* `crt` applies specific corrections according to the function chosen from the prompted list.
   * `turnDifferenceTRS` search for differences in segmentation for the input TRS and its twin placed in a subfolder named "twin";
   * `trsEmptySpaceBeforeNE` adds an empty space before each NE annotation and save the new TRS in a separate subfolder;
-  * `correctionLà` corrects sentences ending with là in la. This needs the execution of `-txt` flag beforehand;
+  * `correctionLà` corrects sentences ending with là in la in the input txt. This needs the execution of `txt` flag beforehand;
   * `correctionMaj` corrects misplaced capiral letters.
 
-* `-ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
+* `ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
 
-* `-lang` adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named "lang-tag.json" in the same input folder.
+* `lang` adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named "lang-tag.json" in the same input folder.
 
-* `-pne` pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.
+* `pne` pre-annotates the input TRS using the table created in the `ne` flag as a custom annotation dictionnary.
 
-* `-prt` print the parsed TRS contents directly in the console.
+* `prt` print the parsed TRS contents directly in the console.
 
-* `-rpt` performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.
+* `rpt` performs the operations of the `tmp` and `vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.
 
-* `-rs` calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.
+* `rs` calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.
 
-* `-rsne` calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.
+* `rsne` calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.
 
-* `-tg` converts TRS files to TextGrid files.
+* `tg` converts TRS files to TextGrid files.
 
-* `-tgrs` converts TextGrid files to TRS files.
+* `tgrs` converts TextGrid files to TRS files.
 
-* `-tmp` creates TRS-temporary files in a directory named "tmp". By default, these files contain only the "report" section(s) of the original TRS.
+* `tmp` creates TRS-temporary files in a directory named "tmp". By default, these files contain only the "report" section(s) of the original TRS.
 
-* `-trs` rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.
+* `trs` rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.
 
-* `-tsv` produces a tabular file from with the structures and contents of the TRS files.
+* `tsv` produces a tabular file from with the structures and contents of the TRS files.
 
-* `-txt` creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.
+* `txt` creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.
 
-* `-vad` converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.
+* `vad` converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.
 
-* `-vsi-lang` produces a tabular file containing basic information abouth the language tags present in the input TRS.
+* `vsi-lang` produces a tabular file containing basic information abouth the language tags present in the input TRS.
 
-* `-vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
+* `vsi` produces a tabular file containing basic lexical information and statistics concerning the input TRS.
 
 ## IMPORTING AS A MODULE
 
