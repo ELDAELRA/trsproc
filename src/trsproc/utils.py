@@ -321,7 +321,7 @@ def addLangTag(input_trs: TRSParser, lang_to_add):
             if trs_list[i+1] != "":
                 l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
                 lang_open += 1
-            elif re.seach("<Event.*", trs_list[i+2]):
+            elif re.search("<Event.*", trs_list[i+2]):
                 et_s = ElementTree.fromstring(trs_list[i+2])
                 if et_s.attrib['type'] in ["entities", "pronounce"]:
                     l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'

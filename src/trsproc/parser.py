@@ -224,7 +224,7 @@ class TRSParser():
             open(tab_out).close()
         except FileNotFoundError:
             with open(tab_out, 'w', encoding='utf-8') as f:
-                f.wirte("file_name\tfile_path\tdur_tot\tdur_trans\tnb_seg\tnb_lang\tlanguage\tseg_id\tseg_start\tseg_end\tseg_dur")
+                f.write("file_name\tfile_path\tdur_tot\tdur_trans\tnb_seg\tnb_lang\tlanguage\tseg_id\tseg_start\tseg_end\tseg_dur")
         with open(tab_out, 'a', encoding='utf-8') as f:
             for s in self.contents:
                 if s not in ['NE', 0] and re.search(self[s]['content']):
@@ -368,7 +368,7 @@ class TRSParser():
             with open(tab_out, 'w', encoding='utf-8') as f:
                 f.write("file_name\tfile_path\tnb_spk\tnb_lang\tdur_tot\tdur_trans\tdur_nontrans\tdur_pronpi\tnb_seg\tnb_trans\tnb_nontrans\tnb_pronpi\tnb_words\tnb_NE\tmean_SNR")
         with open(tab_out, 'a', encoding='utf-8') as f_tsv:
-            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['oterhLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['durationPronPi']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}")
+            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['otherLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['durationPronPi']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}")
     
         return 
 
