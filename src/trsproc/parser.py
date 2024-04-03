@@ -227,8 +227,8 @@ class TRSParser():
                 f.write("file_name\tfile_path\tdur_tot\tdur_trans\tnb_seg\tnb_lang\tlanguage\tseg_id\tseg_start\tseg_end\tseg_dur")
         with open(tab_out, 'a', encoding='utf-8') as f:
             for s in self.contents:
-                if s not in ['NE', 0] and re.search(self[s]['content']):
-                    f.write(f"\n{self.filename}\t{self.filepath}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[s]['totalsegments']}\t{self.contents[0]['totalLang']}\t{self.contents[s]['content']}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}")
+                if s not in ['NE', 0] and re.search("lang", self.contents[s]['content']):
+                    f.write(f"\n{self.filename}\t{self.filepath}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalLang']}\t{self.contents[s]['content']}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}")
         
         return
 
