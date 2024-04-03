@@ -152,7 +152,7 @@ def main():
         docus = list(set(docus))
 
         if f in ['rs', 'rsne']:
-            func = f"{procParam[-1]}(docus, {args.folder})"
+            func = f"{procParam[-1]}(docus, \"{args.folder}\")"
             exec(func)
         else:
             if f == 'crt':
@@ -167,7 +167,7 @@ def main():
                     if procParam[2] == 'trs':
                         ff = parser.TRSParser(d, args.audio, langT)
                         if args.section:
-                            func = f"{procParam[-1]}(ff, section_type={args.section})"
+                            func = f"{procParam[-1]}(ff, section_type=\"{args.section}\")"
                         elif args.placeholder:
                             if args.punctuation:
                                 func = f"{procParam[-1]}(ff, need_placeholder=False, delete_punct=True)"
@@ -176,7 +176,7 @@ def main():
                         elif args.correctionlevel:
                             func = f"{procParam[-1]}(ff, from_correction={args.correctionlevel})"
                         elif args.tag:
-                            func = f"{procParam[-1]}(ff, {args.tag})"
+                            func = f"{procParam[-1]}(ff, \"{args.tag}\")"
                     else:
                         func = f"{procParam[-1]}(d)"
                     exec(func)
