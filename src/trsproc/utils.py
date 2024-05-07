@@ -112,8 +112,8 @@ def randomSampling(list_trs, save_path):
         for o in population_sample:
             f.write("\n{}".format("\t".join(o)))
             try:
-                sample_audio = parselmouth.Sound(o[2])
-                sample_audio = sample_audio.extract_part(population_sample[o][1], population_sample[o][4])
+                sample_audio = parselmouth.Sound(o[0] + ".wav")
+                sample_audio = sample_audio.extract_part(float(population_sample[o][1]), float(population_sample[o][4]))
                 sample_out = os.path.join(save_path, f"{population_sample[o][0]}_{o[1]}.wav")
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
@@ -152,8 +152,8 @@ def randomSamplingNE(list_trs, save_path):
         for o in population_sample:
             f.write("\n{}".format("\t".join(o)))
             try:
-                sample_audio = parselmouth.Sound(o[2])
-                sample_audio = sample_audio.extract_part(population_sample[o][1], population_sample[o][4])
+                sample_audio = parselmouth.Sound(o[0] + ".wav")
+                sample_audio = sample_audio.extract_part(float(population_sample[o][1]), float(population_sample[o][4]))
                 sample_out = os.path.join(save_path, f"{population_sample[o][0]}_NE-{o[1]}.wav")
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
