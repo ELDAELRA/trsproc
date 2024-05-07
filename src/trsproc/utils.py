@@ -138,7 +138,10 @@ def randomSamplingNE(list_trs, save_path):
             s = trs.contents['NE'][ne]['segmentID']
             spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
             spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
-            population[(trs.filename, ne)] = (trs.filename, str(trs.contents['NE'][ne]['xmin']), trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], str(ne), spk_name, spk_sex)
+            nb_ne = len([ne for ne in trs.contents['NE'] if trs.contents['NE'][ne]['segmentID'] == s])
+            if (trs.filename, s) not in population:
+                population[(trs.filename, s)] = []
+            population[(trs.filename, s)].append((trs.filename, str(trs.contents[s]['xmin']), trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(ne), str(trs.contents[s]['tokens']), str(nb_ne), spk_name, spk_sex))
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     if re.search("y", sample_use.lower()):
         population_sample = sampleFromDict(population, minimum_sample)
@@ -148,13 +151,14 @@ def randomSamplingNE(list_trs, save_path):
         population_sample = sampleFromDict(population, sample_size)
         tabSample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
     with open(tabSample, 'w', encoding='utf-8') as f:
-        f.write("file_name\tNE_start\tNE_class\ttranscription\tNE_class_correction\tcorrection\tNE_id\tspeaker_name\tspeaker_sex")
+        f.write("file_name\tsegment_start\tNE_class\tNE_content\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tNE_id\tnb_tokens\tnb_NE\tspeaker_name\tspeaker_sex")
         for o in population_sample:
-            f.write("\n{}".format("\t".join(o)))
+            for ne in o:
+                f.write("\n{}".format("\t".join(ne)))
             try:
-                sample_audio = parselmouth.Sound(o[0] + ".wav")
-                sample_audio = sample_audio.extract_part(float(population_sample[o][1]), float(population_sample[o][4]))
-                sample_out = os.path.join(save_path, f"{population_sample[o][0]}_NE-{o[1]}.wav")
+                sample_audio = parselmouth.Sound(o[0][0] + ".wav")
+                sample_audio = sample_audio.extract_part(float(population_sample[o][0][1]), float(population_sample[o][0][3]))
+                sample_out = os.path.join(save_path, f"{population_sample[o][0][0]}_NE-{o[0][1]}.wav")
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
