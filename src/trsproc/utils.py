@@ -96,8 +96,8 @@ def randomSampling(list_trs, save_path):
         trs = TRSParser(t)
         for s in trs.contents:
             if s not in ['NE', 0] and trs.contents[s]['content'] != "[nontrans]":
-                spk_name = trs.speakers[trs.contents[s]['speaker']][0]
-                spk_sex = trs.speakers[trs.contents[s]['speaker']][1]
+                spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
+                spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     if re.search("y", sample_use.lower()):
@@ -136,8 +136,8 @@ def randomSamplingNE(list_trs, save_path):
         trs = TRSParser(t)
         for ne in trs.contents['NE']:
             s = trs.contents['NE'][ne]['segmentID']
-            spk_name = trs.speakers[trs.contents[s]['speaker']][0]
-            spk_sex = trs.speakers[trs.contents[s]['speaker']][1]
+            spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
+            spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
             population[(trs.filename, ne)] = (trs.filename, str(trs.contents['NE'][ne]['xmin']), trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], str(ne), spk_name, spk_sex)
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     if re.search("y", sample_use.lower()):
