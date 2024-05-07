@@ -98,7 +98,7 @@ def randomSampling(list_trs, save_path):
             if s not in ['NE', 0] and trs.contents[s]['content'] != "[nontrans]":
                 spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
-                population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
+                population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     if re.search("y", sample_use.lower()):
         population_sample = sampleFromDict(population, minimum_sample)
@@ -108,12 +108,12 @@ def randomSampling(list_trs, save_path):
         population_sample = sampleFromDict(population, sample_size)
         tabSample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
     with open(tabSample, 'w', encoding='utf-8') as f:
-        f.write("file_name\tsegment_start\ttranscription\tcorrection\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR")
+        f.write("file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR")
         for o in population_sample:
             f.write("\n{}".format("\t".join(o)))
             try:
                 sample_audio = parselmouth.Sound(o[0] + ".wav")
-                sample_audio = sample_audio.extract_part(float(population_sample[o][1]), float(population_sample[o][4]))
+                sample_audio = sample_audio.extract_part(float(population_sample[o][1]), float(population_sample[o][3]))
                 sample_out = os.path.join(save_path, f"{population_sample[o][0]}_{o[1]}.wav")
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
