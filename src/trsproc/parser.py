@@ -124,7 +124,7 @@ class TRSParser():
                         break
                     elif s == "</Turn>":
                         seg_end = float(turn_end)
-                        break    
+                        break
                     elif re.search('<Event.*', s):
                         try:
                             et_s = ElementTree.fromstring(s)
@@ -145,8 +145,10 @@ class TRSParser():
                                 ne_dict[ne_id]['xmin'] = seg_start
                                 ne_dict[ne_id]['segmentID'] = seg_id
                                 ne_dict[ne_id]['content'] = trs_list[s_id+1]
-                        except ParseError:
-                            pass
+                        except ParseError as e:
+                            print(f"\N{WARNING SIGN} XML parsing error in {self.inputTRS} line {i}:")
+                            print("\t" + repr(e))
+                            print("Results might be incorrect.")
                     else:
                         seg_trans += s+"\n"
                 seg_trans = seg_trans.rstrip("\n")
