@@ -139,7 +139,6 @@ def randomSamplingNE(list_trs, save_path):
             spk_name = trs.speakers[trs.contents[s]['speaker']][0]
             spk_sex = trs.speakers[trs.contents[s]['speaker']][1]
             population[(trs.filename, ne)] = (trs.filename, str(trs.contents['NE'][ne]['xmin']), trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], str(ne), spk_name, spk_sex)
-        f.write("file_name\tNE_start\tNE_class\ttranscription\tNE_class_correction\tcorrection\tNE_id\tspeaker_name\tspeaker_sex")
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     if re.search("y", sample_use.lower()):
         population_sample = sampleFromDict(population, minimum_sample)
