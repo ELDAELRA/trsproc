@@ -90,7 +90,7 @@ def randomSampling(list_trs, save_path):
     """
     population_size = int(input("Enter population size\t"))
     minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
-    print(f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}")
+    print(f"Based on population size {population_size} minimum sample is: {minimum_sample}")
     population = {}
     for t in list_trs:
         trs = TRSParser(t)
@@ -118,7 +118,7 @@ def randomSampling(list_trs, save_path):
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
-    print(f"\N{BOOKMARK} Samples saved in {tabSample}")
+    print(f"Samples saved in {tabSample}")
 
     return
 
@@ -130,7 +130,7 @@ def randomSamplingNE(list_trs, save_path):
     """
     population_size = int(input("Enter population size\t"))
     minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
-    print(f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}")
+    print(f"Based on population size {population_size} minimum sample is: {minimum_sample}")
     population = {}
     for t in list_trs:
         trs = TRSParser(t)
@@ -162,7 +162,7 @@ def randomSamplingNE(list_trs, save_path):
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
-    print(f"\N{BOOKMARK} NE Samples saved in {tabSample}")
+    print(f"NE Samples saved in {tabSample}")
     
     return
 
@@ -178,10 +178,10 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
         neSources = neSet[0]
         if ne_origin not in neSources:
             neSources.append(ne_origin)
-            print(f'\N{CARD FILE BOX} Updating existing NE dict {ne_dict}...')
+            print(f'Updating existing NE dict {ne_dict}...')
     except FileNotFoundError:
         neSources, neDict = [ne_origin], {}
-        print(f'\N{CARD FILE BOX} Creating NE dict {ne_dict}...')
+        print(f'Creating NE dict {ne_dict}...')
     #print(neDict) #DEBUG
     tsv_input = open(table_info, 'r', encoding='utf-8').read()
     tsv_list = tsv_input.split("\n")
@@ -189,7 +189,7 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
         #file_name timecode NE_rank NE_type NE_content
         ne_type, ne_content = i.split("\t")[3], i.split("\t")[4]
         if ne_content in neDict.keys() and ne_type != neDict[ne_content]:
-            print(f'\N{WARNING SIGN} found new class "{ne_content}" : {neDict[ne_content]} vs. {ne_type}\n{i}')
+            print(f'found new class "{ne_content}" : {neDict[ne_content]} vs. {ne_type}\n{i}')
         else:
             neDict[ne_content] = ne_type
     neSet = [neSources, neDict]
@@ -232,7 +232,7 @@ def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
     trs_preannotated = ""
     trs_output = os.path.join(input_trs.filepath, "preannotated", f'{input_trs.filename}.trs')
     os.makedirs(os.path.join(input_trs.filepath, "preannotated"), exist_ok=True)
-    print(f'\N{CARD FILE BOX} Preannotating simple NE in {input_trs.filename}...')
+    print(f'Preannotating simple NE in {input_trs.filename}...')
     trs_input = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
     trs_list = trs_input.split("\n")
     for l in trs_list:
@@ -268,7 +268,7 @@ def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
     >>> TRS pre-annotated with NE of length 2+
     """
     trs_preannotated = ""
-    print(f'\N{CARD FILE BOX} Preannotating complex NE...')
+    print(f'Preannotating complex NE...')
     trs_input = open(input_file, 'r', encoding='utf-8').read()
     trs_list = trs_input.split("\n")
     for l in trs_list:
@@ -352,7 +352,7 @@ def turnDifferenceTRS(input_trs: TRSParser):
     """
     twin_trs_path = os.path.join(input_trs.filepath, "twins", f"{input_trs.filename}.trs")
     twin_trs = TRSParser(twin_trs_path)
-    print(f"\N{ABACUS} Searching for segmentation differences between {input_trs.filename} and {twin_trs.filename}")
+    print(f"Searching for segmentation differences between {input_trs.filename} and {twin_trs.filename}")
     for s in input_trs.contents:
         if s in [0, 'NE']:
             pass
@@ -375,7 +375,7 @@ def trsEmptySpaceBeforeNE(input_trs: TRSParser):
     output_trs = ""
     trs = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
     trs_list = trs.split("\n")
-    print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
+    print(f"Correcting {input_trs.filename}")
     for l in range(len(trs_list)):
         line = trs_list[l]
         if len(line) == 0 or re.search("<.*>", line):
@@ -420,7 +420,7 @@ def correctionLà(input_trs: TRSParser):
         txt_dump += f"{l}\n"
     with open(txt_output, 'w', encoding='utf-8') as f_txt:
             f_txt.write(txt_dump)
-    print(f'\N{CHECK MARK} Corrected {nb_la} misplaced "là" in {input_trs.filename}')
+    print(f'Corrected {nb_la} misplaced "là" in {input_trs.filename}')
 
     return
 
@@ -460,6 +460,6 @@ def correctionMaj(input_trs: TRSParser):
         txt_dump += f"{line}\n"
     with open(trs_output, 'w', encoding='utf-8') as f_out:
             f_out.write(txt_dump)
-    print(f'\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {input_trs.filename}')
+    print(f'Corrected {nb_maj} misplaced CAPITAL in {input_trs.filename}')
 
     return

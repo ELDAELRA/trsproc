@@ -146,7 +146,7 @@ class TRSParser():
                                 ne_dict[ne_id]['segmentID'] = seg_id
                                 ne_dict[ne_id]['content'] = trs_list[s_id+1]
                         except ParseError as e:
-                            print(f"\N{WARNING SIGN} XML parsing error in {self.inputTRS} line {i}:")
+                            print(f"XML parsing error in {self.inputTRS} line {i}:")
                             print("\t" + repr(e))
                             print("Results might be incorrect.")
                     else:
@@ -219,7 +219,7 @@ class TRSParser():
         >>> tsv with information about the languages spoken in the TRS
         """
         tab_out = os.path.join(self.filepath, f"summary_languages-{self.corpus}.tsv")
-        print(f"\N{CARD FILE BOX} Retriveving languages from {self.filename}")
+        print(f"Retriveving languages from {self.filename}")
         try:
             open(tab_out).close()
         except FileNotFoundError:
@@ -239,7 +239,7 @@ class TRSParser():
         >>> txt file having transcribed text
         >>> if need_placeholder=True, trs with [placeholder x] where x = index from the txt list for TRS rewriting
         """
-        print(f"\N{LINKED PAPERCLIPS} Processing {self.filename}...")
+        print(f"Processing {self.filename}...")
         output_txt, output_trs_plh, placeholder = "", "", 0
         trs = open(self.inputTRS, encoding='utf-8').read()
         trs_list = trs.split("\n")
@@ -298,7 +298,7 @@ class TRSParser():
         trs_list = trs_input.split("\n")
         txt_input = open(txt_input, encoding='utf-8').read()
         txt_list = txt_input.split("\n")
-        print(f"\N{PACKAGE} Re-writing {txt_name}...")
+        print(f"Re-writing {txt_name}...")
         for l in trs_list:
             if len(l) == 0 or re.search("<.*>", l):
                 output_trs_correct += f"{l}\n"
@@ -327,7 +327,7 @@ class TRSParser():
         trs_input = open(self.inputTRS, encoding='utf-8').read()
         trs_list = trs_input.split("\n")
         output_trs_cleaned = trs_list[0]
-        print(f"\N{PACKAGE} Cleaning {file_name}...")
+        print(f"Cleaning {file_name}...")
         for i in range(1, len(trs_list)):
             l = trs_list[i]
             if re.search("<.*>", l):
@@ -360,7 +360,7 @@ class TRSParser():
         >>> validation table with technical info about TRS
         """
         tab_out = os.path.join(self.filepath, f"summary_validation-{self.corpus}.tsv")
-        print(f"\N{CARD FILE BOX} Retrieving information from {self.filename}...")
+        print(f"Retrieving information from {self.filename}...")
         try:
             open(tab_out).close()
         except FileNotFoundError:
@@ -379,7 +379,7 @@ class TRSParser():
         >>> tsv file representing the origin TRS
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}.tsv")
-        print(f"\N{CARD FILE BOX} Creating tsv from {self.filename}...")
+        print(f"Creating tsv from {self.filename}...")
         try:
             open(tab_out).close()
         except FileNotFoundError:
@@ -405,7 +405,7 @@ class TRSParser():
         """
         tg_path, tg_name = os.path.split(input_tg)
         tg_name = tg_name.split(".")[0]
-        print(f"\N{MOUTH} Writing TRS from tg {tg_name}...")
+        print(f"Writing TRS from tg {tg_name}...")
         grid = textgrids.TextGrid(input_tg)
      ## Create textgrid object from input file
         grid_xmax = round(grid["VAD"][-1].xmax, 3)
@@ -483,7 +483,7 @@ class TRSParser():
         trans = os.path.basename(tg_path)
         grid = textgrids.TextGrid(input_tg)
      ## Create textgrid object from input file
-        print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
+        print(f"Writing TRS from tg {tg_name}...")
         grid_xmax = grid["transcription"][-1].xmax
         trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
         trs_preamble_spk = '<Speakers>\n'
@@ -530,7 +530,7 @@ class TRSParser():
         >>> tsv with NE annotation information
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}_NE_extraction.tsv")
-        print(f"\N{CARD FILE BOX} Retrieving NE from {self.filename}...")
+        print(f"Retrieving NE from {self.filename}...")
         try:
             open(tab_out).close()
         except FileNotFoundError:
@@ -556,7 +556,7 @@ class TRSParser():
         >_ TRS file with specific section to be extracted
         >>> temporary TRS only retaining the target section
         """
-        print(f"\N{BULLSEYE} Extracting '{section_type}' Section from {self.filename}...")
+        print(f"Extracting '{section_type}' Section from {self.filename}...")
         file_tmp_list, nb_target = [], 0
         path_tmp = os.path.join(self.filepath, "tmp")
         os.makedirs(path_tmp, exist_ok=True)
