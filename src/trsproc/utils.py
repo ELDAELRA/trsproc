@@ -386,7 +386,7 @@ def trsEmptySpaceBeforeNE(input_trs: TRSParser):
                 line = " " + line
         line = line.replace("  ", " ")
         output_trs += f"{line}\n"
-    path_correction = os.path.join(input_trs.filepath, "correction", "NE")
+    path_correction = os.path.join(input_trs.filepath, "corrections", "NE")
     os.makedirs(path_correction, exist_ok=True)
     file_output = os.path.join(path_correction, f"{input_trs.filename}.trs")
     with open(file_output, 'w', encoding='utf-8') as f_txt:
