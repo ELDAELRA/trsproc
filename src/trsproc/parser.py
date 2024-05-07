@@ -84,7 +84,7 @@ class TRSParser():
         """
         seg_dict, seg_id, seg_start, seg_end = {}, 0, 0, 0
         nb_nontrans, nb_pronpi, nb_lang, nb_words = 0, 0, 0, 0
-        dur_trans, dur_nontrans, dur_pronpi, dur_other_lang = 0, 0, 0, 0
+        dur_trans, dur_nontrans, dur_other_lang = 0, 0, 0
         langs = []
         turn_id, turn_end = 0, 0
         ne_dict, ne_id = {}, 0
@@ -131,7 +131,8 @@ class TRSParser():
                             if et_s.attrib['desc'] == "nontrans":
                                 seg_trans = "[nontrans]"
                             elif et_s.attrib['desc'] == "pi":
-                                seg_trans = "[pronpi]"
+                                nb_pronpi += 1
+                                seg_trans += "[pronpi]"
                             if et_s.attrib['type'] == "language":
                                 nb_lang += 1
                                 lang_oth = et_s.attrib['desc']
@@ -174,9 +175,6 @@ class TRSParser():
                 if seg_dict[x]['content'] in ["", '[nontrans]']:
                     dur_nontrans += seg_dict[x]['duration']
                     nb_nontrans += 1
-                elif seg_dict[x]['content'] == '[pronpi]':
-                    dur_pronpi += seg_dict[x]['duration']
-                    nb_pronpi += 1
                 elif re.search("lang=", seg_dict[x]['content']):
                     dur_other_lang += seg_dict[x]['duration']
                 else:
@@ -192,10 +190,9 @@ class TRSParser():
         seg_dict[0]['totalTrans'] = seg_id-(nb_nontrans+nb_pronpi)
         seg_dict[0]['totalLang'] = nb_lang
         seg_dict[0]['otherLang'] = set(langs)
-        seg_dict[0]['duration'] = round(dur_trans+dur_nontrans+dur_pronpi, 3)
+        seg_dict[0]['duration'] = round(dur_trans+dur_nontrans, 3)
         seg_dict[0]['durationTrans'] = round(dur_trans, 3)
         seg_dict[0]['durationNonTrans'] = round(dur_nontrans, 3)
-        seg_dict[0]['durationPronPi'] = round(dur_pronpi, 3)
         try:
             seg_dict[0]['meanSNR'] = praatSNRforSegment(self.audiofile, 0, self.fileduration)
         except parselmouth.PraatError:
@@ -366,9 +363,9 @@ class TRSParser():
         except FileNotFoundError:
          ## create a header if the table does not exist
             with open(tab_out, 'w', encoding='utf-8') as f:
-                f.write("file_name\tfile_path\tnb_spk\tnb_lang\tdur_tot\tdur_trans\tdur_nontrans\tdur_pronpi\tnb_seg\tnb_trans\tnb_nontrans\tnb_pronpi\tnb_words\tnb_NE\tmean_SNR")
+                f.write("file_name\tfile_path\tnb_spk\tnb_lang\tdur_tot\tdur_trans\tdur_nontrans\tnb_seg\tnb_trans\tnb_nontrans\tnb_pronpi\tnb_words\tnb_NE\tmean_SNR")
         with open(tab_out, 'a', encoding='utf-8') as f_tsv:
-            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['otherLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['durationPronPi']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}")
+            f_tsv.write(f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['otherLang'])+1}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}")
     
         return 
 

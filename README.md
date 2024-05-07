@@ -150,7 +150,6 @@ When the class is initiated only the TRS file path must be provided. parameters 
     * `contents[0]['duration']` returns the total duration of the segments having transcription, pi and nontrans annotations.
     * `contents[0]['durationTrans']` returns the duration of the transcribed segments.
     * `contents[0]['durationNonTrans']` returns the duration of the nontrans segments.
-    * `contents[0]['durationPronPi']` returns the duration of the pi segments.
     * `contents[0]['meanSNR']` returns the mean SNR of the audio file or `'NA'` if it fails to compute it.
     
 #### Functions
