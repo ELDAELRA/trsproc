@@ -175,7 +175,7 @@ class TRSParser():
         #print(f'\tTotal NE {ne_dict}') ### DEBUG
         for x in seg_dict:
             if x not in ['NE', 0]:
-                if seg_dict[x]['content'] in ["", '[nontrans]']:
+                if seg_dict[x]['content'].strip() in ["", '[nontrans]']:
                     dur_nontrans += seg_dict[x]['duration']
                     nb_nontrans += 1
                 elif re.search("lang=", seg_dict[x]['content']):
