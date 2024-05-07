@@ -152,6 +152,7 @@ class TRSParser():
                     else:
                         seg_trans += s+"\n"
                 seg_trans = seg_trans.rstrip("\n")
+                seg_trans = re.sub(r' +', ' ', seg_trans)
                 seg_tokens = len(seg_trans.strip().split(" "))
                 if self.lang == "jkz":
                     for st in seg_trans:
