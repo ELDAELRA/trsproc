@@ -140,14 +140,19 @@ def main():
     argparser.add_argument('-t', '--tag', required=False, help="language to be added for the `lang` flag.")
     args = argparser.parse_args()
 
-    try:
-        if args.japkorzh:
-            langT = 'jkz'
-        else:
-            langT = 'eu'
+    if args.japkorzh:
+        langT = 'jkz'
+    else:
+        langT = 'eu'
 
-        f = args.flag
-        procParam = FLAGS[f]
+    f = args.flag
+    procParam = FLAGS.get(f)
+
+    if not procParam:
+        print(f"Invalid flag, Please choose from the list below and call the program again:")
+        for p in FLAGS:
+            print(f"{p} -> {FLAGS[p][0]}")
+    else:
         docus = sorted(glob.glob(os.path.join(args.folder, f'*.{procParam[2]}')))
         docus = list(set(docus))
 
@@ -181,10 +186,6 @@ def main():
                         func = f"{procParam[-1]}(d)"
                     exec(func)
             console.print(status)
-    except KeyError:
-        print(f"Invalid flag, Please choose from the list below and call the program again:")
-        for p in FLAGS:
-            print(f"{p} -> {FLAGS[p][0]}")
 
     print("--- %s sec taken ---" % round((time.time() - start_time), 2))
 
