@@ -19,7 +19,7 @@ def replacingPunctuations(sentence):
     >>> original sentence without punctuation
     """
     sentence = sentence.strip()
-    punct_list = ["\ufeff", "\u00A0", "\u2019", ".", ",", ":", ";", "!", '"', "/", "\\", "%", "'"]
+    punct_list = ["\ufeff", "\u00A0", "\u2019", ".", ",", ":", ";", "!", '"', "/", "\\"]
     for t in punct_list:
         sentence = sentence.replace(t, "")
 
