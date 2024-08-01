@@ -86,6 +86,7 @@ class TRSParser():
         nb_nontrans, nb_pronpi, nb_lang, nb_words = 0, 0, 0, 0
         dur_trans, dur_nontrans, dur_other_lang = 0, 0, 0
         langs = []
+        lang_dict = {}
         turn_id, turn_end = 0, 0
         ne_dict, ne_id = {}, 0
         trs = open(self.inputTRS, encoding='utf-8').read()
@@ -123,6 +124,7 @@ class TRSParser():
                         seg_end = float(ElementTree.fromstring(s).attrib['time'])
                         break
                     elif s == "</Turn>":
+                        langs = []
                         seg_end = float(turn_end)
                         break
                     elif re.search('<Event.*', s):
@@ -136,8 +138,13 @@ class TRSParser():
                             if et_s.attrib['type'] == "language":
                                 nb_lang += 1
                                 lang_oth = et_s.attrib['desc']
-                                langs.append(lang_oth)
-                                seg_trans = f'[lang={lang_oth}]'
+                                if et_s.attrib['extent'] == "begin":
+                                    langs.append(lang_oth)
+                                    seg_trans = f'[lang={lang_oth}-]'
+                                elif et_s.attrib['extent'] == "end":
+                                    seg_trans = f'[-lang={lang_oth}]'
+                                    if len(langs) > 0:
+                                        langs.pop()
                             elif et_s.attrib['type'] == "entities" and et_s.attrib['extent'] == "begin":
                                 ne_id += 1
                                 ne_dict[ne_id] = {}
@@ -151,6 +158,11 @@ class TRSParser():
                             print("Results might be incorrect.")
                     else:
                         seg_trans += s+"\n"
+                        if langs:
+                            cur_lang = langs[-1]
+                            if cur_lang not in lang_dict:
+                                lang_dict[cur_lang] = set()
+                            lang_dict[cur_lang].add(seg_id)
                 seg_trans = seg_trans.rstrip("\n")
                 seg_trans = re.sub(r' +', ' ', seg_trans)
                 seg_tokens = len(re.sub(r'\[[^\[\]]+\]', '', seg_trans).strip().split(" ")) if seg_trans.strip() else 0
@@ -167,6 +179,7 @@ class TRSParser():
                 seg_dict[seg_id]['tokens'] = seg_tokens
                 seg_dict[seg_id]['content'] = seg_trans.replace('\n', '')
                 seg_dict[seg_id]['speaker'] = turn_spk
+                seg_dict[seg_id]['langs'] = [lang for lang in lang_dict if seg_id in lang_dict[lang]]
                 try:
                     seg_dict[seg_id]['SNR'] = praatSNRforSegment(self.audiofile, seg_start, seg_end)
                 except parselmouth.PraatError:
@@ -178,7 +191,7 @@ class TRSParser():
                 if seg_dict[x]['content'].strip() in ["", '[nontrans]']:
                     dur_nontrans += seg_dict[x]['duration']
                     nb_nontrans += 1
-                elif re.search("lang=", seg_dict[x]['content']):
+                elif seg_dict[x]['langs']:
                     dur_other_lang += seg_dict[x]['duration']
                 else:
                     nb_words += seg_dict[x]['tokens']
@@ -192,7 +205,7 @@ class TRSParser():
         seg_dict[0]['totalPronPi'] = nb_pronpi
         seg_dict[0]['totalTrans'] = seg_id-(nb_nontrans+nb_pronpi)
         seg_dict[0]['totalLang'] = nb_lang
-        seg_dict[0]['otherLang'] = set(langs)
+        seg_dict[0]['otherLang'] = set(lang_dict.keys())
         seg_dict[0]['duration'] = round(dur_trans+dur_nontrans, 3)
         seg_dict[0]['durationTrans'] = round(dur_trans, 3)
         seg_dict[0]['durationNonTrans'] = round(dur_nontrans, 3)
@@ -224,11 +237,11 @@ class TRSParser():
             open(tab_out).close()
         except FileNotFoundError:
             with open(tab_out, 'w', encoding='utf-8') as f:
-                f.write("file_name\tfile_path\tdur_tot\tdur_trans\tnb_seg\tnb_lang\tlanguage\tseg_id\tseg_start\tseg_end\tseg_dur")
+                f.write("file_name\tfile_path\tdur_tot\tdur_trans\tnb_seg\tnb_lang\tlanguages\tseg_id\tseg_start\tseg_end\tseg_dur")
         with open(tab_out, 'a', encoding='utf-8') as f:
             for s in self.contents:
-                if s not in ['NE', 0] and re.search("lang", self.contents[s]['content']):
-                    f.write(f"\n{self.filename}\t{self.filepath}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalLang']}\t{self.contents[s]['content']}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}")
+                if s not in ['NE', 0] and self.contents[s]['langs']:
+                    f.write(f"\n{self.filename}\t{self.filepath}\t{self.fileduration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalLang']}\t{' '.join(self.contents[s]['langs'])}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}")
         
         return
 
