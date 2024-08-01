@@ -306,35 +306,38 @@ def addLangTag(input_trs: TRSParser, lang_to_add):
         dicolang = importJSON(os.path.join(input_trs.filepath, "lang-tag.json"))
     except FileNotFoundError:
         dicolang = {}
-    output_trs, lang_open, lang_close = "", 0, 0
+    output_trs = ""
     trs = open(input_trs.inputTRS, 'r', encoding='utf-8').read()
     trs_list = trs.split("\n")
+    seen_sync = 0
+    prev_nontrans = False
+    prev_other_lang = False
     for i in range(len(trs_list)):
         l = trs_list[i]
-        if re.search("<Event.*", l):
+        if re.search("<Sync.*", l):
+          seen_sync += 1
+          if seen_sync > 1 and not prev_other_lang:
+            l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
+          if 'nontrans' in trs_list[i+1]:
+            prev_nontrans = True
+          elif '<Event' and 'language' in trs_list[i+1]:
+            prev_other_lang = True
+          else:
+            l = f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
+            prev_nontrans = False
+            prev_other_lang = False
+        elif re.search("</Turn>", l):
+          seen_sync = 0
+          if not prev_nontrans and not prev_other_lang:
+            l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
+        elif re.search("<Event.*", l):
             et_s = ElementTree.fromstring(l)
             if et_s.attrib['type'] == "language":
                 lang_s = et_s.attrib['desc']
                 ext_s = et_s.attrib['extent']
-                try:
+                if lang_s in dicolang:
                     l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
-                except KeyError:
-                    pass
-        elif re.search("<Sync.*", l) and lang_open == lang_close:
-            if trs_list[i+1] != "":
-                l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
-                lang_open += 1
-            elif re.search("<Event.*", trs_list[i+2]):
-                et_s = ElementTree.fromstring(trs_list[i+2])
-                if et_s.attrib['type'] in ["entities", "pronounce"]:
-                    l =f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
-                    lang_open += 1
-        elif re.search("</Turn.*", l) and lang_open>lang_close:
-            l=f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
-            lang_close +=1
         output_trs += f"{l}\n"
-    if lang_open != lang_close:
-        print(f'{lang_open} open tags vs. {lang_close} closing tags')
     path_out = os.path.join(input_trs.filepath, "lang")
     os.makedirs(path_out, exist_ok=True)
     file_output = os.path.join(path_out, f"{input_trs.filename}.trs")
