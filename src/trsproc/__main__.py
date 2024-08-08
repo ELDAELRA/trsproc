@@ -21,107 +21,107 @@ FLAGS = {
         "deletes the Named Entity annotations if any are present in the input TRS.",
         "Cleaning NE annotation from TRS in",
         'trs',
-        'parser.TRSParser.cleanNEfromTRS'),
+        parser.TRSParser.cleanNEfromTRS),
     'crt':(
         "Correction de TRS selon problèmes rencontrées",
         "TRS custom correction in",
         'trs',
-        'None'),
+        None),
     'lang':(
         "adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named \"lang-tag.json\" in the same input folder.",
         "Adding language tags to",
         'trs',
-        'utils.addLangTag'),
+        utils.addLangTag),
     'ne':(
         "extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.",
         "NE extraction from",
         'trs',
-        'parser.TRSParser.retrieveNEToTsv'),
+        parser.TRSParser.retrieveNEToTsv),
     'pne':(
         "pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.",
         "NE pre-annotation for TRS in",
         'trs',
-        'utils.trsPreannotation'),
+        utils.trsPreannotation),
     'prt':(
         "print the parsed TRS contents directly in the console.",
         "Printing TRS contents",
         'trs',
-        'parser.TRSParser.print'),
+        parser.TRSParser.print),
     'rpt':(
         "performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.",
         "Creating validation report for target Section",
         'trs',
-        'utils.tmpReport'),
+        utils.tmpReport),
     'rs':(
         "calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.",
         "Extracting random segments from",
         'trs',
-        'utils.randomSampling'),
+        utils.randomSampling),
     'rsne':(
         "calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.",
         "Extracting random NE from",
         'trs',
-        'utils.randomSamplingNE'),
+        utils.randomSamplingNE),
     'tg':(
         "converts TRS files to TextGrid files.",
         "Converting to TextGrid in",
         'trs',
-        'parser.TRSParser.trsToTextGrid'),
+        parser.TRSParser.trsToTextGrid),
     'tgrs':(
         "converts TextGrid files to TRS files.",
         "Converting TextGrid to TRS in",
         'TextGrid',
-        'parser.TRSParser.textGridToTRS'),
+        parser.TRSParser.textGridToTRS),
     'tmp':(
         "creates TRS-temporary files in a directory named \"tmp\". By default, these files contain only the target section(s) of the original TRS.",
         "Writing temporary TRS in",
         'trs',
-        'parser.TRSParser.trsTMP'),
+        parser.TRSParser.trsTMP),
     'trs':(
         "rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.",
         "Re-writing TRS in",
         'txt',
-        'parser.TRSParser.txtToTrs'),
+        parser.TRSParser.txtToTrs),
     'tsv':(
         "produces a tabular file with the structures and contents of the TRS files.",
         "Writing tsv from TRS in",
         'trs',
-        'parser.TRSParser.trsToTsv'),
+        parser.TRSParser.trsToTsv),
     'txt':(
         "creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.",
         "Extracting txt (and TRS-placeholder) in",
         'trs',
-        'parser.TRSParser.trsToTxt'),
+        parser.TRSParser.trsToTxt),
     'vad':(
         "converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.",
         "Converting TextGrid-VAD in",
         'TextGrid',
-        'parser.TRSParser.vadToTRS'),
+        parser.TRSParser.vadToTRS),
     'vsi-lang':(
         "produces a tabular file containing basic information abouth the language tags present in the input TRS.",
         "Language summary from",
         'trs',
-        'parser.TRSParser.summaryLangTRS'),
+        parser.TRSParser.summaryLangTRS),
     'vsi':(
         "produces a tabular file containing basic lexical information and statistics concerning the input TRS.",
         "Extracting TRS statistics in",
         'trs',
-        'parser.TRSParser.validateTRS')
+        parser.TRSParser.validateTRS)
 }
 
 CORRECTIONS = {
     1:('turnDifferenceTRS',
        "search for differences in segmentation for the input TRS and its twin placed in a subfolder named \"twin\".",
-       'utils.turnDifferenceTRS'),
+       utils.turnDifferenceTRS),
     2:('trsEmptySpaceBeforeNE',
        "adds an empty space before each NE annotation and save the new TRS in a separate subfolder",
-       'utils.trsEmptySpaceBeforeNE'),
+       utils.trsEmptySpaceBeforeNE),
     3:('correctionLà',
        "corrects sentences ending with là in la. This needs the execution of -txt flag beforehand.",
-       'utils.correctionLà'),
+       utils.correctionLà),
     4:('correctionMaj',
        "corrects misplaced capiral letters.",
-       'utils.correctionMaj')
+       utils.correctionMaj)
 }
 
 #----------
@@ -156,35 +156,37 @@ def main():
         docus = sorted(glob.glob(os.path.join(args.folder, f'*.{procParam[2]}')))
         docus = list(set(docus))
 
+        func = procParam[-1]
+        fkwargs = {} # keyword arguments for the function
+
         if f in ['rs', 'rsne']:
-            func = f"{procParam[-1]}(docus, \"{args.folder}\")"
-            exec(func)
+            func(docus, args.folder)
         else:
             if f == 'crt':
                 for c in CORRECTIONS:
                     print(f"{c} -> {CORRECTIONS[c][0]}, {CORRECTIONS[c][1]}")
                 funChoice = int(input("Insert the desired correction function number (list above)\t"))
-                func = f"{CORRECTIONS[funChoice][-1]}(ff)"
-            else:
-                func = f"{procParam[-1]}(ff)"
-            with console.status(f"{procParam[1]} {args.folder} with {len(docus)} files", spinner='point') as status:
+                func = CORRECTIONS[funChoice][-1]
+
+            if args.section:
+                fkwargs = {'section_type': args.section}
+            elif args.placeholder:
+                fkwargs = {'need_placeholder': False}
+                if args.punctuation:
+                    fkwargs['delete_punct'] = True
+            elif args.correctionlevel:
+                fkwargs = {'from_correction': args.correctionlevel}
+
+            with console.status(f"{func.__qualname__} {args.folder} with {len(docus)} files", spinner='point') as status:
                 for d in docus:
                     if procParam[2] == 'trs':
                         ff = parser.TRSParser(d, args.audio, langT)
-                        if args.section:
-                            func = f"{procParam[-1]}(ff, section_type=\"{args.section}\")"
-                        elif args.placeholder:
-                            if args.punctuation:
-                                func = f"{procParam[-1]}(ff, need_placeholder=False, delete_punct=True)"
-                            else:
-                                func = f"{procParam[-1]}(ff, need_placeholder=False)"
-                        elif args.correctionlevel:
-                            func = f"{procParam[-1]}(ff, from_correction={args.correctionlevel})"
-                        elif args.tag:
-                            func = f"{procParam[-1]}(ff, \"{args.tag}\")"
+                        fargs = (ff,)
+                        if args.tag:
+                            fargs += (args.tag,)
                     else:
-                        func = f"{procParam[-1]}(d)"
-                    exec(func)
+                        fargs = (d,)
+                    func(*fargs, **fkwargs)
             console.print(status)
 
     print("--- %s sec taken ---" % round((time.time() - start_time), 2))
