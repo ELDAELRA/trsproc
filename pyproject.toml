@@ -4,10 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trsproc"
-version = "2.0.4"
+version = "2.0.5"
 description = "A Python library to process Transcriber TRS files"
 readme = "README.md"
 authors = [{ name = "Gabriele Chingoli", email = "gabriele@elda.org" }]
+maintainers = [{ name = "Inae Song", email = "inae@elda.org" }]
 license = { file = "LICENSE" }
 classifiers = [
     "License :: OSI Approved :: MIT License",
