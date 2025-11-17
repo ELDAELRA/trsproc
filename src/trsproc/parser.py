@@ -171,7 +171,6 @@ class TRSParser():
                             if cur_lang not in lang_dict:
                                 lang_dict[cur_lang] = set()
                             lang_dict[cur_lang].add(seg_id)
-
                 seg_trans = seg_trans.rstrip("\n")
                 seg_trans = re.sub(r' +', ' ', seg_trans)
                 seg_tokens = len(re.sub(r'\[[^\[\]]+\]', '', seg_trans).strip().split(" ")) if seg_trans.strip() else 0
@@ -181,7 +180,6 @@ class TRSParser():
                 else:
                     seg_tokens += len(seg_trans.split("'"))-1
                 seg_dur = round(seg_end-seg_start, 3)
-
                 seg_dict[seg_id]['xmin'] = seg_start
                 seg_dict[seg_id]['xmax'] = seg_end
                 seg_dict[seg_id]['duration'] = seg_dur
@@ -405,9 +403,6 @@ class TRSParser():
 
 
     def trsToTsv(self):
-
-        print("this")
-        print("speakers", self.speakers)
         """
         >_ TRS file 
         >>> tsv file representing the origin TRS
