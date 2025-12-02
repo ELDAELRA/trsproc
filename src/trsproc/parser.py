@@ -94,7 +94,6 @@ class TRSParser():
         for i in range(len(trs_list)):
             l = trs_list[i]
             if re.search("<Turn.*>", l):
-                parent = "Turn"
              # Turn info is not stored, only used for segment end times and speakers
                 turn_trans = ""
                 turn_trans = l
@@ -111,41 +110,36 @@ class TRSParser():
                     turn_spk = et_turn.attrib['speaker']
                 except KeyError:
                     turn_spk = 'NA'
-                #print(f'TURN {turn_id} from {turn_start} to {turn_end}') ### DEBUG
-            elif re.search("(<Sync.*>)|(<Who[^>]+>)", l):
+
+            elif re.search("(<Sync.*>)", l): 
              # Segment info retrieved starting here
                 seg_id += 1
-                
-                
                 seg_trans = ''
                 seg_line = ElementTree.fromstring(l) #Acces attributes of a line as in root
                 seg_dict[seg_id] = {}
                 if re.search("<Sync.*>", l):
-                    parent      = "Sync"
+                    spk_type = "single"
                     seg_start = float(seg_line.attrib['time'])
-                elif re.search("<Who.*>", s):
-                    parent      = "Who"
-                    turn_spk = "spk"+(ElementTree.fromstring(s).attrib['nb'])
-                         
+                
                 for s_id in range(i+1, len(trs_list)):
                     s = trs_list[s_id]
                     if re.search("<Sync.*>", s):
-                        parent      = "Sync"
                         seg_end = float(ElementTree.fromstring(s).attrib['time'])
-                        break
-                    
-                    elif re.search("<Who.*>", s):
                         break
                     
                     elif s == "</Turn>":
                         langs = []
                         seg_end = float(turn_end)
                         break
+
+                    elif re.search("<Who.*>", s):
+                        spk_type = "multi"
+
                     elif re.search('<Event.*', s):
                         try:
                             et_s = ElementTree.fromstring(s)
                             if et_s.attrib['desc'] == "nontrans":
-                                seg_trans = "[nontrans]"
+                                seg_trans += "[nontrans]"
                             elif et_s.attrib['desc'] == "pi":
                                 nb_pronpi += 1
                                 seg_trans += "[pronpi]"
@@ -177,6 +171,7 @@ class TRSParser():
                             if cur_lang not in lang_dict:
                                 lang_dict[cur_lang] = set()
                             lang_dict[cur_lang].add(seg_id)
+
                 seg_trans = seg_trans.rstrip("\n")
                 seg_trans = re.sub(r' +', ' ', seg_trans)
                 seg_tokens = len(re.sub(r'\[[^\[\]]+\]', '', seg_trans).strip().split(" ")) if seg_trans.strip() else 0
@@ -187,43 +182,34 @@ class TRSParser():
                     seg_tokens += len(seg_trans.split("'"))-1
                 seg_dur = round(seg_end-seg_start, 3)
 
-
-                #print(f"!!! SEGMENT {seg_id} from {seg_start} to {seg_end} = {seg_trans}") ### DEBUG
-                seg_dict[seg_id]['parent'] = parent
                 seg_dict[seg_id]['xmin'] = seg_start
                 seg_dict[seg_id]['xmax'] = seg_end
                 seg_dict[seg_id]['duration'] = seg_dur
                 seg_dict[seg_id]['tokens'] = seg_tokens
-                seg_dict[seg_id]['content'] = seg_trans.replace('\n', '')
+                seg_dict[seg_id]['content'] = re.sub(r'\s*\n\s*', ' ', seg_trans).strip()
+                seg_dict[seg_id]['speaker_type'] = spk_type
                 seg_dict[seg_id]['speaker'] = turn_spk
                 seg_dict[seg_id]['langs'] = [lang for lang in lang_dict if seg_id in lang_dict[lang]]
                 try:
                     seg_dict[seg_id]['SNR'] = praatSNRforSegment(self.audiofile, seg_start, seg_end)
                 except parselmouth.PraatError:
                     seg_dict[seg_id]['SNR'] = 'NA'
-        #print(f'Total SEGMENTS {seg_dict}') ### DEBUG
-        #print(f'\tTotal NE {ne_dict}') ### DEBUG
-        
 
-        for  i in range(1, len(seg_dict)):
-            if seg_dict[i].get("parent") == "Sync" and seg_dict[i+1].get("parent") == "Who":
-                # delet this Sync seg
-                del seg_dict[i]
-        # enumerate the segments
-        seg_dict = dict({k:v for k,v in enumerate(seg_dict.values(), start=1)})
-            
         
         for x in seg_dict:
             if x not in ['NE', 0]:
-           
-                    if seg_dict[x]['content'].strip() in ["", '[nontrans]']:
-                        dur_nontrans += seg_dict[x]['duration']
-                        nb_nontrans += 1
-                    elif seg_dict[x]['langs']:
-                        dur_other_lang += seg_dict[x]['duration']
-                    else:
-                        nb_words += seg_dict[x]['tokens']
-                        dur_trans += seg_dict[x]['duration']
+                content = seg_dict[x]['content'].strip()
+                if not content or re.fullmatch(r'(\[[^\[\]]+\])+$', content):
+                    dur_nontrans += seg_dict[x]['duration']
+                    nb_nontrans += 1
+                elif seg_dict[x]['speaker_type'].strip() == "multi":
+                    dur_nontrans += seg_dict[x]['duration']
+                    nb_nontrans += 1                 
+                elif seg_dict[x]['langs']:
+                    dur_other_lang += seg_dict[x]['duration']
+                else:
+                    nb_words += seg_dict[x]['tokens']
+                    dur_trans += seg_dict[x]['duration']
                 
         seg_id = max(list(seg_dict.keys()))
         seg_dict['NE'] = ne_dict
@@ -243,7 +229,7 @@ class TRSParser():
             seg_dict[0]['meanSNR'] = praatSNRforSegment(self.audiofile, 0, self.fileduration)
         except parselmouth.PraatError:
             seg_dict[0]['meanSNR'] = 'NA'
-     
+
         return seg_dict
 
     
@@ -419,6 +405,9 @@ class TRSParser():
 
 
     def trsToTsv(self):
+
+        print("this")
+        print("speakers", self.speakers)
         """
         >_ TRS file 
         >>> tsv file representing the origin TRS

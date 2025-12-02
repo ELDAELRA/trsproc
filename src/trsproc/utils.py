@@ -108,11 +108,22 @@ def randomSampling(list_trs, save_path):
         trs = TRSParser(t)
         for s in trs.contents:
             if s not in ['NE', 0] and trs.contents[s]['content'] != "[nontrans]":
+                speaker_field = trs.contents[s].get('speaker', 'NA')
                 
+                # Skip segments that involve multiple speakers (e.g., "sp1 sp3")
+                if isinstance(speaker_field, str) and len(speaker_field.split()) > 1:
+                    continue
+
                 spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
-    
+
+    if len(population.keys()) < population_size:
+        population_size = len(population.keys())
+        minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05)) /
+                                (1 + (3.84*(0.5*(1-0.5))) / ((0.05*0.05)*population_size))))
+        print(f"Adjusted population size to {population_size}, new minimum sample: {minimum_sample}")
+
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
     
     if len(population.keys()) == 0:
