@@ -76,7 +76,7 @@ class TRSParser():
         
         self.contents = self.retrieveContents()
     
-
+    
     def retrieveContents(self):
         """
         >_ TRS file to be parsed for information retrieving
@@ -94,6 +94,7 @@ class TRSParser():
         for i in range(len(trs_list)):
             l = trs_list[i]
             if re.search("<Turn.*>", l):
+                parent = "Turn"
              # Turn info is not stored, only used for segment end times and speakers
                 turn_trans = ""
                 turn_trans = l
@@ -111,18 +112,31 @@ class TRSParser():
                 except KeyError:
                     turn_spk = 'NA'
                 #print(f'TURN {turn_id} from {turn_start} to {turn_end}') ### DEBUG
-            elif re.search("<Sync.*>", l):
+            elif re.search("(<Sync.*>)|(<Who[^>]+>)", l):
              # Segment info retrieved starting here
                 seg_id += 1
+                
+                
                 seg_trans = ''
                 seg_line = ElementTree.fromstring(l) #Acces attributes of a line as in root
                 seg_dict[seg_id] = {}
-                seg_start = float(seg_line.attrib['time'])
+                if re.search("<Sync.*>", l):
+                    parent      = "Sync"
+                    seg_start = float(seg_line.attrib['time'])
+                elif re.search("<Who.*>", s):
+                    parent      = "Who"
+                    turn_spk = "spk"+(ElementTree.fromstring(s).attrib['nb'])
+                         
                 for s_id in range(i+1, len(trs_list)):
                     s = trs_list[s_id]
                     if re.search("<Sync.*>", s):
+                        parent      = "Sync"
                         seg_end = float(ElementTree.fromstring(s).attrib['time'])
                         break
+                    
+                    elif re.search("<Who.*>", s):
+                        break
+                    
                     elif s == "</Turn>":
                         langs = []
                         seg_end = float(turn_end)
@@ -172,7 +186,10 @@ class TRSParser():
                 else:
                     seg_tokens += len(seg_trans.split("'"))-1
                 seg_dur = round(seg_end-seg_start, 3)
+
+
                 #print(f"!!! SEGMENT {seg_id} from {seg_start} to {seg_end} = {seg_trans}") ### DEBUG
+                seg_dict[seg_id]['parent'] = parent
                 seg_dict[seg_id]['xmin'] = seg_start
                 seg_dict[seg_id]['xmax'] = seg_end
                 seg_dict[seg_id]['duration'] = seg_dur
@@ -186,16 +203,29 @@ class TRSParser():
                     seg_dict[seg_id]['SNR'] = 'NA'
         #print(f'Total SEGMENTS {seg_dict}') ### DEBUG
         #print(f'\tTotal NE {ne_dict}') ### DEBUG
+        
+
+        for  i in range(1, len(seg_dict)):
+            if seg_dict[i].get("parent") == "Sync" and seg_dict[i+1].get("parent") == "Who":
+                # delet this Sync seg
+                del seg_dict[i]
+        # enumerate the segments
+        seg_dict = dict({k:v for k,v in enumerate(seg_dict.values(), start=1)})
+            
+        
         for x in seg_dict:
             if x not in ['NE', 0]:
-                if seg_dict[x]['content'].strip() in ["", '[nontrans]']:
-                    dur_nontrans += seg_dict[x]['duration']
-                    nb_nontrans += 1
-                elif seg_dict[x]['langs']:
-                    dur_other_lang += seg_dict[x]['duration']
-                else:
-                    nb_words += seg_dict[x]['tokens']
-                    dur_trans += seg_dict[x]['duration']
+           
+                    if seg_dict[x]['content'].strip() in ["", '[nontrans]']:
+                        dur_nontrans += seg_dict[x]['duration']
+                        nb_nontrans += 1
+                    elif seg_dict[x]['langs']:
+                        dur_other_lang += seg_dict[x]['duration']
+                    else:
+                        nb_words += seg_dict[x]['tokens']
+                        dur_trans += seg_dict[x]['duration']
+                
+        seg_id = max(list(seg_dict.keys()))
         seg_dict['NE'] = ne_dict
         seg_dict[0] = {}
         seg_dict[0]['totalSegments'] = seg_id
@@ -213,10 +243,10 @@ class TRSParser():
             seg_dict[0]['meanSNR'] = praatSNRforSegment(self.audiofile, 0, self.fileduration)
         except parselmouth.PraatError:
             seg_dict[0]['meanSNR'] = 'NA'
-
+     
         return seg_dict
 
-
+    
     def print(self):
         """
         >>> print TRS contents in the console
@@ -372,7 +402,9 @@ class TRSParser():
         >_ TRS for infrmation extraction
         >>> validation table with technical info about TRS
         """
+        # assert False, self.contents
         tab_out = os.path.join(self.filepath, f"summary_validation-{self.corpus}.tsv")
+        
         print(f"\N{CARD FILE BOX} Retrieving information from {self.filename}...")
         try:
             open(tab_out).close()
@@ -575,14 +607,27 @@ class TRSParser():
         os.makedirs(path_tmp, exist_ok=True)
         trs = open(self.inputTRS, encoding='utf-8').read()
         trs_list = trs.split("\n")
+        # Initialiser le variable section_txt avec l'entete du trs
+        trs_header = ""
+        
+        for l in trs_list:
+            if not re.search("<Section.*>", l):
+                trs_header += l+"\n"
+            else:
+                # trs_header += l 
+                break 
+        trs_footer = "</Episode>\n</Trans>"
         for l in trs_list:
             if re.search("<Section.*>", l):
                 section_txt = l
+                
                 s_id = trs_list.index(l)
                 for s in trs_list[s_id+1:]:
                     section_txt += f'\n{s}'
                     if re.search("</Section>", s):break
+                
                 et_section = ElementTree.fromstring(section_txt)
+                
                 try:
                     sectionType = et_section.attrib['type']
                     if sectionType == section_type:
@@ -590,8 +635,11 @@ class TRSParser():
                         file_tmp = os.path.join(path_tmp, f"{self.filename}.{section_type}_{nb_target}.trs")
                         file_tmp_list.append(file_tmp)
                         with open(file_tmp, 'w', encoding='utf-8') as f_tmp_trs:
-                            f_tmp_trs.write("".join(section_txt))
-                except KeyError:
-                    pass
+                            section_txt = f"{trs_header}\n{section_txt}\n{trs_footer}"
 
+                            f_tmp_trs.write("".join(section_txt))
+                except Exception as e:
+                    print(f"\N{WARNING SIGN} XML parsing error in {self.inputTRS} line {l}:")
+                    pass
+                                     
         return file_tmp_list

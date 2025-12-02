@@ -77,6 +77,7 @@ def tmpReport(trs_input, section_type="report"):
     return
 
 def sampleFromDict(input_dict, sample):
+    
     keys = random.sample(list(input_dict.keys()), sample)
     values = [input_dict[k] for k in keys]
 
@@ -88,7 +89,18 @@ def randomSampling(list_trs, save_path):
     >_ TRS list from which to extract random segments
     >>> minimum sample size based on population input, table with random sampled segments from population, audio segment files
     """
-    population_size = int(input("Enter population size\t"))
+    
+    valid_population = False
+    while not valid_population:
+        try:
+            population_size = int(input("Enter population size\t"))
+            if population_size <= 0:
+                raise ValueError
+            valid_population = True
+        except ValueError:
+            print(f"\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
+            
+    
     minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
     print(f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}")
     population = {}
@@ -96,10 +108,22 @@ def randomSampling(list_trs, save_path):
         trs = TRSParser(t)
         for s in trs.contents:
             if s not in ['NE', 0] and trs.contents[s]['content'] != "[nontrans]":
+                
                 spk_name = trs.speakers[trs.contents[s]['speaker']][0] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 spk_sex = trs.speakers[trs.contents[s]['speaker']][1] if trs.contents[s].get('speaker') != 'NA' else 'NA'
                 population[(trs.filename, s, trs.audiofile)] = (trs.filename, str(trs.contents[s]['xmin']), trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(trs.contents[s]['tokens']), spk_name, spk_sex, str(trs.contents[s]['SNR']))
+    
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
+    
+    if len(population.keys()) == 0:
+        # Generate a warning if no segments found in the provided TRS files
+        print(f"\N{WARNING SIGN} No segments found in the provided TRS files")
+        return
+    if minimum_sample > len(population.keys()):
+        print(f"\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size")
+        return
+    
+    
     if re.search("y", sample_use.lower()):
         population_sample = sampleFromDict(population, minimum_sample)
         tabSample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
@@ -128,7 +152,18 @@ def randomSamplingNE(list_trs, save_path):
     >_ TRS list from which extracting random named entities
     >>> minimum sample size based on population input, table with random sampled named entities from population, 
     """
-    population_size = int(input("Enter population size\t"))
+    
+    valid_population = False
+    while not valid_population:
+        try:
+            population_size = int(input("Enter population size\t"))
+            if population_size <= 0:
+                raise ValueError
+            valid_population = True
+        except ValueError:
+            print(f"\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
+            
+            
     minimum_sample = round((((3.84*(0.5*(1-0.5)))/(0.05*0.05))/(1+(3.84*(0.5*(1-0.5)))/((0.05*0.05)*population_size))))
     print(f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}")
     population = {}
@@ -142,9 +177,29 @@ def randomSamplingNE(list_trs, save_path):
             if (trs.filename, s) not in population:
                 population[(trs.filename, s)] = []
             population[(trs.filename, s)].append((trs.filename, str(trs.contents[s]['xmin']), trs.contents['NE'][ne]['class'], trs.contents['NE'][ne]['content'], trs.contents[s]['content'], str(trs.contents[s]['xmax']), str(trs.contents[s]['duration']), str(s), str(ne), str(trs.contents[s]['tokens']), str(nb_ne), spk_name, spk_sex))
+
+    
+
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
-    if re.search("y", sample_use.lower()):
+    
+    if len(population.keys()) == 0: 
+        # Generate a warning if no NE found in the provided TRS files
+        print(f"\N{WARNING SIGN} No NE found in the provided TRS files")
+        return
+    if minimum_sample > len(population.keys()):
+        print(f"\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size !")
+        
+        
+        return
+    
+    if len(population.keys()) == 0:
+        # Generate a warning if no NE found in the provided TRS files
+        print(f"\N{WARNING SIGN} No NE found in the provided TRS files")
+        return
+    
+    if re.search("y", sample_use.lower()) :
         population_sample = sampleFromDict(population, minimum_sample)
+
         tabSample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
