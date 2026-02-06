@@ -42,7 +42,7 @@ trsproc flag [-option [option_argument_if_needed]]
 
 * `-plh` or `--placeholder` must be specified if the processing of the `txt` flag must only produce txt files.
 
-* `-punct` or `--punctuation` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replacingPunctuations(sentence)`.
+* `-punct` or `--punctuation` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replace_punctuations(sentence)`.
 
 * `-s` or `--section` followed by the alternative target section name if the processing of the `rpt` or `tmp` flag must target a section other than the default one, i.e. "report".
 
@@ -55,10 +55,10 @@ In case of incorrect flag the list of possible ones and their function will be p
 * `cne` deletes the Named Entity annotations if any are present in the input TRS.
 
 * `crt` applies specific corrections according to the function chosen from the prompted list.
-  * `turnDifferenceTRS` search for differences in segmentation for the input TRS and its twin placed in a subfolder named "twin";
-  * `trsEmptySpaceBeforeNE` adds an empty space before each NE annotation and save the new TRS in a separate subfolder;
-  * `correctionLà` corrects sentences ending with là in la in the input txt. This needs the execution of `txt` flag beforehand;
-  * `correctionMaj` corrects misplaced capiral letters.
+  * `turn_difference_trs` search for differences in segmentation for the input TRS and its twin placed in a subfolder named "twin";
+  * `trs_empty_space_before_ne` adds an empty space before each NE annotation and save the new TRS in a separate subfolder;
+  * `correction_la` corrects sentences ending with là in la in the input txt. This needs the execution of `txt` flag beforehand;
+  * `correction_maj` corrects misplaced capiral letters.
 
 * `ne` extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.
 
@@ -106,7 +106,7 @@ When the class is initiated only the TRS file path must be provided. parameters 
 
 * `root` is the root of the parsed XML tree.
 
-* `inputTRS` is the complete path to the parsed TRS file.
+* `input_trs` is the complete path to the parsed TRS file.
 
 * `filepath` is the path to the folder of the parsed TRS file.
 
@@ -116,7 +116,7 @@ When the class is initiated only the TRS file path must be provided. parameters 
 
 * `lang` refers to the lang parameter from the TRSParser call.
 
-* `sectionduration` represents the sum of the duration of all the sections present in the TRS file. Returns 'Section not found' value if there is no section tag in the TRS file.
+* `section_duration` represents the sum of the duration of all the sections present in the TRS file. Returns 'Section not found' value if there is no section tag in the TRS file.
 
 * `fileduration` represents the duration of an audio file having the same name and location of the TRS. Returns 'audio not found' value if it fails to find an audio file.
 
@@ -154,63 +154,63 @@ When the class is initiated only the TRS file path must be provided. parameters 
     
 #### Functions
 
-* `retrieveContents(self)` is a basic function used to retrieve all the contents information from the input TRS file into a dictionnary structure.
+* `retrieve_contents(self)` is a basic function used to retrieve all the contents information from the input TRS file into a dictionnary structure.
 
 * `print(self)` prints the TRS contents in the console.
 
-* `summaryLangTRS(self)` creates a tsv file containing the information about the languages spoken in the TRS.
+* `summary_lang_trs(self)` creates a tsv file containing the information about the languages spoken in the TRS.
  
-* `trsToTxt(self, need_placeholder=True)` creates a txt file and a TRS-placeholder from the input TRS.
+* `trs_to_txt(self, need_placeholder=True)` creates a txt file and a TRS-placeholder from the input TRS.
  
-* `txtToTrs(input_txt, from_correction=0)` creates a TRS file from the content of a txt file and the structure of a TRS-placeholder one.
+* `txt_to_trs(input_txt, from_correction=0)` creates a TRS file from the content of a txt file and the structure of a TRS-placeholder one.
  
-* `cleanNEfromTRS(self)` creates a new TRS file without the Named Entity annotations of the origin one.
+* `clean_ne_from_trs(self)` creates a new TRS file without the Named Entity annotations of the origin one.
  
-* `validateTRS(self)` creates a tsv file with the contents information and statistics from the input TRS.
+* `validate_trs(self)` creates a tsv file with the contents information and statistics from the input TRS.
  
-* `trsToTsv(self)` transforms the input TRS structure and content into a tsv file.
+* `trs_to_tsv(self)` transforms the input TRS structure and content into a tsv file.
  
-* `vadToTRS(input_tg)` creates a TRS file following the structure of the input TextGrid file having only one Tier called 'VAD'.
+* `vad_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid file having only one Tier called "VAD".
  
-* `trsToTextGrid(self, tiers_list=['transcription', 'speaker', 'sex', 'NE'])` creates a TextGrid file based on the segmentation and content of the input TRS. the newly created TextGrid will have 'transcription', 'speaker', 'sex', 'NE' as Tiers.
+* `trs_to_textgrid(self, tiers_list=["transcription", "speaker", "sex", "NE"])` creates a TextGrid file based on the segmentation and content of the input TRS. the newly created TextGrid will have "transcription", "speaker", "sex", "NE" as Tiers.
  
-* `textGridToTRS(input_tg)` creates a TRS file following the structure of the input TextGrid. Textgrid's Tiers must contain 'speaker', 'transcription' and 'sex'.
+* `textgrid_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid. Textgrid's Tiers must contain "speaker", "transcription" and "sex".
  
-* `retrieveNEToTsv(self)` retrieves all the Named Entity annotations from the input TRS and wrties them in a tsv file.
+* `retrieve_ne_to_tsv(self)` retrieves all the Named Entity annotations from the input TRS and wrties them in a tsv file.
  
-* `trsTMP(self, section_type="report")` creates a partial TRS file retaining only the target section content.
+* `trs_tmp(self, section_type="report")` creates a partial TRS file retaining only the target section content.
 
 ### Other functions
 
-* `parser.replacingPunctuations(sentence)` deletes the punctuations in the following list from the input: `["\ufeff", "\u00A0", "\u2019", ".", ":", ";", "!", '"', "/", "\\", "%", "'"]`
+* `parser.replace_punctuations(sentence)` deletes the punctuations in the following list from the input: `["\ufeff", "\u00A0", "\u2019", ".", ":", ";", "!", '"', "/", "\\", "%", "'"]`
  
-* `parser.praatSNRforSegment(audio, seg_start, seg_end)` computes Signal-to-Noise ratio using Praat parselmouth formula on the selected start and end frames of the input audio signal.
+* `parser.praat_snr_for_segment(audio, seg_start, seg_end)` computes Signal-to-Noise ratio using Praat parselmouth formula on the selected start and end frames of the input audio signal.
  
-* `utils.importJSON(json_input)` returns a Python dictionary from the input json file.
+* `utils.parse_json(json_input)` returns a Python dictionary from the input json file.
 
-* `utils.tmpReport(trs_input, section_type="report")` creates a tsv file containing the statistical information of the input TRS and the target section validation report with segments < 10s and pauses > 0.5s.
+* `utils.tmp_report(trs_input, section_type="report")` creates a tsv file containing the statistical information of the input TRS and the target section validation report with segments < 10s and pauses > 0.5s.
 
-* `utils.sampleFromDict(input_dict, sample)` returns random keys from the input dictionary.
+* `utils.sample_from_dict(input_dict, sample)` returns random keys from the input dictionary.
  
-* `utils.randomSampling(list_trs, save_path)` asks user for population size input and returns the minimum sample size, a tsv file table with random sampled segments from the population and audio segment files.
+* `utils.random_sampling(list_trs, save_path)` asks user for population size input and returns the minimum sample size, a tsv file table with random sampled segments from the population and audio segment files.
  
-* `utils.randomSamplingNE(list_trs, save_path)` asks user for population size input and returns the minimum sample size, a table with random sampled named entities from the population and audio segments files.
+* `utils.random_sampling_ne(list_trs, save_path)` asks user for population size input and returns the minimum sample size, a table with random sampled named entities from the population and audio segments files.
  
-* `utils.createUpdateDictNE(table_info, ne_dict, ne_origin)` creates or updates the table with extracted Named Entities from TRS annotations.
+* `utils.create_update_dict_ne(table_info, ne_dict, ne_origin)` creates or updates the table with extracted Named Entities from TRS annotations.
  
-* `utils.trsPreannotation(input_trs: TRSParser)` creates a new TRS pre-annotated using the previously created Named Entities table.
+* `utils.trs_preannotation(input_trs: TRSParser)` creates a new TRS pre-annotated using the previously created Named Entities table.
  
-* `utils.preAnnotateNElen1(input_trs: TRSParser, dict_ne)` pre-annotates the input TRS with Named Entoties of length 1.
+* `utils.pre_annotate_ne_len1(input_trs: TRSParser, dict_ne)` pre-annotates the input TRS with Named Entoties of length 1.
  
-* `utils.preAnnotateNElenPlus(input_file, list_ne, dict_ne)` pre-annotates the input TRS with Named Entoties of length higher than 1.
+* `utils.pre_annotate_ne_len_plus(input_file, list_ne, dict_ne)` pre-annotates the input TRS with Named Entoties of length higher than 1.
  
 The following functions are used in case of custom corrections:
 
-* `utils.turnDifferenceTRS(input_trs: TRSParser)` returns the list in segmetnation between the input TRS and its twin.
+* `utils.turn_difference_trs(input_trs: TRSParser)` returns the list in segmetnation between the input TRS and its twin.
  
-* `utils.trsEmptySpaceBeforeNE(input_trs: TRSParser)` creates a new TRS with an empty space before each Named Entity annotation.
+* `utils.trs_empty_space_before_ne(input_trs: TRSParser)` creates a new TRS with an empty space before each Named Entity annotation.
  
-* `utils.correctionLà(input_trs: TRSParser)` creates a new txt correcting 'là' to 'la' and the end of its sentences.
+* `utils.correction_la(input_trs: TRSParser)` creates a new txt correcting 'là' to 'la' and the end of its sentences.
  
-* `utils.correctionMaj(input_trs: TRSParser)` creates a new TRS with the corrected misplaced capital letters from the input one.
+* `utils.correction_maj(input_trs: TRSParser)` creates a new TRS with the corrected misplaced capital letters from the input one.
  
