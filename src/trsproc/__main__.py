@@ -21,7 +21,7 @@ FLAGS = {
         "deletes the Named Entity annotations if any are present in the input TRS.",
         "Cleaning NE annotation from TRS in",
         'trs',
-        parser.TRSParser.cleanNEfromTRS),
+        parser.TRSParser.clean_ne_from_trs),
     'crt':(
         "Correction de TRS selon problèmes rencontrées",
         "TRS custom correction in",
@@ -31,17 +31,17 @@ FLAGS = {
         "adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named \"lang-tag.json\" in the same input folder.",
         "Adding language tags to",
         'trs',
-        utils.addLangTag),
+        utils.add_lang_tag),
     'ne':(
         "extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.",
         "NE extraction from",
         'trs',
-        parser.TRSParser.retrieveNEToTsv),
+        parser.TRSParser.retrieve_ne_to_tsv),
     'pne':(
         "pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.",
         "NE pre-annotation for TRS in",
         'trs',
-        utils.trsPreannotation),
+        utils.trs_preannotation),
     'prt':(
         "print the parsed TRS contents directly in the console.",
         "Printing TRS contents",
@@ -51,77 +51,77 @@ FLAGS = {
         "performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.",
         "Creating validation report for target Section",
         'trs',
-        utils.tmpReport),
+        utils.tmp_report),
     'rs':(
         "calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.",
         "Extracting random segments from",
         'trs',
-        utils.randomSampling),
+        utils.random_sampling),
     'rsne':(
         "calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.",
         "Extracting random NE from",
         'trs',
-        utils.randomSamplingNE),
+        utils.random_sampling_ne),
     'tg':(
         "converts TRS files to TextGrid files.",
         "Converting to TextGrid in",
         'trs',
-        parser.TRSParser.trsToTextGrid),
+        parser.TRSParser.trs_to_text_grid),
     'tgrs':(
         "converts TextGrid files to TRS files.",
         "Converting TextGrid to TRS in",
         'TextGrid',
-        parser.TRSParser.textGridToTRS),
+        parser.TRSParser.text_grid_to_trs),
     'tmp':(
         "creates TRS-temporary files in a directory named \"tmp\". By default, these files contain only the target section(s) of the original TRS.",
         "Writing temporary TRS in",
         'trs',
-        parser.TRSParser.trsTMP),
+        parser.TRSParser.trs_tmp),
     'trs':(
         "rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.",
         "Re-writing TRS in",
         'txt',
-        parser.TRSParser.txtToTrs),
+        parser.TRSParser.txt_to_trs),
     'tsv':(
         "produces a tabular file with the structures and contents of the TRS files.",
         "Writing tsv from TRS in",
         'trs',
-        parser.TRSParser.trsToTsv),
+        parser.TRSParser.trs_to_tsv),
     'txt':(
         "creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.",
         "Extracting txt (and TRS-placeholder) in",
         'trs',
-        parser.TRSParser.trsToTxt),
+        parser.TRSParser.trs_to_txt),
     'vad':(
         "converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.",
         "Converting TextGrid-VAD in",
         'TextGrid',
-        parser.TRSParser.vadToTRS),
+        parser.TRSParser.vad_to_trs),
     'vsi-lang':(
         "produces a tabular file containing basic information abouth the language tags present in the input TRS.",
         "Language summary from",
         'trs',
-        parser.TRSParser.summaryLangTRS),
+        parser.TRSParser.summary_lang_trs),
     'vsi':(
         "produces a tabular file containing basic lexical information and statistics concerning the input TRS.",
         "Extracting TRS statistics in",
         'trs',
-        parser.TRSParser.validateTRS)
+        parser.TRSParser.validate_trs)
 }
 
 CORRECTIONS = {
-    1:('turnDifferenceTRS',
+    1:('turn_difference_trs',
        "search for differences in segmentation for the input TRS and its twin placed in a subfolder named \"twin\".",
-       utils.turnDifferenceTRS),
-    2:('trsEmptySpaceBeforeNE',
+       utils.turn_difference_trs),
+    2:('trs_empty_space_before_ne',
        "adds an empty space before each NE annotation and save the new TRS in a separate subfolder",
-       utils.trsEmptySpaceBeforeNE),
-    3:('correctionLà',
+       utils.trs_empty_space_before_ne),
+    3:('correction_la',
        "corrects sentences ending with là in la. This needs the execution of -txt flag beforehand.",
-       utils.correctionLà),
-    4:('correctionMaj',
+       utils.correction_la),
+    4:('correction_maj',
        "corrects misplaced capiral letters.",
-       utils.correctionMaj)
+       utils.correction_maj)
 }
 
 #----------
@@ -141,22 +141,22 @@ def main():
     args = argparser.parse_args()
 
     if args.japkorzh:
-        langT = 'jkz'
+        lang_t = 'jkz'
     else:
-        langT = 'eu'
+        lang_t = 'eu'
 
     f = args.flag
-    procParam = FLAGS.get(f)
+    proc_param = FLAGS.get(f)
 
-    if not procParam:
+    if not proc_param:
         print(f"Invalid flag, Please choose from the list below and call the program again:")
         for p in FLAGS:
             print(f"{p} -> {FLAGS[p][0]}")
     else:
-        docus = sorted(glob.glob(os.path.join(args.folder, f'*.{procParam[2]}')))
+        docus = sorted(glob.glob(os.path.join(args.folder, f'*.{proc_param[2]}')))
         docus = list(set(docus))
 
-        func = procParam[-1]
+        func = proc_param[-1]
         fkwargs = {} # keyword arguments for the function
 
         if f in ['rs', 'rsne']:
@@ -165,8 +165,8 @@ def main():
             if f == 'crt':
                 for c in CORRECTIONS:
                     print(f"{c} -> {CORRECTIONS[c][0]}, {CORRECTIONS[c][1]}")
-                funChoice = int(input("Insert the desired correction function number (list above)\t"))
-                func = CORRECTIONS[funChoice][-1]
+                fun_choice = int(input("Insert the desired correction function number (list above)\t"))
+                func = CORRECTIONS[fun_choice][-1]
 
             if args.section:
                 fkwargs = {'section_type': args.section}
@@ -179,8 +179,8 @@ def main():
 
             with console.status(f"{func.__qualname__} {args.folder} with {len(docus)} files", spinner='point') as status:
                 for d in docus:
-                    if procParam[2] == 'trs':
-                        ff = parser.TRSParser(d, args.audio, langT)
+                    if proc_param[2] == 'trs':
+                        ff = parser.TRSParser(d, args.audio, lang_t)
                         fargs = (ff,)
                         if args.tag:
                             fargs += (args.tag,)

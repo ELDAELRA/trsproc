@@ -21,7 +21,7 @@ from .parser import TRSParser
 script_dir = os.path.dirname(__file__)
 
 #----------
-def importJSON(json_input):
+def parse_json(json_input):
     """
     >_ json file
     >>> python dict
@@ -31,17 +31,17 @@ def importJSON(json_input):
         return json.load(f)
 
 
-def tmpReport(trs_input, section_type="report"):
+def tmp_report(trs_input, section_type="report"):
     """
     >_ TRS file for statistical validation only in the specified section
     >>> Section validation report, table with segments < 10s and pauses > 0.5s
     """
-    trs_tmp = TRSParser.trsTMP(trs_input, section_type)
+    trs_tmp = TRSParser.trs_tmp(trs_input, section_type)
     folder_out = trs_input.corpus
     tab_out = os.path.join(trs_input.filepath, "tmp", f'summary_report-{folder_out}.tsv')
     for t in trs_tmp:
         t = TRSParser(t, lang=trs_input.lang)
-        TRSParser.validateTRS(t)
+        TRSParser.validate_trs(t)
         seg_tot = t.contents[0]['totalSegments']
         nb_silence_ok, nb_silence_no, nb_speech_ok, nb_speech_no = 0, 0, 0, 0
         silence_ok, silence_no, speech_ok, speech_no = [], [], [], []
@@ -69,14 +69,14 @@ def tmpReport(trs_input, section_type="report"):
         with open(tab_out, 'a', encoding='utf-8') as f_tsv:
             print(f"Pauses longer than 0.5 s -> ", nb_silence_no)
             for x in silence_no:
-                f_tsv.write(f"\n{t.filename}\t{trs_input.fileduration}\t{t.sectionduration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}")
+                f_tsv.write(f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}")
             print(f"Segments longer than 10 s -> ", nb_speech_no)
             for y in speech_no:
-                f_tsv.write(f"\n{t.filename}\t{trs_input.fileduration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}")
+                f_tsv.write(f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}")
     
     return
 
-def sampleFromDict(input_dict, sample):
+def sample_from_dict(input_dict, sample):
     
     keys = random.sample(list(input_dict.keys()), sample)
     values = [input_dict[k] for k in keys]
@@ -84,7 +84,7 @@ def sampleFromDict(input_dict, sample):
     return values
 
 
-def randomSampling(list_trs, save_path):
+def random_sampling(list_trs, save_path):
     """
     >_ TRS list from which to extract random segments
     >>> minimum sample size based on population input, table with random sampled segments from population, audio segment files
@@ -136,11 +136,11 @@ def randomSampling(list_trs, save_path):
     
     
     if re.search("y", sample_use.lower()):
-        population_sample = sampleFromDict(population, minimum_sample)
+        population_sample = sample_from_dict(population, minimum_sample)
         tabSample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
-        population_sample = sampleFromDict(population, sample_size)
+        population_sample = sample_from_dict(population, sample_size)
         tabSample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
     with open(tabSample, 'w', encoding='utf-8') as f:
         f.write("file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR")
@@ -153,12 +153,12 @@ def randomSampling(list_trs, save_path):
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
-    print(f"\N{BOOKMARK} Samples saved in {tabSample}")
+    print(f"\N{BOOKMARK} Samples saved in {tab_sample}")
 
     return
 
 
-def randomSamplingNE(list_trs, save_path):
+def random_sampling_ne(list_trs, save_path):
     """
     >_ TRS list from which extracting random named entities
     >>> minimum sample size based on population input, table with random sampled named entities from population, 
@@ -209,12 +209,12 @@ def randomSamplingNE(list_trs, save_path):
         return
     
     if re.search("y", sample_use.lower()) :
-        population_sample = sampleFromDict(population, minimum_sample)
+        population_sample = sample_from_dict(population, minimum_sample)
 
         tabSample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
-        population_sample = sampleFromDict(population, sample_size)
+        population_sample = sample_from_dict(population, sample_size)
         tabSample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
     with open(tabSample, 'w', encoding='utf-8') as f:
         f.write("file_name\tsegment_start\tNE_class\tNE_content\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tNE_id\tnb_tokens\tnb_NE\tspeaker_name\tspeaker_sex")
@@ -228,18 +228,18 @@ def randomSamplingNE(list_trs, save_path):
                 sample_audio.save(sample_out, "WAV")
             except(FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
-    print(f"\N{BOOKMARK} NE Samples saved in {tabSample}")
+    print(f"\N{BOOKMARK} NE Samples saved in {tab_sample}")
     
     return
 
 
-def createUpdateDictNE(table_info, ne_dict, ne_origin):
+def create_update_dict_ne(table_info, ne_dict, ne_origin):
     """
     >_ table with extracted NE from TRS
     >>> update or creation of NE-dict for pre-annotation
     """
     try:
-        neSet = importJSON(ne_dict)
+        neSet = parse_json(ne_dict)
         neDict = neSet[1]
         neSources = neSet[0]
         if ne_origin not in neSources:
@@ -265,7 +265,7 @@ def createUpdateDictNE(table_info, ne_dict, ne_origin):
     return neDict
 
 
-def trsPreannotation(input_trs: TRSParser):
+def trs_preannotation(input_trs: TRSParser):
     """
     >_ TRS file
     >>> TRS pre-annotated using the specified NE-dict
@@ -273,9 +273,9 @@ def trsPreannotation(input_trs: TRSParser):
     dictNE = os.path.join(input_trs.filepath, f'{input_trs.corpus}_NE-reference.json')
     tableInfo = os.path.join(input_trs.filepath, f'{input_trs.corpus}_NE-extraction.tsv')
     if os.path.isfile(tableInfo):
-        dictNE = createUpdateDictNE(tableInfo, dictNE, os.path.basename(input_trs.filepath))
+        dictNE = create_update_dict_ne(tableInfo, dictNE, os.path.basename(input_trs.filepath))
     else:
-        dictNE = importJSON(dictNE)
+        dictNE = parse_json(dictNE)
     #print(dictNE) #DEBUG
     #cpt = 0 #DEBUG
     list_ne_len1_plus = []
@@ -284,13 +284,13 @@ def trsPreannotation(input_trs: TRSParser):
             #cpt += 1 #DEBUG
             #print(cpt, k) #DEBUG
             list_ne_len1_plus.append(k)
-    new_d = preAnnotateNElen1(input_trs, dictNE[1])
-    preAnnotateNElenPlus(new_d, list_ne_len1_plus, dictNE[1])
+    new_d = pre_annotate_ne_len1(input_trs, dictNE[1])
+    pre_annotate_ne_len_plus(new_d, list_ne_len1_plus, dictNE[1])
 
     return
 
 
-def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
+def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
     """
     >_ TRS for NE pre-annotation
     >>> TRS pre-annotated with NE of length 1
@@ -328,7 +328,7 @@ def preAnnotateNElen1(input_trs: TRSParser, dict_ne):
     return trs_output
 
 
-def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
+def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
     """
     >_ TRE for pre-annotation of NE of length 2+
     >>> TRS pre-annotated with NE of length 2+
@@ -363,13 +363,13 @@ def preAnnotateNElenPlus(input_file, list_ne, dict_ne):
     return
 
 
-def addLangTag(input_trs: TRSParser, lang_to_add):
+def add_lang_tag(input_trs: TRSParser, lang_to_add):
     """
     >_ TRS in which language tags must be annotated, language tag dictionary (JSON)
     >>> TRS with new language tag annotation
     """
     try:
-        dicolang = importJSON(os.path.join(input_trs.filepath, "lang-tag.json"))
+        dicolang = parse_json(os.path.join(input_trs.filepath, "lang-tag.json"))
     except FileNotFoundError:
         dicolang = {}
     output_trs = ""
@@ -414,7 +414,7 @@ def addLangTag(input_trs: TRSParser, lang_to_add):
 
 
 ## Ad hoc correction functions ---------------
-def turnDifferenceTRS(input_trs: TRSParser):
+def turn_difference_trs(input_trs: TRSParser):
     """
     >_ TRS for which differences in segments might be identified with its twin
     >>> Differences list
@@ -436,7 +436,7 @@ def turnDifferenceTRS(input_trs: TRSParser):
     return
 
 
-def trsEmptySpaceBeforeNE(input_trs: TRSParser):
+def trs_empty_space_before_ne(input_trs: TRSParser):
     """
     >_ TRS file in which to add an empty space before each NE
     >>> corrected TRS
@@ -467,7 +467,7 @@ def trsEmptySpaceBeforeNE(input_trs: TRSParser):
     return
 
 
-def correctionLà(input_trs: TRSParser):
+def correction_la(input_trs: TRSParser):
     """
     >_ TRS file for correction of sentences ending with là
     >>> corrected txt from the origin TRS
@@ -494,7 +494,7 @@ def correctionLà(input_trs: TRSParser):
     return
 
 
-def correctionMaj(input_trs: TRSParser):
+def correction_maj(input_trs: TRSParser):
     """
     >_ TRS file for correction of misplaced capital letters
     >>> corrected TRS
