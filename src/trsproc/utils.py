@@ -344,7 +344,7 @@ def create_update_dict_ne(table_info, ne_dict, ne_origin):
         ne_type, ne_content = i.split("\t")[3], i.split("\t")[4]
         if ne_content in neDict.keys() and ne_type != neDict[ne_content]:
             print(
-                f'\N{WARNING SIGN} found new class "{ne_content}" : {neDict[ne_content]} vs. {ne_type}\n{i}'
+                f"\N{WARNING SIGN} found new class '{ne_content}' : {neDict[ne_content]} vs. {ne_type}\n{i}"
             )
         else:
             neDict[ne_content] = ne_type

@@ -42,7 +42,7 @@ trsproc flag [-option [option_argument_if_needed]]
 
 * `-plh` or `--placeholder` must be specified if the processing of the `txt` flag must only produce txt files.
 
-* `-punct` or `--punctuation` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replacing_punctuations(sentence)`.
+* `-punct` or `--punctuation` may be used in order to clear all punctuation from in the resulting txt files. The punctiation list is available at `parser.replace_punctuations(sentence)`.
 
 * `-s` or `--section` followed by the alternative target section name if the processing of the `rpt` or `tmp` flag must target a section other than the default one, i.e. "report".
 
@@ -170,11 +170,11 @@ When the class is initiated only the TRS file path must be provided. parameters 
  
 * `trs_to_tsv(self)` transforms the input TRS structure and content into a tsv file.
  
-* `vad_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid file having only one Tier called 'VAD'.
+* `vad_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid file having only one Tier called "VAD".
  
-* `trs_to_text_grid(self, tiers_list=['transcription', 'speaker', 'sex', 'NE'])` creates a TextGrid file based on the segmentation and content of the input TRS. the newly created TextGrid will have 'transcription', 'speaker', 'sex', 'NE' as Tiers.
+* `trs_to_textgrid(self, tiers_list=["transcription", "speaker", "sex", "NE"])` creates a TextGrid file based on the segmentation and content of the input TRS. the newly created TextGrid will have "transcription", "speaker", "sex", "NE" as Tiers.
  
-* `text_grid_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid. Textgrid's Tiers must contain 'speaker', 'transcription' and 'sex'.
+* `textgrid_to_trs(input_tg)` creates a TRS file following the structure of the input TextGrid. Textgrid's Tiers must contain "speaker", "transcription" and "sex".
  
 * `retrieve_ne_to_tsv(self)` retrieves all the Named Entity annotations from the input TRS and wrties them in a tsv file.
  

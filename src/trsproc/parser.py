@@ -514,7 +514,7 @@ class TRSParser:
 
         return
 
-    def trs_to_text_grid(self, tiers_list=["transcription", "speaker", "sex", "NE"]):
+    def trs_to_textgrid(self, tiers_list=["transcription", "speaker", "sex", "NE"]):
         """
         >_ TRS file
         >>> TextGrid file
@@ -565,7 +565,7 @@ class TRSParser:
 
         return
 
-    def text_grid_to_trs(input_tg):
+    def textgrid_to_trs(input_tg):
         """
         >_ TextGrid file
         >>> TRS following textgrid segmentations

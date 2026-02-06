@@ -30,7 +30,7 @@ FLAGS = {
         None,
     ),
     "lang": (
-        'adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named "lang-tag.json" in the same input folder.',
+        "adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named 'lang-tag.json' in the same input folder.",
         "Adding language tags to",
         "trs",
         utils.add_lang_tag,
@@ -84,7 +84,7 @@ FLAGS = {
         parser.TRSParser.text_grid_to_trs,
     ),
     "tmp": (
-        'creates TRS-temporary files in a directory named "tmp". By default, these files contain only the target section(s) of the original TRS.',
+        "creates TRS-temporary files in a directory named 'tmp'. By default, these files contain only the target section(s) of the original TRS.",
         "Writing temporary TRS in",
         "trs",
         parser.TRSParser.trs_tmp,
@@ -130,7 +130,7 @@ FLAGS = {
 CORRECTIONS = {
     1: (
         "turn_difference_trs",
-        'search for differences in segmentation for the input TRS and its twin placed in a subfolder named "twin".',
+        "search for differences in segmentation for the input TRS and its twin placed in a subfolder named 'twin'.",
         utils.turn_difference_trs,
     ),
     2: (
@@ -206,7 +206,10 @@ def main():
         help='target section if different from "report"',
     )
     argparser.add_argument(
-        "-t", "--tag", required=False, help="language to be added for the `lang` flag."
+        "-t",
+        "--tag",
+        required=False,
+        help="language to be added for the `lang` flag.",
     )
     args = argparser.parse_args()
 
