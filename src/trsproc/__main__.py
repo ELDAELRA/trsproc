@@ -75,13 +75,13 @@ FLAGS = {
         "converts TRS files to TextGrid files.",
         "Converting to TextGrid in",
         "trs",
-        parser.TRSParser.trs_to_text_grid,
+        parser.TRSParser.trs_to_textgrid,
     ),
     "tgrs": (
         "converts TextGrid files to TRS files.",
         "Converting TextGrid to TRS in",
         "TextGrid",
-        parser.TRSParser.text_grid_to_trs,
+        parser.TRSParser.textgrid_to_trs,
     ),
     "tmp": (
         "creates TRS-temporary files in a directory named 'tmp'. By default, these files contain only the target section(s) of the original TRS.",
@@ -203,7 +203,7 @@ def main():
         "-s",
         "--section",
         required=False,
-        help='target section if different from "report"',
+        help="target section if different from 'report'",
     )
     argparser.add_argument(
         "-t",
