@@ -455,10 +455,8 @@ class TRSParser:
         return
 
     def trs_to_tsv(self):
-        print("this")
-        print("speakers", self.speakers)
         """
-        >_ TRS file 
+        >_ TRS file
         >>> tsv file representing the origin TRS
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}.tsv")
