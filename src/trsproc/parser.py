@@ -161,6 +161,39 @@ def textgrid_to_trs(input_tg):
 
     return
 
+
+def vad_to_trs(input_tg):
+    """
+    >_ TextGrid file with Tier named VAD
+    >>> TRS file
+    """
+    tg_path, tg_name = os.path.split(input_tg)
+    tg_name = tg_name.split(".")[0]
+    print(f"\N{MOUTH} Writing TRS from tg {tg_name}...")
+    grid = textgrids.TextGrid(input_tg)
+    ## Create textgrid object from input file
+    grid_xmax = round(grid["VAD"][-1].xmax, 3)
+    ## Retrieve total duration of file
+    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble_spk = '<Speakers>\n<Speaker id="spk1" name="a transcrire"/>\n'
+    trs_corps = ""
+    trs_closure = "</Section>\n</Episode>\n</Trans>"
+    ## Create TRS preambule, body (starting empty) and conclusion texts
+    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    for i in grid["VAD"]:
+        ## Loop on transcription Tier to retrieve info and write in formatted TRS text
+        transcription, t_min, t_max = i.text, round(i.xmin, 3), round(i.xmax, 3)
+        if transcription == "speech":
+            trs_corps += f'<Turn speaker="spk1" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n</Turn>\n'
+        else:
+            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+    dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
+    with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
+        f.write(dump_trs)
+
+    return
+
+
 class TRSParser:
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
         self.tree = ElementTree.parse(trs_in)
@@ -538,37 +571,6 @@ class TRSParser:
                         )
                     except KeyError:
                         f_tsv.write("NA\tNA")
-
-        return
-
-    def vad_to_trs(input_tg):
-        """
-        >_ TextGrid file with Tier named VAD
-        >>> TRS file
-        """
-        tg_path, tg_name = os.path.split(input_tg)
-        tg_name = tg_name.split(".")[0]
-        print(f"\N{MOUTH} Writing TRS from tg {tg_name}...")
-        grid = textgrids.TextGrid(input_tg)
-        ## Create textgrid object from input file
-        grid_xmax = round(grid["VAD"][-1].xmax, 3)
-        ## Retrieve total duration of file
-        trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="" audio_filename="{tg_name}" version="4" version_date="">\n'
-        trs_preamble_spk = '<Speakers>\n<Speaker id="spk1" name="a transcrire"/>\n'
-        trs_corps = ""
-        trs_closure = "</Section>\n</Episode>\n</Trans>"
-        ## Create TRS preambule, body (starting empty) and conclusion texts
-        trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
-        for i in grid["VAD"]:
-            ## Loop on transcription Tier to retrieve info and write in formatted TRS text
-            transcription, t_min, t_max = i.text, round(i.xmin, 3), round(i.xmax, 3)
-            if transcription == "speech":
-                trs_corps += f'<Turn speaker="spk1" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n</Turn>\n'
-            else:
-                trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
-        dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
-        with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
-            f.write(dump_trs)
 
         return
 

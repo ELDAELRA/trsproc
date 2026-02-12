@@ -304,6 +304,26 @@ def tgrs(
     files: list[Path] = get_files(folder, file, "TextGrid")
     for filename in files:
         parser.textgrid_to_trs(filename)
+
+
+@app.command()
+def vad(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    # TODO: Get one of those TextGrid file for testing.
+    """converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files."""
+    files: list[Path] = get_files(folder, file, "TextGrid")
+    for filename in files:
+        parser.vad_to_trs(filename)
+
+
 console = Console()
 
 
