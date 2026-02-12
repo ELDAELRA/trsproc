@@ -15,11 +15,12 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-keywords=['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
+keywords = ['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
 dependencies = [
     "praat-parselmouth",
     "praat-textgrids",
     "rich",
+    "typer",
     'tomli; python_version < "3.11"',
 ]
 requires-python = ">=3.6"
@@ -43,6 +44,4 @@ push = false
     '^current_version = "{version}"$',
     '^version = "{version}"$',
 ]
-"src/trsproc/__init__.py" = [
-    '^__version__ = "{version}"$',
-]
+"src/trsproc/__init__.py" = ['^__version__ = "{version}"$']
