@@ -6,272 +6,42 @@
 #### Gabriele CHIGNOLI
 #####
 
-# Global imports
-import glob, os, time
-import argparse
+from pathlib import Path
+from typing import Annotated, Optional, Callable
+
+import typer
 from rich.console import Console
 
-# Custom imports
-import trsproc
 from trsproc import parser, utils
+from trsproc.parser import TRSParser
+
+
+app = typer.Typer()
+
+
+def get_files(
+    folder: Optional[Path],
+    file: Optional[Path],
+    extension: str,
+) -> list[Path]:
+    # TODO : handle cases where user gives both folder and file (without breaking the default folder behaviour)
+    if file:
+        if not file.exists():
+            raise typer.BadParameter(f"File not found : {file}")
+        return [file]
+
+    if folder:
+        if not folder.is_dir():
+            raise typer.BadParameter(f"Not a directory : {folder}")
+        return list(folder.glob(f"*.{extension}"))
+
+    return list(Path.cwd().glob(f"*.{extension}"))
 
 console = Console()
-FLAGS = {
-    "cne": (
-        "deletes the Named Entity annotations if any are present in the input TRS.",
-        "Cleaning NE annotation from TRS in",
-        "trs",
-        parser.TRSParser.clean_ne_from_trs,
-    ),
-    "crt": (
-        "Correction de TRS selon problèmes rencontrées",
-        "TRS custom correction in",
-        "trs",
-        None,
-    ),
-    "lang": (
-        "adds a language tag to each transcription segment not having one in the input TRS. It also modifies the actual language tags using the provided language dictionary in JSON format named 'lang-tag.json' in the same input folder.",
-        "Adding language tags to",
-        "trs",
-        utils.add_lang_tag,
-    ),
-    "ne": (
-        "extracts the Named Entity annotations if any are present in the input TRS and put them in a tabular file.",
-        "NE extraction from",
-        "trs",
-        parser.TRSParser.retrieve_ne_to_tsv,
-    ),
-    "pne": (
-        "pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary.",
-        "NE pre-annotation for TRS in",
-        "trs",
-        utils.trs_preannotation,
-    ),
-    "prt": (
-        "print the parsed TRS contents directly in the console.",
-        "Printing TRS contents",
-        "trs",
-        parser.TRSParser.print,
-    ),
-    "rpt": (
-        "performs the operations of the `-tmp` and `-vsi` flags in order to obtain the basic elements for data validation. An additional report is produced with pause segments longer than 0.5s and speech segments shorter than 10s.",
-        "Creating validation report for target Section",
-        "trs",
-        utils.tmp_report,
-    ),
-    "rs": (
-        "calculates the minimum sample needed for the validation of the input TRS transcription and the extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.",
-        "Extracting random segments from",
-        "trs",
-        utils.random_sampling,
-    ),
-    "rsne": (
-        "calculates the minimum sample needed for the validation of Named Entities of the input TRS and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount.",
-        "Extracting random NE from",
-        "trs",
-        utils.random_sampling_ne,
-    ),
-    "tg": (
-        "converts TRS files to TextGrid files.",
-        "Converting to TextGrid in",
-        "trs",
-        parser.TRSParser.trs_to_textgrid,
-    ),
-    "tgrs": (
-        "converts TextGrid files to TRS files.",
-        "Converting TextGrid to TRS in",
-        "TextGrid",
-        parser.TRSParser.textgrid_to_trs,
-    ),
-    "tmp": (
-        "creates TRS-temporary files in a directory named 'tmp'. By default, these files contain only the target section(s) of the original TRS.",
-        "Writing temporary TRS in",
-        "trs",
-        parser.TRSParser.trs_tmp,
-    ),
-    "trs": (
-        "rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder. The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder.",
-        "Re-writing TRS in",
-        "txt",
-        parser.TRSParser.txt_to_trs,
-    ),
-    "tsv": (
-        "produces a tabular file with the structures and contents of the TRS files.",
-        "Writing tsv from TRS in",
-        "trs",
-        parser.TRSParser.trs_to_tsv,
-    ),
-    "txt": (
-        "creates txt and TRS-placeholder files. The first only containing the transcription of the original TRS, the latter having its XML structure.",
-        "Extracting txt (and TRS-placeholder) in",
-        "trs",
-        parser.TRSParser.trs_to_txt,
-    ),
-    "vad": (
-        "converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files.",
-        "Converting TextGrid-VAD in",
-        "TextGrid",
-        parser.TRSParser.vad_to_trs,
-    ),
-    "vsi-lang": (
-        "produces a tabular file containing basic information abouth the language tags present in the input TRS.",
-        "Language summary from",
-        "trs",
-        parser.TRSParser.summary_lang_trs,
-    ),
-    "vsi": (
-        "produces a tabular file containing basic lexical information and statistics concerning the input TRS.",
-        "Extracting TRS statistics in",
-        "trs",
-        parser.TRSParser.validate_trs,
-    ),
-}
-
-CORRECTIONS = {
-    1: (
-        "turn_difference_trs",
-        "search for differences in segmentation for the input TRS and its twin placed in a subfolder named 'twin'.",
-        utils.turn_difference_trs,
-    ),
-    2: (
-        "trs_empty_space_before_ne",
-        "adds an empty space before each NE annotation and save the new TRS in a separate subfolder",
-        utils.trs_empty_space_before_ne,
-    ),
-    3: (
-        "correction_la",
-        "corrects sentences ending with là in la. This needs the execution of -txt flag beforehand.",
-        utils.correction_la,
-    ),
-    4: ("correction_maj", "corrects misplaced capiral letters.", utils.correction_maj),
-}
 
 
-# ----------
 def main():
-    start_time = time.time()
-
-    argparser = argparse.ArgumentParser()
-    argparser.add_argument(
-        "flag",
-        nargs="?",
-        default="helpmeobiwan",
-        help="defines the processing to perform, in case of incorrect flag the list of possible ones and their function will be printed.\nGo to https://pypi.org/project/trsproc/ or https://github.com/ELDAELRA/trsproc for more information",
-    )  # flag argument not explicited by - or --
-    argparser.add_argument(
-        "-a",
-        "--audio",
-        default="wav",
-        required=False,
-        help="audio format corresponding to the input TRS if different from wav",
-    )
-    argparser.add_argument(
-        "-cl",
-        "--correctionlevel",
-        required=False,
-        help="correction levels established in lexicalproc (ELDA's internal script)",
-    )
-    argparser.add_argument(
-        "-f",
-        "--folder",
-        default=os.getcwd(),
-        required=False,
-        help="target folder for processing if different from the current one.",
-    )
-    argparser.add_argument(
-        "-jkz",
-        "--japkorzh",
-        required=False,
-        action="store_true",
-        help="specified if the language to be processed does not use ASCII/Latin characters",
-    )
-    argparser.add_argument(
-        "-plh",
-        "--placeholder",
-        required=False,
-        action="store_true",
-        help="omits the creation of TRS-placeholder files",
-    )
-    argparser.add_argument(
-        "-punct",
-        "--punctuation",
-        required=False,
-        action="store_true",
-        help="clear punctuation in the resulting txt file.",
-    )
-    argparser.add_argument(
-        "-s",
-        "--section",
-        required=False,
-        help="target section if different from 'report'",
-    )
-    argparser.add_argument(
-        "-t",
-        "--tag",
-        required=False,
-        help="language to be added for the `lang` flag.",
-    )
-    args = argparser.parse_args()
-
-    if args.japkorzh:
-        lang_t = "jkz"
-    else:
-        lang_t = "eu"
-
-    f = args.flag
-    proc_param = FLAGS.get(f)
-
-    if not proc_param:
-        print(
-            f"Invalid flag, Please choose from the list below and call the program again:"
-        )
-        for p in FLAGS:
-            print(f"{p} -> {FLAGS[p][0]}")
-    else:
-        docus = sorted(glob.glob(os.path.join(args.folder, f"*.{proc_param[2]}")))
-        docus = list(set(docus))
-
-        func = proc_param[-1]
-        fkwargs = {}  # keyword arguments for the function
-
-        if f in ["rs", "rsne"]:
-            func(docus, args.folder)
-        else:
-            if f == "crt":
-                for c in CORRECTIONS:
-                    print(f"{c} -> {CORRECTIONS[c][0]}, {CORRECTIONS[c][1]}")
-                fun_choice = int(
-                    input(
-                        "Insert the desired correction function number (list above)\t"
-                    )
-                )
-                func = CORRECTIONS[fun_choice][-1]
-
-            if args.section:
-                fkwargs = {"section_type": args.section}
-            elif args.placeholder:
-                fkwargs = {"need_placeholder": False}
-                if args.punctuation:
-                    fkwargs["delete_punct"] = True
-            elif args.correctionlevel:
-                fkwargs = {"from_correction": args.correctionlevel}
-
-            with console.status(
-                f"{func.__qualname__} {args.folder} with {len(docus)} files",
-                spinner="point",
-            ) as status:
-                for d in docus:
-                    if proc_param[2] == "trs":
-                        ff = parser.TRSParser(d, args.audio, lang_t)
-                        fargs = (ff,)
-                        if args.tag:
-                            fargs += (args.tag,)
-                    else:
-                        fargs = (d,)
-                    func(*fargs, **fkwargs)
-            console.print(status)
-
-    print("--- %s sec taken ---" % round((time.time() - start_time), 2))
+    app()
 
 
 if __name__ == "__main__":
