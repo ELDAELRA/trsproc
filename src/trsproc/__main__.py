@@ -37,6 +37,24 @@ def get_files(
 
     return list(Path.cwd().glob(f"*.{extension}"))
 
+
+@app.command(short_help="Extracts the text from .trs files into .txt files")
+def txt(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """Extracts the text from .trs files into .txt files, and creates placeholder .trs files, to merge text back in.
+    This is intended to be used for easily modifying the text from .trs files (e.g for fixing typos)."""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.trs_to_txt()
 console = Console()
 
 
