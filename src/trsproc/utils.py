@@ -6,19 +6,18 @@
 #### trsproc direct dependency
 #####
 
-# Global imports
-import random
-
-random.seed(42)
-
-import os, re
 import json
-import parselmouth
+import os
+import random
+import re
+from pathlib import Path
 from xml.etree import cElementTree as ElementTree
 
-# Custom imports
+import parselmouth
+
 from .parser import TRSParser
 
+random.seed(42)
 script_dir = os.path.dirname(__file__)
 
 
