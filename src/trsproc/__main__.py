@@ -115,6 +115,27 @@ def cne(
     for filename in files:
         trs_parser = TRSParser(filename)
         trs_parser.clean_ne_from_trs()
+
+
+@app.command(
+    short_help="Extracts the Named Entity annotations if any are present in the input TRS files."
+)
+def ne(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+):
+    """Extracts the Named Entity annotations if any are present in the input TRS.
+    Saves them in a tabular file located in [folder]/folder_NE_extraction.tsv"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.retrieve_ne_to_tsv()
 console = Console()
 
 
