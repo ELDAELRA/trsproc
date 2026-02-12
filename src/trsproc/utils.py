@@ -205,7 +205,7 @@ def random_sampling(list_trs, save_path):
     return
 
 
-def random_sampling_ne(list_trs, save_path):
+def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
     """
     >_ TRS list from which extracting random named entities
     >>> minimum sample size based on population input, table with random sampled named entities from population,
