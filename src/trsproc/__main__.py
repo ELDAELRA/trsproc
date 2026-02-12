@@ -267,6 +267,25 @@ def rsne(
     utils.random_sampling_ne(files, save_folder)
 
 
+@app.command()
+def tg(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    # TODO : pass the audio file as an argument
+    # TODO : make sure the audio file exists, as the TextGrid cannot be turned back to .trs without audio
+    """Converts .trs files to .TextGrid files."""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.trs_to_textgrid()
+
 console = Console()
 
 
