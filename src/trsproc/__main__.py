@@ -324,6 +324,23 @@ def vad(
         parser.vad_to_trs(filename)
 
 
+@app.command(short_help="Extracts statistics from .trs files.")
+def vsi(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """Produces a tabular file containing basic lexical information and statistics concerning the input TRS"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.validate_trs()
+
 console = Console()
 
 
