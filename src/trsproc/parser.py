@@ -104,6 +104,63 @@ def txt_to_trs(input_txt, from_correction=0):
     return
 
 
+def textgrid_to_trs(input_tg):
+    """
+    >_ TextGrid file
+    >>> TRS following textgrid segmentations
+    """
+    tg_path, tg_name = os.path.split(input_tg)
+    tg_name = tg_name.split(".")[0]
+    trans = os.path.basename(tg_path)
+    grid = textgrids.TextGrid(input_tg)
+    ## Create textgrid object from input file
+    print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
+    grid_xmax = grid["transcription"][-1].xmax
+    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble_spk = "<Speakers>\n"
+    trs_corps = ""
+    trs_closure = "</Section>\n</Episode>\n</Trans>"
+    ## Create TRS preambule, body (starting empty) and conclusion texts
+    nb_int = len(grid["speaker"])
+    spk_sex_tuple_list = []
+    for x in range(nb_int):
+        ## analyse the speaker and sexe Tiers to retrieve speakers info and write them in preambule
+        try:
+            spk_sex_tuple_list.append((grid["speaker"][x].text, grid["sex"][x].text))
+        except parselmouth.PraatError:
+            spk_sex_tuple_list.append(("", ""))
+    ##### CHANGE TO DICT for better looping
+    ##### { spk_id:(name, type)}
+    spk_sex_tuple_list = set(spk_sex_tuple_list)
+    spk_sex_dict = {}
+    for i in spk_sex_tuple_list:
+        spk_id = 1
+        spk_sex_dict[i[0]] = f"spk{spk_id}"
+        if i[0] != "":
+            trs_preamble_spk += (
+                f'<Speaker id="spk{spk_id}" name="{i[0]}" check="no" type="{i[1]}"/>\n'
+            )
+            spk_id += 1
+    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    for t in range(nb_int):
+        ## Loop on transcription Tier to retrieve info and write in formatted TRS text
+        transcription, t_min, t_max, t_spk = (
+            grid["transcription"][t].text,
+            grid["transcription"][t].xmin,
+            grid["transcription"][t].xmax,
+            grid["speaker"][t].text,
+        )
+        t_spk = spk_sex_dict[t_spk]
+        if transcription == "":
+            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+        else:
+            trs_corps += f'<Turn speaker="{t_spk}" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
+    dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
+    with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
+        f.write(dump_trs)
+
+    return
+
 class TRSParser:
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
         self.tree = ElementTree.parse(trs_in)
@@ -563,63 +620,6 @@ class TRSParser:
                             tg.write(f'{ne_content.strip()}"')
                         else:
                             tg.write("")
-
-        return
-
-    def textgrid_to_trs(input_tg):
-        """
-        >_ TextGrid file
-        >>> TRS following textgrid segmentations
-        """
-        tg_path, tg_name = os.path.split(input_tg)
-        tg_name = tg_name.split(".")[0]
-        trans = os.path.basename(tg_path)
-        grid = textgrids.TextGrid(input_tg)
-        ## Create textgrid object from input file
-        print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
-        grid_xmax = grid["transcription"][-1].xmax
-        trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
-        trs_preamble_spk = "<Speakers>\n"
-        trs_corps = ""
-        trs_closure = "</Section>\n</Episode>\n</Trans>"
-        ## Create TRS preambule, body (starting empty) and conclusion texts
-        nb_int = len(grid["speaker"])
-        spk_sex_tuple_list = []
-        for x in range(nb_int):
-            ## analyse the speaker and sexe Tiers to retrieve speakers info and write them in preambule
-            try:
-                spk_sex_tuple_list.append(
-                    (grid["speaker"][x].text, grid["sex"][x].text)
-                )
-            except parselmouth.PraatError:
-                spk_sex_tuple_list.append(("", ""))
-        ##### CHANGE TO DICT for better looping
-        ##### { spk_id:(name, type)}
-        spk_sex_tuple_list = set(spk_sex_tuple_list)
-        spk_sex_dict = {}
-        for i in spk_sex_tuple_list:
-            spk_id = 1
-            spk_sex_dict[i[0]] = f"spk{spk_id}"
-            if i[0] != "":
-                trs_preamble_spk += f'<Speaker id="spk{spk_id}" name="{i[0]}" check="no" type="{i[1]}"/>\n'
-                spk_id += 1
-        trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
-        for t in range(nb_int):
-            ## Loop on transcription Tier to retrieve info and write in formatted TRS text
-            transcription, t_min, t_max, t_spk = (
-                grid["transcription"][t].text,
-                grid["transcription"][t].xmin,
-                grid["transcription"][t].xmax,
-                grid["speaker"][t].text,
-            )
-            t_spk = spk_sex_dict[t_spk]
-            if transcription == "":
-                trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
-            else:
-                trs_corps += f'<Turn speaker="{t_spk}" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
-        dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
-        with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
-            f.write(dump_trs)
 
         return
 
