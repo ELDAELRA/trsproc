@@ -225,7 +225,7 @@ def tmp(
         trs_parser.trs_tmp()
 
 
-@app.command(short_help="Extracts report sections from .trs files")
+@app.command(short_help="Extracts random segments from .trs files")
 def rs(
     folder: Annotated[
         Path,
@@ -235,9 +235,9 @@ def rs(
         Optional[Path],
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-) -> None:  # FIXME: The tmp command was broken in commit 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the retrieve_contents method. This method will have to be carefuly refactored, too.
-    """Extracts report sections from .trs files.
-    Saves the extractions in a folder [folder]/tmp"""
+) -> None:      
+    """Calculates the minimum sample needed for the validation of the input TRS transcription 
+    and extracts random segments (audio and text, the latter in a tabular file) according to a given quantity."""
     if file:
         save_folder = file.parent.absolute()
     else:
