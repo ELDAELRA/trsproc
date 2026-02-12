@@ -246,6 +246,27 @@ def rs(
     utils.random_sampling(files, save_folder)
 
 
+@app.command(short_help="Extracts random Named Entity segments from .trs files")
+def rsne(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """calculates the minimum sample needed for the validation of Named Entities of the input TRS
+    and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount."""
+    if file:
+        save_folder = file.parent.absolute()
+    else:
+        save_folder = folder.absolute()
+    files: list[Path] = get_files(folder, file, "trs")
+    utils.random_sampling_ne(files, save_folder)
+
+
 console = Console()
 
 
