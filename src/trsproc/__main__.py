@@ -341,6 +341,26 @@ def vsi(
         trs_parser = TRSParser(filename)
         trs_parser.validate_trs()
 
+
+@app.command(
+    short_help="Extracts language informations from .trs files",
+)
+def vsi_lang(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    # FIXME: command seems to be broken, don't know since when
+    """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.summary_lang_trs()
 console = Console()
 
 
