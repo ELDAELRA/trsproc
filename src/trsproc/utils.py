@@ -75,12 +75,12 @@ def tmp_report(trs_input, section_type="report"):
             print(f"Pauses longer than 0.5 s -> ", nb_silence_no)
             for x in silence_no:
                 f_tsv.write(
-                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}"
+                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}"
                 )
             print(f"Segments longer than 10 s -> ", nb_speech_no)
             for y in speech_no:
                 f_tsv.write(
-                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}"
+                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}"
                 )
 
     return
@@ -395,7 +395,7 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
     )
     os.makedirs(os.path.join(input_trs.filepath, "preannotated"), exist_ok=True)
     print(f"\N{CARD FILE BOX} Preannotating simple NE in {input_trs.filename}...")
-    trs_input = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs_input.split("\n")
     for l in trs_list:
         if re.search("<.*>", l) or l == "":
@@ -550,7 +550,7 @@ def trs_empty_space_before_ne(input_trs: TRSParser):
     >>> corrected TRS
     """
     output_trs = ""
-    trs = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs.split("\n")
     print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
     for l in range(len(trs_list)):
@@ -617,7 +617,7 @@ def correction_maj(input_trs: TRSParser):
     target_path = os.path.join(input_trs.filepath, "corrections", "maj")
     os.makedirs(target_path, exist_ok=True)
     trs_output = os.path.join(target_path, f"{input_trs.filename}.trs")
-    txt_input = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    txt_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     txt_input = txt_input.split("\n")
     nb_l = len(txt_input)
     for l in range(nb_l):
