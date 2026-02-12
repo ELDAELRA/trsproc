@@ -94,6 +94,27 @@ def tsv(
     for filename in files:
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_tsv()
+
+
+@app.command(
+    short_help="Deletes the Named Entity annotations if any are present in the input TRS."
+)
+def cne(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+):
+    """Deletes the Named Entity annotations if any are present in the input TRS.
+    Writes the resulting .trs files in [folder]/clean"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.clean_ne_from_trs()
 console = Console()
 
 
