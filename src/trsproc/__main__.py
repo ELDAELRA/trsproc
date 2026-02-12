@@ -188,6 +188,24 @@ def prt(
         trs_parser.print()
 
 
+@app.command()
+def pne(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:  # TODO: Get a pre-annotation json file to understand and test the utils.pre_annotate function, and add the required tsv and json files as arguments.
+    """Pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        utils.trs_preannotation(trs_parser)
+
+
 console = Console()
 
 
