@@ -206,6 +206,25 @@ def pne(
         utils.trs_preannotation(trs_parser)
 
 
+@app.command(short_help="Extracts report sections from .trs files")
+def tmp(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:  # FIXME: The tmp command was broken in commit 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the retrieve_contents method. This method will have to be carefuly refactored, too.
+    """Extracts report sections from .trs files.
+    Saves the extractions in a folder [folder]/tmp"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.trs_tmp()
+
+
 console = Console()
 
 
