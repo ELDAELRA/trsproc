@@ -38,7 +38,9 @@ def get_files(
     return list(Path.cwd().glob(f"*.{extension}"))
 
 
-@app.command(short_help="Extracts the text from .trs files into .txt files")
+@app.command(
+    short_help="Extracts the text from .trs files into .txt files",
+)
 def txt(
     folder: Annotated[
         Path,
@@ -57,7 +59,9 @@ def txt(
         trs_parser.trs_to_txt()
 
 
-@app.command(short_help="Rewrites trs files in the placeholder .trs files.")
+@app.command(
+    short_help="Rewrites trs files in the placeholder .trs files",
+)
 def trs(
     folder: Annotated[
         Path,
@@ -76,7 +80,7 @@ def trs(
 
 
 @app.command(
-    short_help="Produces a tabular file with the structures and contents of the .trs files"
+    short_help="Produces a tabular file with the structures and contents of the .trs files",
 )
 def tsv(
     folder: Annotated[
@@ -97,7 +101,7 @@ def tsv(
 
 
 @app.command(
-    short_help="Deletes the Named Entity annotations if any are present in the input TRS."
+    short_help="Deletes Named Entity from .trs files",
 )
 def cne(
     folder: Annotated[
@@ -118,7 +122,7 @@ def cne(
 
 
 @app.command(
-    short_help="Extracts the Named Entity annotations if any are present in the input TRS files."
+    short_help="Extracts named entites from .trs files",
 )
 def ne(
     folder: Annotated[
@@ -139,7 +143,7 @@ def ne(
 
 
 @app.command(
-    short_help="Adds a language tag to each transcription segment not having one in the input TRS files"
+    short_help="Adds language tags to transcriptions",
 )
 def lang(
     language: Annotated[
@@ -181,14 +185,16 @@ def prt(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Prints the parsed trs contents directly in the console"""
+    """Prints the parsed trs contents"""
     files: list[Path] = get_files(folder, file, "trs")
     for filename in files:
         trs_parser = TRSParser(filename)
         trs_parser.print()
 
 
-@app.command()
+@app.command(
+    short_help="Pre-annotates named entities in .trs files",
+)
 def pne(
     folder: Annotated[
         Path,
@@ -206,7 +212,9 @@ def pne(
         utils.trs_preannotation(trs_parser)
 
 
-@app.command(short_help="Extracts report sections from .trs files")
+@app.command(
+    short_help="Extracts report sections from .trs files",
+)
 def tmp(
     folder: Annotated[
         Path,
@@ -225,7 +233,9 @@ def tmp(
         trs_parser.trs_tmp()
 
 
-@app.command(short_help="Extracts random segments from .trs files")
+@app.command(
+    short_help="Extracts random segments from .trs files",
+)
 def rs(
     folder: Annotated[
         Path,
@@ -235,8 +245,8 @@ def rs(
         Optional[Path],
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-) -> None:      
-    """Calculates the minimum sample needed for the validation of the input TRS transcription 
+) -> None:
+    """Calculates the minimum sample needed for the validation of the input TRS transcription
     and extracts random segments (audio and text, the latter in a tabular file) according to a given quantity."""
     if file:
         save_folder = file.parent.absolute()
@@ -246,7 +256,9 @@ def rs(
     utils.random_sampling(files, save_folder)
 
 
-@app.command(short_help="Extracts random Named Entity segments from .trs files")
+@app.command(
+    short_help="Extracts random Named Entity segments from .trs files",
+)
 def rsne(
     folder: Annotated[
         Path,
@@ -291,7 +303,7 @@ def tg(
 def tgrs(
     folder: Annotated[
         Path,
-        typer.Argument(help="The folder containing the .trs files"),
+        typer.Argument(help="The folder containing the TextGrid files"),
     ] = Path.cwd(),
     file: Annotated[
         Optional[Path],
@@ -306,11 +318,13 @@ def tgrs(
         parser.textgrid_to_trs(filename)
 
 
-@app.command()
+@app.command(
+    short_help="Converts VAD TextGrid files into .trs files",
+)
 def vad(
     folder: Annotated[
         Path,
-        typer.Argument(help="The folder containing the .trs files"),
+        typer.Argument(help="The folder containing the TextGrid files"),
     ] = Path.cwd(),
     file: Annotated[
         Optional[Path],
@@ -324,7 +338,9 @@ def vad(
         parser.vad_to_trs(filename)
 
 
-@app.command(short_help="Extracts statistics from .trs files.")
+@app.command(
+    short_help="Extracts statistics from .trs files.",
+)
 def vsi(
     folder: Annotated[
         Path,
