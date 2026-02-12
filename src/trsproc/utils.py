@@ -459,47 +459,51 @@ def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
     return
 
 
-def add_lang_tag(input_trs: TRSParser, lang_to_add):
+def add_lang_tag(
+    input_trs: TRSParser,
+    json_dict_path: Path,
+    lang_to_add: str,
+):
     """
     >_ TRS in which language tags must be annotated, language tag dictionary (JSON)
     >>> TRS with new language tag annotation
     """
     try:
-        dicolang = parse_json(os.path.join(input_trs.filepath, "lang-tag.json"))
+        dicolang = parse_json(json_dict_path)
     except FileNotFoundError:
         dicolang = {}
     output_trs = ""
-    trs = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs.split("\n")
     seen_sync = 0
     prev_nontrans = False
     prev_other_lang = False
     for i in range(len(trs_list)):
-        l = trs_list[i]
-        if re.search("<Sync.*", l):
+        line = trs_list[i]
+        if re.search("<Sync.*", line):
             seen_sync += 1
             if seen_sync > 1 and not prev_other_lang:
-                l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
+                line = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{line}'
             if "nontrans" in trs_list[i + 1]:
                 prev_nontrans = True
             elif "<Event" and "language" in trs_list[i + 1]:
                 prev_other_lang = True
             else:
-                l = f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
+                line = f'{line}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
                 prev_nontrans = False
                 prev_other_lang = False
-        elif re.search("</Turn>", l):
+        elif re.search("</Turn>", line):
             seen_sync = 0
             if not prev_nontrans and not prev_other_lang:
-                l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
-        elif re.search("<Event.*", l):
-            et_s = ElementTree.fromstring(l)
+                line = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{line}'
+        elif re.search("<Event.*", line):
+            et_s = ElementTree.fromstring(line)
             if et_s.attrib["type"] == "language":
                 lang_s = et_s.attrib["desc"]
                 ext_s = et_s.attrib["extent"]
                 if lang_s in dicolang:
-                    l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
-        output_trs += f"{l}\n"
+                    line = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
+        output_trs += f"{line}\n"
     path_out = os.path.join(input_trs.filepath, "lang")
     os.makedirs(path_out, exist_ok=True)
     file_output = os.path.join(path_out, f"{input_trs.filename}.trs")

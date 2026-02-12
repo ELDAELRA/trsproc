@@ -136,6 +136,40 @@ def ne(
     for filename in files:
         trs_parser = TRSParser(filename)
         trs_parser.retrieve_ne_to_tsv()
+
+
+@app.command(
+    short_help="Adds a language tag to each transcription segment not having one in the input TRS files"
+)
+def lang(
+    language: Annotated[
+        str,
+        typer.Option(help="The language to use for the tags."),
+    ],
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+    json_dict: Annotated[
+        Path,
+        typer.Option(
+            help="The json file containing the language tags to add."
+        ),  # TODO: describe the expected format
+    ] = Path.cwd() / "lang-tag.json",
+):  # TODO: refactor utils.add_lang_tag. Right now, the language tag is required even if a json file is provided.
+    """Adds a language tag to each transcription segment not having one in the input TRS files.
+    The language can either be specified with the `--language` option, or within a json file, which can be specified with the --json-dict option (which defaults to [folder]/lang-tag.json)
+    The resulting .trs files will be written in [folder]/lang"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        utils.add_lang_tag(trs_parser, json_dict, language)
+
+
 console = Console()
 
 
