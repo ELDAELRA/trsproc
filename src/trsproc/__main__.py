@@ -74,6 +74,26 @@ def trs(
     for filename in files:
         parser.txt_to_trs(filename)
 
+
+@app.command(
+    short_help="Produces a tabular file with the structures and contents of the .trs files"
+)
+def tsv(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+):
+    """Produces a tabular file with the structures and contents of the .trs files.
+    The resulting .tsv file will be located in [folder]/[folder].tsv"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.trs_to_tsv()
 console = Console()
 
 
