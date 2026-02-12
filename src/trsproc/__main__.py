@@ -55,6 +55,25 @@ def txt(
     for filename in files:
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_txt()
+
+
+@app.command(short_help="Rewrites trs files in the placeholder .trs files.")
+def trs(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .txt files"),
+    ] = Path.cwd() / "txt",
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+):
+    """rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
+    The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder."""
+    files: list[Path] = get_files(folder, file, "txt")
+    for filename in files:
+        parser.txt_to_trs(filename)
+
 console = Console()
 
 
