@@ -139,7 +139,7 @@ def random_sampling(list_trs, save_path):
                     if trs.contents[s].get("speaker") != "NA"
                     else "NA"
                 )
-                population[(trs.filename, s, trs.audiofile)] = (
+                population[(trs.filename, s, trs.audio_file)] = (
                     trs.filename,
                     str(trs.contents[s]["xmin"]),
                     trs.contents[s]["content"],
@@ -178,12 +178,12 @@ def random_sampling(list_trs, save_path):
 
     if re.search("y", sample_use.lower()):
         population_sample = sample_from_dict(population, minimum_sample)
-        tabSample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
+        tab_sample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
         population_sample = sample_from_dict(population, sample_size)
-        tabSample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
-    with open(tabSample, "w", encoding="utf-8") as f:
+        tab_sample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
+    with open(tab_sample, "w", encoding="utf-8") as f:
         f.write(
             "file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR"
         )
@@ -293,12 +293,12 @@ def random_sampling_ne(list_trs, save_path):
     if re.search("y", sample_use.lower()):
         population_sample = sample_from_dict(population, minimum_sample)
 
-        tabSample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
+        tab_sample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
         population_sample = sample_from_dict(population, sample_size)
-        tabSample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
-    with open(tabSample, "w", encoding="utf-8") as f:
+        tab_sample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
+    with open(tab_sample, "w", encoding="utf-8") as f:
         f.write(
             "file_name\tsegment_start\tNE_class\tNE_content\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tNE_id\tnb_tokens\tnb_NE\tspeaker_name\tspeaker_sex"
         )
