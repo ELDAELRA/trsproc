@@ -170,6 +170,24 @@ def lang(
         utils.add_lang_tag(trs_parser, json_dict, language)
 
 
+@app.command()
+def prt(
+    folder: Annotated[
+        Path,
+        typer.Argument(help="The folder containing the .trs files"),
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path],
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """Prints the parsed trs contents directly in the console"""
+    files: list[Path] = get_files(folder, file, "trs")
+    for filename in files:
+        trs_parser = TRSParser(filename)
+        trs_parser.print()
+
+
 console = Console()
 
 
