@@ -14,7 +14,6 @@ import typer
 from trsproc import parser, utils
 from trsproc.parser import TRSParser
 
-
 app = typer.Typer()
 crt_app = typer.Typer(help="Apply corrections to .trs files")
 app.add_typer(crt_app, name="crt")
