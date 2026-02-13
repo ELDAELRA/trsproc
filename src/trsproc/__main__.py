@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
-from rich.console import Console
 
 from trsproc import parser, utils
 from trsproc.parser import TRSParser
