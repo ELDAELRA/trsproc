@@ -49,7 +49,7 @@ def crt_turn_differences(
         Optional[Path], typer.Option(help="A single file to process")
     ] = None,
 ) -> None:
-    """Search for differences in segmentation with twin files."""
+    """Search for differences in segmentation with twin files"""
     for filename in get_files(folder, file, "trs"):
         utils.turn_difference_trs(TRSParser(filename))
 
@@ -63,7 +63,7 @@ def crt_empty_space(
         Optional[Path], typer.Option(help="A single file to process")
     ] = None,
 ) -> None:
-    """Add empty space before each NE annotation."""
+    """Add empty space before each NE annotation"""
     for filename in get_files(folder, file, "trs"):
         utils.trs_empty_space_before_ne(TRSParser(filename))
 
@@ -77,7 +77,7 @@ def crt_la(
         Optional[Path], typer.Option(help="A single file to process")
     ] = None,
 ) -> None:
-    """Correct sentences ending with 'là' to 'la'. Requires prior txt command."""
+    """Correct sentences ending with 'là' to 'la'. Requires prior txt command"""
     for filename in get_files(folder, file, "trs"):
         utils.correction_la(TRSParser(filename))
 
@@ -110,7 +110,7 @@ def txt(
     ] = None,
 ) -> None:
     """Extracts the text from .trs files into .txt files, and creates placeholder .trs files, to merge text back in.
-    This is intended to be used for easily modifying the text from .trs files (e.g for fixing typos)."""
+    This is intended to be used for easily modifying the text from .trs files (e.g for fixing typos)"""
     for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_txt()
@@ -130,7 +130,7 @@ def trs(
     ] = None,
 ):
     """rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
-    The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder."""
+    The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder"""
     for filename in get_files(folder, file, "txt"):
         parser.txt_to_trs(filename)
 
@@ -386,7 +386,7 @@ def vad(
 
 
 @app.command(
-    short_help="Extracts statistics from .trs files.",
+    short_help="Extracts statistics from .trs files",
 )
 def vsi(
     folder: Annotated[
