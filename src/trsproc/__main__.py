@@ -7,7 +7,7 @@
 #####
 
 from pathlib import Path
-from typing import Annotated, Optional, Callable
+from typing import Annotated, Optional
 
 import typer
 from rich.console import Console
@@ -111,8 +111,7 @@ def txt(
 ) -> None:
     """Extracts the text from .trs files into .txt files, and creates placeholder .trs files, to merge text back in.
     This is intended to be used for easily modifying the text from .trs files (e.g for fixing typos)."""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_txt()
 
@@ -132,8 +131,7 @@ def trs(
 ):
     """rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
     The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder."""
-    files: list[Path] = get_files(folder, file, "txt")
-    for filename in files:
+    for filename in get_files(folder, file, "txt"):
         parser.txt_to_trs(filename)
 
 
@@ -152,8 +150,7 @@ def tsv(
 ):
     """Produces a tabular file with the structures and contents of the .trs files.
     The resulting .tsv file will be located in [folder]/[folder].tsv"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_tsv()
 
@@ -173,8 +170,7 @@ def cne(
 ):
     """Deletes the Named Entity annotations if any are present in the input TRS.
     Writes the resulting .trs files in [folder]/clean"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.clean_ne_from_trs()
 
@@ -194,8 +190,7 @@ def ne(
 ):
     """Extracts the Named Entity annotations if any are present in the input TRS.
     Saves them in a tabular file located in [folder]/folder_NE_extraction.tsv"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.retrieve_ne_to_tsv()
 
@@ -226,8 +221,7 @@ def lang(
     """Adds a language tag to each transcription segment not having one in the input TRS files.
     The language can either be specified with the `--language` option, or within a json file, which can be specified with the --json-dict option (which defaults to [folder]/lang-tag.json)
     The resulting .trs files will be written in [folder]/lang"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         utils.add_lang_tag(trs_parser, json_dict, language)
 
@@ -244,8 +238,7 @@ def prt(
     ] = None,
 ) -> None:
     """Prints the parsed trs contents"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.print()
 
@@ -285,8 +278,7 @@ def tmp(
 ) -> None:  # FIXME: The tmp command was broken in commit 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the retrieve_contents method. This method will have to be carefuly refactored, too.
     """Extracts report sections from .trs files.
     Saves the extractions in a folder [folder]/tmp"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.trs_tmp()
 
@@ -351,8 +343,7 @@ def tg(
     # TODO : pass the audio file as an argument
     # TODO : make sure the audio file exists, as the TextGrid cannot be turned back to .trs without audio
     """Converts .trs files to .TextGrid files."""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.trs_to_textgrid()
 
@@ -371,8 +362,7 @@ def tgrs(
     # TODO : pass the audio file as an argument
     # TODO : make sure the audio file exists, as the TextGrid cannot be turned back to .trs without audio
     """Converts .TextGrid files to .trs files."""
-    files: list[Path] = get_files(folder, file, "TextGrid")
-    for filename in files:
+    for filename in get_files(folder, file, "TextGrid"):
         parser.textgrid_to_trs(filename)
 
 
@@ -391,8 +381,7 @@ def vad(
 ) -> None:
     # TODO: Get one of those TextGrid file for testing.
     """converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files."""
-    files: list[Path] = get_files(folder, file, "TextGrid")
-    for filename in files:
+    for filename in get_files(folder, file, "TextGrid"):
         parser.vad_to_trs(filename)
 
 
@@ -410,8 +399,7 @@ def vsi(
     ] = None,
 ) -> None:
     """Produces a tabular file containing basic lexical information and statistics concerning the input TRS"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.validate_trs()
 
@@ -431,8 +419,7 @@ def vsi_lang(
 ) -> None:
     # FIXME: command seems to be broken, don't know since when
     """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         trs_parser.summary_lang_trs()
 
@@ -451,13 +438,9 @@ def rpt(
     ] = None,
 ) -> None:
     """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
+    for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         utils.tmp_report(trs_parser)
-
-
-console = Console()
 
 
 def main():
