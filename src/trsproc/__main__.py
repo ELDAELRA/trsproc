@@ -17,6 +17,8 @@ from trsproc.parser import TRSParser
 
 
 app = typer.Typer()
+crt_app = typer.Typer(help="Apply corrections to .trs files")
+app.add_typer(crt_app, name="crt")
 
 
 def get_files(
@@ -36,6 +38,62 @@ def get_files(
         return list(folder.glob(f"*.{extension}"))
 
     return list(Path.cwd().glob(f"*.{extension}"))
+
+
+@crt_app.command("turn-differences")
+def crt_turn_differences(
+    folder: Annotated[
+        Path, typer.Argument(help="The folder containing the .trs files")
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path], typer.Option(help="A single file to process")
+    ] = None,
+) -> None:
+    """Search for differences in segmentation with twin files."""
+    for filename in get_files(folder, file, "trs"):
+        utils.turn_difference_trs(TRSParser(filename))
+
+
+@crt_app.command("empty-space")
+def crt_empty_space(
+    folder: Annotated[
+        Path, typer.Argument(help="The folder containing the .trs files")
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path], typer.Option(help="A single file to process")
+    ] = None,
+) -> None:
+    """Add empty space before each NE annotation."""
+    for filename in get_files(folder, file, "trs"):
+        utils.trs_empty_space_before_ne(TRSParser(filename))
+
+
+@crt_app.command("la")
+def crt_la(
+    folder: Annotated[
+        Path, typer.Argument(help="The folder containing the .trs files")
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path], typer.Option(help="A single file to process")
+    ] = None,
+) -> None:
+    """Correct sentences ending with 'là' to 'la'. Requires prior txt command."""
+    for filename in get_files(folder, file, "trs"):
+        utils.correction_la(TRSParser(filename))
+
+
+@crt_app.command("maj")
+def crt_maj(
+    folder: Annotated[
+        Path, typer.Argument(help="The folder containing the .trs files")
+    ] = Path.cwd(),
+    file: Annotated[
+        Optional[Path], typer.Option(help="A single file to process")
+    ] = None,
+) -> None:
+    """Correct misplaced capital letters."""
+    for filename in get_files(folder, file, "trs"):
+        utils.correction_maj(TRSParser(filename))
 
 
 @app.command(
