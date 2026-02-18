@@ -6,19 +6,18 @@
 #### trsproc direct dependency
 #####
 
-# Global imports
-import random
-
-random.seed(42)
-
-import os, re
 import json
-import parselmouth
+import os
+import random
+import re
+from pathlib import Path
 from xml.etree import cElementTree as ElementTree
 
-# Custom imports
+import parselmouth
+
 from .parser import TRSParser
 
+random.seed(42)
 script_dir = os.path.dirname(__file__)
 
 
@@ -75,12 +74,12 @@ def tmp_report(trs_input, section_type="report"):
             print(f"Pauses longer than 0.5 s -> ", nb_silence_no)
             for x in silence_no:
                 f_tsv.write(
-                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}"
+                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}"
                 )
             print(f"Segments longer than 10 s -> ", nb_speech_no)
             for y in speech_no:
                 f_tsv.write(
-                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.sectionduration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}"
+                    f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}"
                 )
 
     return
@@ -139,7 +138,7 @@ def random_sampling(list_trs, save_path):
                     if trs.contents[s].get("speaker") != "NA"
                     else "NA"
                 )
-                population[(trs.filename, s, trs.audiofile)] = (
+                population[(trs.filename, s, trs.audio_file)] = (
                     trs.filename,
                     str(trs.contents[s]["xmin"]),
                     trs.contents[s]["content"],
@@ -178,12 +177,12 @@ def random_sampling(list_trs, save_path):
 
     if re.search("y", sample_use.lower()):
         population_sample = sample_from_dict(population, minimum_sample)
-        tabSample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
+        tab_sample = os.path.join(save_path, f"sample_segments_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
         population_sample = sample_from_dict(population, sample_size)
-        tabSample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
-    with open(tabSample, "w", encoding="utf-8") as f:
+        tab_sample = os.path.join(save_path, f"sample_segments_{sample_size}.tsv")
+    with open(tab_sample, "w", encoding="utf-8") as f:
         f.write(
             "file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR"
         )
@@ -205,7 +204,7 @@ def random_sampling(list_trs, save_path):
     return
 
 
-def random_sampling_ne(list_trs, save_path):
+def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
     """
     >_ TRS list from which extracting random named entities
     >>> minimum sample size based on population input, table with random sampled named entities from population,
@@ -293,12 +292,12 @@ def random_sampling_ne(list_trs, save_path):
     if re.search("y", sample_use.lower()):
         population_sample = sample_from_dict(population, minimum_sample)
 
-        tabSample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
+        tab_sample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
     else:
         sample_size = int(input("Provide new sample size\t"))
         population_sample = sample_from_dict(population, sample_size)
-        tabSample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
-    with open(tabSample, "w", encoding="utf-8") as f:
+        tab_sample = os.path.join(save_path, f"sample_ne_{sample_size}.tsv")
+    with open(tab_sample, "w", encoding="utf-8") as f:
         f.write(
             "file_name\tsegment_start\tNE_class\tNE_content\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tNE_id\tnb_tokens\tnb_NE\tspeaker_name\tspeaker_sex"
         )
@@ -395,7 +394,7 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
     )
     os.makedirs(os.path.join(input_trs.filepath, "preannotated"), exist_ok=True)
     print(f"\N{CARD FILE BOX} Preannotating simple NE in {input_trs.filename}...")
-    trs_input = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs_input.split("\n")
     for l in trs_list:
         if re.search("<.*>", l) or l == "":
@@ -459,47 +458,51 @@ def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
     return
 
 
-def add_lang_tag(input_trs: TRSParser, lang_to_add):
+def add_lang_tag(
+    input_trs: TRSParser,
+    json_dict_path: Path,
+    lang_to_add: str,
+):
     """
     >_ TRS in which language tags must be annotated, language tag dictionary (JSON)
     >>> TRS with new language tag annotation
     """
     try:
-        dicolang = parse_json(os.path.join(input_trs.filepath, "lang-tag.json"))
+        dicolang = parse_json(json_dict_path)
     except FileNotFoundError:
         dicolang = {}
     output_trs = ""
-    trs = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs.split("\n")
     seen_sync = 0
     prev_nontrans = False
     prev_other_lang = False
     for i in range(len(trs_list)):
-        l = trs_list[i]
-        if re.search("<Sync.*", l):
+        line = trs_list[i]
+        if re.search("<Sync.*", line):
             seen_sync += 1
             if seen_sync > 1 and not prev_other_lang:
-                l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
+                line = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{line}'
             if "nontrans" in trs_list[i + 1]:
                 prev_nontrans = True
             elif "<Event" and "language" in trs_list[i + 1]:
                 prev_other_lang = True
             else:
-                l = f'{l}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
+                line = f'{line}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
                 prev_nontrans = False
                 prev_other_lang = False
-        elif re.search("</Turn>", l):
+        elif re.search("</Turn>", line):
             seen_sync = 0
             if not prev_nontrans and not prev_other_lang:
-                l = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{l}'
-        elif re.search("<Event.*", l):
-            et_s = ElementTree.fromstring(l)
+                line = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{line}'
+        elif re.search("<Event.*", line):
+            et_s = ElementTree.fromstring(line)
             if et_s.attrib["type"] == "language":
                 lang_s = et_s.attrib["desc"]
                 ext_s = et_s.attrib["extent"]
                 if lang_s in dicolang:
-                    l = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
-        output_trs += f"{l}\n"
+                    line = f'<Event desc="{dicolang[lang_s]}" type="language" extent="{ext_s}"/>'
+        output_trs += f"{line}\n"
     path_out = os.path.join(input_trs.filepath, "lang")
     os.makedirs(path_out, exist_ok=True)
     file_output = os.path.join(path_out, f"{input_trs.filename}.trs")
@@ -546,7 +549,7 @@ def trs_empty_space_before_ne(input_trs: TRSParser):
     >>> corrected TRS
     """
     output_trs = ""
-    trs = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs.split("\n")
     print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
     for l in range(len(trs_list)):
@@ -613,7 +616,7 @@ def correction_maj(input_trs: TRSParser):
     target_path = os.path.join(input_trs.filepath, "corrections", "maj")
     os.makedirs(target_path, exist_ok=True)
     trs_output = os.path.join(target_path, f"{input_trs.filename}.trs")
-    txt_input = open(input_trs.inputTRS, "r", encoding="utf-8").read()
+    txt_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     txt_input = txt_input.split("\n")
     nb_l = len(txt_input)
     for l in range(nb_l):

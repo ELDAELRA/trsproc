@@ -41,6 +41,159 @@ def praat_snr_for_segment(audio, seg_start, seg_end):
     return round(mean_snr, 2)
 
 
+def txt_to_trs(input_txt, from_correction=0):
+    # TODO: remove the need for placeholders
+    # TODO: add an option to choose where to save the new .trs (or perhaps overwrite the original one ?)
+    """
+    >_ txt file having the transcription to be rewritten in a TRS, one segment per line and line length = last placeholder
+    >>> rewritten TRS, from_correction parameter helps to identify the file name
+    """
+    output_trs_correct = ""
+    txt_path, txt_name = os.path.split(input_txt)
+    txt_name = txt_name.split(".")[0]
+    txt_folder = os.path.basename(txt_path)
+    origin_path = txt_path.rstrip(txt_folder)
+    correction_level = {
+        0: "",
+        1: "_csp",
+        2: "_sp",
+        3: "_gram",
+        12: "_csp_sp",
+        13: "_csp_gram",
+        23: "_sp_gram",
+        123: "_csp_sp_gram",
+    }
+    ## find the correct text to rewrite
+    if from_correction != 0:
+        corrected_folder = os.path.join(txt_path, "corrections", "corrected")
+        os.makedirs(corrected_folder, exist_ok=True)
+        correction_folder = correction_level[from_correction].split("_")[-1]
+        txt_input = os.path.join(
+            txt_path,
+            "corrections",
+            correction_folder,
+            f"{txt_name}{correction_level[from_correction]}.txt",
+        )
+        trs_output = os.path.join(
+            corrected_folder, f"{txt_name}{correction_level[from_correction]}.trs"
+        )
+    else:
+        txt_input = os.path.join(txt_path, f"{txt_name}.txt")
+        trs_output = os.path.join(txt_path, f"{txt_name}.trs")
+    ## seach for the TRS placeholder
+    trs_placeholder = os.path.join(
+        origin_path, "placeholder", f"{txt_name}_placeholder.trs"
+    )
+    trs_input = open(trs_placeholder, encoding="utf-8").read()
+    trs_list = trs_input.split("\n")
+    txt_input = open(txt_input, encoding="utf-8").read()
+    txt_list = txt_input.split("\n")
+    print(f"\N{PACKAGE} Re-writing {txt_name}...")
+    for l in trs_list:
+        if len(l) == 0 or re.search("<.*>", l):
+            output_trs_correct += f"{l}\n"
+        ## writing TRS original XML structure into
+        elif re.search("[placeholder .+]", l):
+            plh = l.split(" ")[1]
+            plh = int(plh.rstrip("]"))
+            output_trs_correct += f"{txt_list[plh]}\n"
+        ## adding new txt content
+    with open(trs_output, "w", encoding="utf-8") as f_trs:
+        f_trs.write("".join(output_trs_correct))
+
+    return
+
+
+def textgrid_to_trs(input_tg):
+    """
+    >_ TextGrid file
+    >>> TRS following textgrid segmentations
+    """
+    tg_path, tg_name = os.path.split(input_tg)
+    tg_name = tg_name.split(".")[0]
+    trans = os.path.basename(tg_path)
+    grid = textgrids.TextGrid(input_tg)
+    ## Create textgrid object from input file
+    print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
+    grid_xmax = grid["transcription"][-1].xmax
+    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble_spk = "<Speakers>\n"
+    trs_corps = ""
+    trs_closure = "</Section>\n</Episode>\n</Trans>"
+    ## Create TRS preambule, body (starting empty) and conclusion texts
+    nb_int = len(grid["speaker"])
+    spk_sex_tuple_list = []
+    for x in range(nb_int):
+        ## analyse the speaker and sexe Tiers to retrieve speakers info and write them in preambule
+        try:
+            spk_sex_tuple_list.append((grid["speaker"][x].text, grid["sex"][x].text))
+        except parselmouth.PraatError:
+            spk_sex_tuple_list.append(("", ""))
+    ##### CHANGE TO DICT for better looping
+    ##### { spk_id:(name, type)}
+    spk_sex_tuple_list = set(spk_sex_tuple_list)
+    spk_sex_dict = {}
+    for i in spk_sex_tuple_list:
+        spk_id = 1
+        spk_sex_dict[i[0]] = f"spk{spk_id}"
+        if i[0] != "":
+            trs_preamble_spk += (
+                f'<Speaker id="spk{spk_id}" name="{i[0]}" check="no" type="{i[1]}"/>\n'
+            )
+            spk_id += 1
+    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    for t in range(nb_int):
+        ## Loop on transcription Tier to retrieve info and write in formatted TRS text
+        transcription, t_min, t_max, t_spk = (
+            grid["transcription"][t].text,
+            grid["transcription"][t].xmin,
+            grid["transcription"][t].xmax,
+            grid["speaker"][t].text,
+        )
+        t_spk = spk_sex_dict[t_spk]
+        if transcription == "":
+            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+        else:
+            trs_corps += f'<Turn speaker="{t_spk}" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
+    dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
+    with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
+        f.write(dump_trs)
+
+    return
+
+
+def vad_to_trs(input_tg):
+    """
+    >_ TextGrid file with Tier named VAD
+    >>> TRS file
+    """
+    tg_path, tg_name = os.path.split(input_tg)
+    tg_name = tg_name.split(".")[0]
+    print(f"\N{MOUTH} Writing TRS from tg {tg_name}...")
+    grid = textgrids.TextGrid(input_tg)
+    ## Create textgrid object from input file
+    grid_xmax = round(grid["VAD"][-1].xmax, 3)
+    ## Retrieve total duration of file
+    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble_spk = '<Speakers>\n<Speaker id="spk1" name="a transcrire"/>\n'
+    trs_corps = ""
+    trs_closure = "</Section>\n</Episode>\n</Trans>"
+    ## Create TRS preambule, body (starting empty) and conclusion texts
+    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    for i in grid["VAD"]:
+        ## Loop on transcription Tier to retrieve info and write in formatted TRS text
+        transcription, t_min, t_max = i.text, round(i.xmin, 3), round(i.xmax, 3)
+        if transcription == "speech":
+            trs_corps += f'<Turn speaker="spk1" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n</Turn>\n'
+        else:
+            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+    dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
+    with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
+        f.write(dump_trs)
+
+    return
+
+
 class TRSParser:
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
         self.tree = ElementTree.parse(trs_in)
@@ -328,66 +481,6 @@ class TRSParser:
 
         return
 
-    def txt_to_trs(input_txt, from_correction=0):
-        """
-        >_ txt file having the transcription to be rewritten in a TRS, one segment per line and line length = last placeholder
-        >>> rewritten TRS, from_correction parameter helps to identify the file name
-        """
-        output_trs_correct = ""
-        txt_path, txt_name = os.path.split(input_txt)
-        txt_name = txt_name.split(".")[0]
-        txt_folder = os.path.basename(txt_path)
-        origin_path = txt_path.rstrip(txt_folder)
-        correction_level = {
-            0: "",
-            1: "_csp",
-            2: "_sp",
-            3: "_gram",
-            12: "_csp_sp",
-            13: "_csp_gram",
-            23: "_sp_gram",
-            123: "_csp_sp_gram",
-        }
-        ## find the correct text to rewrite
-        if from_correction != 0:
-            corrected_folder = os.path.join(txt_path, "corrections", "corrected")
-            os.makedirs(corrected_folder, exist_ok=True)
-            correction_folder = correction_level[from_correction].split("_")[-1]
-            txt_input = os.path.join(
-                txt_path,
-                "corrections",
-                correction_folder,
-                f"{txt_name}{correction_level[from_correction]}.txt",
-            )
-            trs_output = os.path.join(
-                corrected_folder, f"{txt_name}{correction_level[from_correction]}.trs"
-            )
-        else:
-            txt_input = os.path.join(txt_path, f"{txt_name}.txt")
-            trs_output = os.path.join(txt_path, f"{txt_name}.trs")
-        ## seach for the TRS placeholder
-        trs_placeholder = os.path.join(
-            origin_path, "placeholder", f"{txt_name}_placeholder.trs"
-        )
-        trs_input = open(trs_placeholder, encoding="utf-8").read()
-        trs_list = trs_input.split("\n")
-        txt_input = open(txt_input, encoding="utf-8").read()
-        txt_list = txt_input.split("\n")
-        print(f"\N{PACKAGE} Re-writing {txt_name}...")
-        for l in trs_list:
-            if len(l) == 0 or re.search("<.*>", l):
-                output_trs_correct += f"{l}\n"
-            ## writing TRS original XML structure into
-            elif re.search("[placeholder .+]", l):
-                plh = l.split(" ")[1]
-                plh = int(plh.rstrip("]"))
-                output_trs_correct += f"{txt_list[plh]}\n"
-            ## adding new txt content
-        with open(trs_output, "w", encoding="utf-8") as f_trs:
-            f_trs.write("".join(output_trs_correct))
-
-        return
-
     def clean_ne_from_trs(self):
         """
         >_ TRS file transcribed and annotated to NE
@@ -452,10 +545,8 @@ class TRSParser:
         return
 
     def trs_to_tsv(self):
-        print("this")
-        print("speakers", self.speakers)
         """
-        >_ TRS file 
+        >_ TRS file
         >>> tsv file representing the origin TRS
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}.tsv")
@@ -480,37 +571,6 @@ class TRSParser:
                         )
                     except KeyError:
                         f_tsv.write("NA\tNA")
-
-        return
-
-    def vad_to_trs(input_tg):
-        """
-        >_ TextGrid file with Tier named VAD
-        >>> TRS file
-        """
-        tg_path, tg_name = os.path.split(input_tg)
-        tg_name = tg_name.split(".")[0]
-        print(f"\N{MOUTH} Writing TRS from tg {tg_name}...")
-        grid = textgrids.TextGrid(input_tg)
-        ## Create textgrid object from input file
-        grid_xmax = round(grid["VAD"][-1].xmax, 3)
-        ## Retrieve total duration of file
-        trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="" audio_filename="{tg_name}" version="4" version_date="">\n'
-        trs_preamble_spk = '<Speakers>\n<Speaker id="spk1" name="a transcrire"/>\n'
-        trs_corps = ""
-        trs_closure = "</Section>\n</Episode>\n</Trans>"
-        ## Create TRS preambule, body (starting empty) and conclusion texts
-        trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
-        for i in grid["VAD"]:
-            ## Loop on transcription Tier to retrieve info and write in formatted TRS text
-            transcription, t_min, t_max = i.text, round(i.xmin, 3), round(i.xmax, 3)
-            if transcription == "speech":
-                trs_corps += f'<Turn speaker="spk1" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n</Turn>\n'
-            else:
-                trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
-        dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
-        with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
-            f.write(dump_trs)
 
         return
 
@@ -562,63 +622,6 @@ class TRSParser:
                             tg.write(f'{ne_content.strip()}"')
                         else:
                             tg.write("")
-
-        return
-
-    def textgrid_to_trs(input_tg):
-        """
-        >_ TextGrid file
-        >>> TRS following textgrid segmentations
-        """
-        tg_path, tg_name = os.path.split(input_tg)
-        tg_name = tg_name.split(".")[0]
-        trans = os.path.basename(tg_path)
-        grid = textgrids.TextGrid(input_tg)
-        ## Create textgrid object from input file
-        print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
-        grid_xmax = grid["transcription"][-1].xmax
-        trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
-        trs_preamble_spk = "<Speakers>\n"
-        trs_corps = ""
-        trs_closure = "</Section>\n</Episode>\n</Trans>"
-        ## Create TRS preambule, body (starting empty) and conclusion texts
-        nb_int = len(grid["speaker"])
-        spk_sex_tuple_list = []
-        for x in range(nb_int):
-            ## analyse the speaker and sexe Tiers to retrieve speakers info and write them in preambule
-            try:
-                spk_sex_tuple_list.append(
-                    (grid["speaker"][x].text, grid["sex"][x].text)
-                )
-            except parselmouth.PraatError:
-                spk_sex_tuple_list.append(("", ""))
-        ##### CHANGE TO DICT for better looping
-        ##### { spk_id:(name, type)}
-        spk_sex_tuple_list = set(spk_sex_tuple_list)
-        spk_sex_dict = {}
-        for i in spk_sex_tuple_list:
-            spk_id = 1
-            spk_sex_dict[i[0]] = f"spk{spk_id}"
-            if i[0] != "":
-                trs_preamble_spk += f'<Speaker id="spk{spk_id}" name="{i[0]}" check="no" type="{i[1]}"/>\n'
-                spk_id += 1
-        trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
-        for t in range(nb_int):
-            ## Loop on transcription Tier to retrieve info and write in formatted TRS text
-            transcription, t_min, t_max, t_spk = (
-                grid["transcription"][t].text,
-                grid["transcription"][t].xmin,
-                grid["transcription"][t].xmax,
-                grid["speaker"][t].text,
-            )
-            t_spk = spk_sex_dict[t_spk]
-            if transcription == "":
-                trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
-            else:
-                trs_corps += f'<Turn speaker="{t_spk}" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
-        dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
-        with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
-            f.write(dump_trs)
 
         return
 
