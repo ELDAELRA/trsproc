@@ -305,6 +305,20 @@ def rs(
 
 
 @app.command(
+    short_help="Extracts audio segments listed in a TSV file",
+)
+def seg(
+    file: Annotated[
+        Path,
+        typer.Argument(help="The TSV file containing segment information"),
+    ],
+) -> None:
+    """Extracts audio segments listed in a TSV file into a validation subfolder
+    and saves the resulting .wav files in [tsv_folder]/validation/"""
+    utils.extract_segments(file)
+
+
+@app.command(
     short_help="Extracts random Named Entity segments from .trs files",
 )
 def rsne(
