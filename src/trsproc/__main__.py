@@ -301,7 +301,9 @@ def rs(
     else:
         save_folder = folder.absolute()
     files: list[Path] = get_files(folder, file, "trs")
-    utils.random_sampling(files, save_folder)
+    tab_sample = utils.random_sampling(files, save_folder)
+    if tab_sample:
+        utils.extract_segments(tab_sample)
 
 
 @app.command(

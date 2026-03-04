@@ -6,14 +6,18 @@
 #### trsproc direct dependency
 #####
 
+import csv
 import json
 import os
 import random
 import re
+from collections import defaultdict
 from pathlib import Path
 from xml.etree import cElementTree as ElementTree
 
+import librosa
 import parselmouth
+import soundfile as sf
 
 from .parser import TRSParser
 
@@ -201,7 +205,7 @@ def random_sampling(list_trs, save_path):
                 pass
     print(f"\N{BOOKMARK} Samples saved in {tab_sample}")
 
-    return
+    return tab_sample
 
 
 def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
@@ -316,6 +320,57 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
             except (FileNotFoundError, parselmouth.PraatError, ValueError):
                 pass
     print(f"\N{BOOKMARK} NE Samples saved in {tab_sample}")
+
+    return
+
+
+def extract_segments(tsv_file: str):
+    """
+    >_ TSV file with segment information
+    >>> WAV segment files extracted to a validation subfolder
+    """
+    base_dir = os.path.dirname(tsv_file)
+    out_dir = os.path.join(base_dir, "validation")
+    os.makedirs(out_dir, exist_ok=True)
+
+    segments_by_file = defaultdict(list)
+
+    with open(tsv_file, encoding="utf-8") as f:
+        reader = csv.DictReader(f, delimiter="\t")
+        for row in reader:
+            fname = os.path.basename(row["file_name"])
+            segments_by_file[fname].append({
+                "seg_id": row["segment_id"],
+                "start": float(row["segment_start"]),
+                "end": float(row["segment_end"]),
+            })
+
+    for fname, segments in segments_by_file.items():
+        audio_path = os.path.join(base_dir, "..", f"{fname}.wav")
+
+        if not os.path.exists(audio_path):
+            print(f"\N{WARNING SIGN} Missing audio: {audio_path}")
+            continue
+
+        y, sr = librosa.load(audio_path, sr=None, mono=True)
+
+        for seg in segments:
+            seg_id = seg["seg_id"]
+            start_sample = round(seg["start"] * sr)
+            end_sample = round(seg["end"] * sr)
+
+            start_sample = max(0, min(start_sample, len(y)))
+            end_sample = max(0, min(end_sample, len(y)))
+
+            seg_audio = y[start_sample:end_sample]
+
+            if len(seg_audio) == 0:
+                print(f"\N{WARNING SIGN} Empty segment (skipped): {fname} / {seg_id}")
+                continue
+
+            out_path = os.path.join(out_dir, f"{fname}_{seg_id}.wav")
+            sf.write(out_path, seg_audio, sr)
+            print(f"\N{BOOKMARK} Saved: {out_path}")
 
     return
 
