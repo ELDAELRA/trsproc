@@ -205,7 +205,7 @@ def random_sampling(list_trs, save_path):
                 pass
     print(f"\N{BOOKMARK} Samples saved in {tab_sample}")
 
-    return
+    return tab_sample
 
 
 def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
@@ -324,7 +324,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
     return
 
 
-def extract_segments(tsv_file: str) -> None:
+def extract_segments(tsv_file: str):
     """
     >_ TSV file with segment information
     >>> WAV segment files extracted to a validation subfolder

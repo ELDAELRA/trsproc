@@ -301,21 +301,9 @@ def rs(
     else:
         save_folder = folder.absolute()
     files: list[Path] = get_files(folder, file, "trs")
-    utils.random_sampling(files, save_folder)
-
-
-@app.command(
-    short_help="Extracts audio segments listed in a TSV file",
-)
-def seg(
-    file: Annotated[
-        Path,
-        typer.Argument(help="The TSV file containing segment information"),
-    ],
-) -> None:
-    """Extracts audio segments listed in a TSV file into a validation subfolder
-    and saves the resulting .wav files in [tsv_folder]/validation/"""
-    utils.extract_segments(file)
+    tab_sample = utils.random_sampling(files, save_folder)
+    if tab_sample:
+        utils.extract_segments(tab_sample)
 
 
 @app.command(
