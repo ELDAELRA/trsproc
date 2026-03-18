@@ -22,6 +22,7 @@ dependencies = [
     "rich",
     "typer",
     'tomli; python_version < "3.11"',
+    "librosa",
 ]
 requires-python = ">=3.6"
 
