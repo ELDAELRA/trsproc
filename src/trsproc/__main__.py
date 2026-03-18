@@ -127,8 +127,10 @@ def trs(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ):
-    """rewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
-    The rewritten TRS will have the content of the txt and the structure of the TRS-placeholder"""
+    """\brewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
+    \bThe command NEEDS to be called from a folder that has a txt and a placeholder subfolder (presumably created by a previous txt command).
+    \bThe rewritten TRS will have the content of the txt and the structure of the TRS-placeholder
+    """
     for filename in get_files(folder, file, "txt"):
         parser.txt_to_trs(filename)
 
