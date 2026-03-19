@@ -178,7 +178,7 @@ def tsv(
         Optional[Path],
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-):
+):  # TODO : output filename as argument. When launched with --file, the file has no name (.tsv)
     """Produces a tabular file with the structures and contents of the .trs files.
     The resulting .tsv file will be located in [folder]/[folder].tsv"""
     if folder is None:
@@ -226,7 +226,7 @@ def ne(
         Optional[Path],
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-):
+):  # TODO : output filename as argument. When launched with --file, the file has no name (.tsv)
     """Extracts the Named Entity annotations if any are present in the input TRS.
     Saves them in a tabular file located in [folder]/folder_NE_extraction.tsv"""
     if folder is None:
