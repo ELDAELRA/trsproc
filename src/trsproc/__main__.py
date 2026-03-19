@@ -241,9 +241,9 @@ def ne(
 )
 def lang(
     language: Annotated[
-        str,
+        Optional[str],
         typer.Option(help="The language to use for the tags."),
-    ],
+    ] = None,
     folder: Annotated[
         Optional[Path],
         typer.Argument(
@@ -269,6 +269,12 @@ def lang(
         folder = Path.cwd()
     if json_dict is None:
         json_dict = Path.cwd() / "lang-tag.json"
+
+    if not json_dict.exists() and language is None:
+        raise typer.BadParameter(
+            f"Can't find {json_dict}. Consider setting --language or --json-dict",
+        )
+
     for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         utils.add_lang_tag(trs_parser, json_dict, language)
