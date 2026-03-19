@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Trans SYSTEM "trans-14.dtd">
+<Trans scribe="trsproc_test" audio_filename="en_test" version="4" version_date="">
+<Speakers>
+<Speaker id="spk1" name="fs2" check="no" type="female"/>
+<Speaker id="spk1" name="fs1" check="no" type="female"/>
+</Speakers>
+<Episode>
+<Section type="report" startTime="0" endTime="120.491">
+<Turn speaker="spk1" startTime="0.0" endTime="4.789">
+<Sync time="0.0"/>
+<Event desc="fr" type="language" extent="begin"/>
+The town of Lyon is served by the Coahoma County School District.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="4.789" endTime="9.563">
+<Sync time="4.789"/>
+<Event desc="fr" type="language" extent="begin"/>
+[pronpi]
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="9.563" endTime="16.031">
+<Sync time="9.563"/>
+<Event desc="fr" type="language" extent="begin"/>
+After effecting electrical repairs, the plane safely took off and continued to Oshkosh.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="16.031" endTime="20.966">
+<Sync time="16.031"/>
+<Event desc="fr" type="language" extent="begin"/>
+Arundel High School's rival school is South River High School.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="20.966" endTime="26.633">
+<Sync time="20.966"/>
+[nontrans]
+</Turn>
+<Turn speaker="spk1" startTime="26.633" endTime="31.61">
+<Sync time="26.633"/>
+<Event desc="fr" type="language" extent="begin"/>
+As the wings' lift disappeared, a fatal sink rate was induced.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="31.61" endTime="37.066">
+<Sync time="31.61"/>
+<Event desc="fr" type="language" extent="begin"/>
+This emplacement and a similar tower nearby were (de)stroyed during the Peninsular War.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="37.066" endTime="41.081">
+<Sync time="37.066"/>
+<Event desc="fr" type="language" extent="begin"/>
+Brown was born in Maquoketa, [pronpi].
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="41.081" endTime="46.092">
+<Sync time="41.081"/>
+<Event desc="fr" type="language" extent="begin"/>
+His career continued in sports publishing, and sporting goods businesses.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="46.092" endTime="51.691">
+<Sync time="46.092"/>
+<Event desc="fr" type="language" extent="begin"/>
+Faulkner and Reiter went on to form the New York Ska Jazz Ensemble.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="51.691" endTime="57.827">
+<Sync time="51.691"/>
+It was named for the small town of Aitape, Sandaun Province, Papua New Guinea. [nontrans]
+</Turn>
+<Turn speaker="spk1" startTime="57.827" endTime="64.074">
+<Sync time="57.827"/>
+<Event desc="fr" type="language" extent="begin"/>
+Maori" then rescued some of the survivors from "Bismarck" after the battleship sank.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="64.074" endTime="68.904">
+<Sync time="64.074"/>
+<Event desc="fr" type="language" extent="begin"/>
+The previously constructed bridge had to be disassembled and re-anchored.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="68.904" endTime="72.271">
+<Sync time="68.904"/>
+<Event desc="fr" type="language" extent="begin"/>
+Barleti wrote %uh this work as an eyewitness.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="72.271" endTime="76.428">
+<Sync time="72.271"/>
+<Event desc="fr" type="language" extent="begin"/>
+Salcedo, desolate and grieving, returned to Ilocos.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="76.428" endTime="88.80396875">
+<Sync time="76.428"/>
+<Event desc="fr" type="language" extent="begin"/>
+Some American [pronpi], like Newark, Cincinnati and Rochester, were initially built around canals. It starred Brian Dennehy as Clarence Darrow and Fred Thompson as William Jennings Bryan
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="88.80396875" endTime="93.455">
+<Sync time="88.80396875"/>
+<Event desc="fr" type="language" extent="begin"/>
+It is the county seat of Northampton County.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="93.455" endTime="97.588">
+<Sync time="93.455"/>
+<Event desc="fr" type="language" extent="begin"/>
+The present-day cities were created on nearby sites after the lake was impounded.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="97.588" endTime="98.821">
+<Sync time="97.588"/>
+[nontrans]
+</Turn>
+<Turn speaker="spk1" startTime="98.821" endTime="103.658">
+<Sync time="98.821"/>
+<Event desc="fr" type="language" extent="begin"/>
+In the fifth century, the text was translated into a rather mediocre Greek.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="103.658" endTime="106.155">
+<Sync time="103.658"/>
+<Event desc="fr" type="language" extent="begin"/>
+Walford grew up in Sydney.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+<Turn speaker="spk1" startTime="106.155" endTime="120.491">
+<Sync time="106.155"/>
+<Event desc="fr" type="language" extent="begin"/>
+Gobryas' family was closely entwined with the family of Darius the Great. He is compared to John Hollander and Philip Larkin. Cooper was subsequently hospitalized with a high fever.
+<Event desc="fr" type="language" extent="end"/>
+</Turn>
+</Section>
+</Episode>
+</Trans>

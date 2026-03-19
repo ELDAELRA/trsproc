@@ -1,0 +1,2 @@
+file_name	file_path	NE_rank	NE_class	NE_content	segment_rank	segment_content	segment_start	segment_end	segment_duration	speaker	speaker_sex
+en_test	/home/florian.philippe/Documents/trsproc_test/en_only	1	loc	Lyon 	1	The town of Lyon is served by the Coahoma County School District.	0.0	4.789	4.789	fs1	female
