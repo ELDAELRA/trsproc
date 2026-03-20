@@ -15,6 +15,7 @@ from collections import defaultdict
 from pathlib import Path
 from xml.etree import cElementTree as ElementTree
 
+# TODO: Perhaps import large audio libraries only when necessary
 import librosa
 import parselmouth
 import soundfile as sf
@@ -339,11 +340,13 @@ def extract_segments(tsv_file: str):
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             fname = os.path.basename(row["file_name"])
-            segments_by_file[fname].append({
-                "seg_id": row["segment_id"],
-                "start": float(row["segment_start"]),
-                "end": float(row["segment_end"]),
-            })
+            segments_by_file[fname].append(
+                {
+                    "seg_id": row["segment_id"],
+                    "start": float(row["segment_start"]),
+                    "end": float(row["segment_end"]),
+                }
+            )
 
     for fname, segments in segments_by_file.items():
         audio_path = os.path.join(base_dir, "..", f"{fname}.wav")
