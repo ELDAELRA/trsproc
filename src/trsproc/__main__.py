@@ -6,13 +6,17 @@
 #### Gabriele CHIGNOLI
 #####
 
+import re
 from pathlib import Path
 from typing import Annotated, Optional
 
 import typer
+from PyQt6.QtWidgets import QApplication
 
 from trsproc import parser, utils
 from trsproc.parser import TRSParser
+from trsproc.validation.gui import TranscriptionValidatorGUI
+from trsproc.validation.io import make_paths, is_validation_complete
 
 app = typer.Typer()
 crt_app = typer.Typer(help="Apply corrections to .trs files")
@@ -350,7 +354,7 @@ def tmp(
 
 
 @app.command(
-    short_help="Extracts random segments from .trs files",
+    short_help="Extracts random segments from .trs files and launches validation GUI",
 )
 def rs(
     folder: Annotated[
@@ -365,7 +369,14 @@ def rs(
     ] = None,
 ) -> None:
     """Calculates the minimum sample needed for the validation of the input TRS transcription
-    and extracts random segments (audio and text, the latter in a tabular file) according to a given quantity."""
+    and extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.
+    Launches the validation GUI after extraction.
+
+    If a validated TSV already exists:
+    - resumes validation if incomplete
+    - prompts for re-running the sampling if complete
+    If not:
+    - runs sampling and extraction before launching the GUI"""
     if folder is None:
         folder = Path.cwd()
     if file:
@@ -373,9 +384,36 @@ def rs(
     else:
         save_folder = folder.absolute()
     files: list[Path] = get_files(folder, file, "trs")
-    tab_sample = utils.random_sampling(files, save_folder)
-    if tab_sample:
-        utils.extract_segments(tab_sample)
+
+    sample_tsv = next(save_folder.glob("sample_segments_*.tsv"), None)
+    validated_tsv = next(save_folder.glob("sample_segments_*_validated.tsv"), None)
+
+    if validated_tsv:
+        if is_validation_complete(validated_tsv):
+            typer.echo(f"Validation already completed: {validated_tsv}")
+            redo = input("Re-run sampling? (y/n)\t")
+            if not re.search("y", redo.lower()):
+                return
+            sample_tsv = utils.random_sampling(files, save_folder)
+            if sample_tsv:
+                utils.extract_segments(sample_tsv)
+        else:
+            typer.echo(f"Resuming validation: {validated_tsv}")
+            sample_tsv = validated_tsv
+    else:
+        if sample_tsv:
+            if not (save_folder / "validation").exists():
+                utils.extract_segments(sample_tsv)
+        else:
+            sample_tsv = utils.random_sampling(files, save_folder)
+            if sample_tsv:
+                utils.extract_segments(sample_tsv)
+
+    if sample_tsv:
+        app = QApplication([])
+        w = TranscriptionValidatorGUI(paths=make_paths(str(sample_tsv)))
+        w.show()
+        app.exec()
 
 
 @app.command(

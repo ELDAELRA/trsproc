@@ -17,9 +17,13 @@ classifiers = [
 ]
 keywords = ['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
 dependencies = [
+    "librosa",
+    "pandas",
     "praat-parselmouth",
     "praat-textgrids",
+    "PyQt6",
     "rich",
+    "soundfile",
     "typer",
     'tomli; python_version < "3.11"',
     "librosa",
