@@ -19,7 +19,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt install qt6-base-dev
+          sudo apt install qt6-base-dev pulseaudio
           pip install pytest pytest-md pytest-emoji
       - name: Install the app
         run: pip install -e .[dev]
