@@ -26,8 +26,13 @@ dependencies = [
     "soundfile",
     "typer",
     'tomli; python_version < "3.11"',
+    "librosa",
 ]
+
 requires-python = ">=3.6"
+
+[project.optional-dependencies]
+dev = ["pytest"]
 
 [project.urls]
 Homepage = "https://github.com/ELDAELRA/trsproc"
