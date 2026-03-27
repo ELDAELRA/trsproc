@@ -52,8 +52,8 @@ def tmp_report(trs_input, section_type="report"):
         seg_tot = t.contents[0]["totalSegments"]
         nb_silence_ok, nb_silence_no, nb_speech_ok, nb_speech_no = 0, 0, 0, 0
         silence_ok, silence_no, speech_ok, speech_no = [], [], [], []
-        for s in range(1, seg_tot + 1):
-            seg_test = t.contents[s]
+        for seg_id in range(1, seg_tot + 1):
+            seg_test = t.contents[seg_id]
             if seg_test["content"] == "[nontrans]":
                 if seg_test["duration"] >= 0.6:
                     nb_silence_no += 1
@@ -76,12 +76,12 @@ def tmp_report(trs_input, section_type="report"):
                     "file_name\tdur_tot\tdur_section\tseg_type\tseg_dur\tseg_start\tseg_end\tnb_token\tcontent"
                 )
         with open(tab_out, "a", encoding="utf-8") as f_tsv:
-            print(f"Pauses longer than 0.5 s -> ", nb_silence_no)
+            print(f"Pauses longer than 0.5 s -> {nb_silence_no}")
             for x in silence_no:
                 f_tsv.write(
                     f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tsilence\t{x['duration']}\t{x['xmin']}\t{x['xmax']}\t{x['tokens']}\t{x['content']}"
                 )
-            print(f"Segments longer than 10 s -> ", nb_speech_no)
+            print(f"Segments longer than 10 s -> {nb_speech_no}")
             for y in speech_no:
                 f_tsv.write(
                     f"\n{t.filename}\t{trs_input.file_duration}\t{t.section_duration}\tspeech\t{y['duration']}\t{y['xmin']}\t{y['xmax']}\t{y['tokens']}\t{y['content']}"
@@ -102,7 +102,6 @@ def random_sampling(list_trs, save_path):
     >_ TRS list from which to extract random segments
     >>> minimum sample size based on population input, table with random sampled segments from population, audio segment files
     """
-
     valid_population = False
     while not valid_population:
         try:
@@ -111,7 +110,7 @@ def random_sampling(list_trs, save_path):
                 raise ValueError
             valid_population = True
         except ValueError:
-            print(f"\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
+            print("\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
 
     minimum_sample = round(
         (
@@ -165,18 +164,18 @@ def random_sampling(list_trs, save_path):
             )
         )
         print(
-            f"Adjusted population size to {population_size}, new minimum sample: {minimum_sample}"
+            f"Population seems smaller than minimum sample.\nAdjusted population size to {population_size}, new minimum sample: {minimum_sample}"
         )
 
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
 
     if len(population.keys()) == 0:
         # Generate a warning if no segments found in the provided TRS files
-        print(f"\N{WARNING SIGN} No segments found in the provided TRS files")
+        print("\N{WARNING SIGN} No segments found in the provided TRS files")
         return
     if minimum_sample > len(population.keys()):
         print(
-            f"\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size"
+            "\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size"
         )
         return
 
@@ -191,19 +190,8 @@ def random_sampling(list_trs, save_path):
         f.write(
             "file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR"
         )
-        for o in population_sample:
-            f.write("\n{}".format("\t".join(o)))
-            try:
-                sample_audio = parselmouth.Sound(o[0] + ".wav")
-                sample_audio = sample_audio.extract_part(
-                    float(population_sample[o][1]), float(population_sample[o][3])
-                )
-                sample_out = os.path.join(
-                    save_path, f"{population_sample[o][0]}_{o[1]}.wav"
-                )
-                sample_audio.save(sample_out, "WAV")
-            except (FileNotFoundError, parselmouth.PraatError, ValueError):
-                pass
+        for observation in population_sample:
+            f.write("\n{}".format("\t".join(observation)))
     print(f"\N{BOOKMARK} Samples saved in {tab_sample}")
 
     return tab_sample
@@ -223,7 +211,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
                 raise ValueError
             valid_population = True
         except ValueError:
-            print(f"\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
+            print("\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
 
     minimum_sample = round(
         (
@@ -232,7 +220,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
         )
     )
     print(
-        f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}"
+        "\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}"
     )
     population = {}
     for t in list_trs:
@@ -280,18 +268,18 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
 
     if len(population.keys()) == 0:
         # Generate a warning if no NE found in the provided TRS files
-        print(f"\N{WARNING SIGN} No NE found in the provided TRS files")
+        print("\N{WARNING SIGN} No NE found in the provided TRS files")
         return
     if minimum_sample > len(population.keys()):
         print(
-            f"\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size !"
+            "\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size !"
         )
 
         return
 
     if len(population.keys()) == 0:
         # Generate a warning if no NE found in the provided TRS files
-        print(f"\N{WARNING SIGN} No NE found in the provided TRS files")
+        print("\N{WARNING SIGN} No NE found in the provided TRS files")
         return
 
     if re.search("y", sample_use.lower()):
@@ -349,7 +337,7 @@ def extract_segments(tsv_file: str):
             )
 
     for fname, segments in segments_by_file.items():
-        audio_path = os.path.join(base_dir, "..", f"{fname}.wav")
+        audio_path = os.path.join(base_dir, f"{fname}.wav")
 
         if not os.path.exists(audio_path):
             print(f"\N{WARNING SIGN} Missing audio: {audio_path}")
@@ -373,7 +361,7 @@ def extract_segments(tsv_file: str):
 
             out_path = os.path.join(out_dir, f"{fname}_{seg_id}.wav")
             sf.write(out_path, seg_audio, sr)
-            print(f"\N{BOOKMARK} Saved: {out_path}")
+            # print(f"\N{BOOKMARK} Saved: {out_path}")
 
     return
 
@@ -454,24 +442,24 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
     print(f"\N{CARD FILE BOX} Preannotating simple NE in {input_trs.filename}...")
     trs_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs_input.split("\n")
-    for l in trs_list:
-        if re.search("<.*>", l) or l == "":
-            trs_preannotated += f"{l}\n"
+    for line in trs_list:
+        if re.search("<.*>", line) or line == "":
+            trs_preannotated += f"{line}\n"
         else:
-            l_cleaned = l.replace("'", "' ")
-            l_splitted = l_cleaned.split(" ")
+            line_cleaned = line.replace("'", "' ")
+            line_splitted = line_cleaned.split(" ")
             new_l = []
             # print("old line", l) #DEBUG
-            for i in range(len(l_splitted)):
-                m = l_splitted[i]
-                if m in dict_ne.keys():
+            for token_id in range(len(line_splitted)):
+                token = line_splitted[token_id]
+                if token in dict_ne.keys():
                     # print(f'FOUND {m} IN {l}') #DEBUG
-                    ne_type = dict_ne[m]
-                    new_m = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{m}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
+                    ne_type = dict_ne[token]
+                    new_m = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{token}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
                     new_l.append(new_m)
                     # print("new line", new_l) #DEBUG
                 else:
-                    new_l.append(m)
+                    new_l.append(token)
             new_l = " ".join(new_l)
             new_l = new_l.replace("' ", "'")
             trs_preannotated += f"{new_l}\n"
@@ -487,29 +475,33 @@ def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
     >>> TRS pre-annotated with NE of length 2+
     """
     trs_preannotated = ""
-    print(f"\N{CARD FILE BOX} Preannotating complex NE...")
+    print("\N{CARD FILE BOX} Preannotating complex NE...")
     trs_input = open(input_file, "r", encoding="utf-8").read()
     trs_list = trs_input.split("\n")
-    for l in trs_list:
+    for line in trs_list:
         has_ne = False
-        if re.search("<.*>", l) or l == "":
-            if re.search("nontrans", l):
-                trs_preannotated += f"{l}\n\n"
+        if re.search("<.*>", line) or line == "":
+            if re.search("nontrans", line):
+                trs_preannotated += f"{line}\n\n"
             else:
-                trs_preannotated += f"{l}\n"
+                trs_preannotated += f"{line}\n"
         else:
             for ne in list_ne:
-                if re.search(ne, l):
+                if re.search(ne, line):
                     has_ne = True
-                    matched_ne = re.search(ne, l)
+                    matched_ne = re.search(ne, line)
                     ne_type = dict_ne[ne]
-                    new_m = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{ne}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
-                    new_l = l[: matched_ne.start()] + new_m + l[matched_ne.end() + 1 :]
+                    new_annotation = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{ne}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
+                    new_line = (
+                        line[: matched_ne.start()]
+                        + new_annotation
+                        + line[matched_ne.end() + 1 :]
+                    )
                     # print("NEW LINE", new_l) #DEBUG
-            if has_ne == True:
-                trs_preannotated += f"{new_l}\n"
+            if has_ne:
+                trs_preannotated += f"{new_line}\n"
             else:
-                trs_preannotated += f"{l}\n"
+                trs_preannotated += f"{line}\n"
     with open(input_file, "w", encoding="utf-8") as f_trs:
         f_trs.write(trs_preannotated)
 
@@ -535,15 +527,15 @@ def add_lang_tag(
     seen_sync = 0
     prev_nontrans = False
     prev_other_lang = False
-    for i in range(len(trs_list)):
-        line = trs_list[i]
+    for line_id in range(len(trs_list)):
+        line = trs_list[line_id]
         if re.search("<Sync.*", line):
             seen_sync += 1
             if seen_sync > 1 and not prev_other_lang:
                 line = f'<Event desc="{lang_to_add}" type="language" extent="end"/>\n{line}'
-            if "nontrans" in trs_list[i + 1]:
+            if "nontrans" in trs_list[line_id + 1]:
                 prev_nontrans = True
-            elif "<Event" and "language" in trs_list[i + 1]:
+            elif "<Event" and "language" in trs_list[line_id + 1]:
                 prev_other_lang = True
             else:
                 line = f'{line}\n<Event desc="{lang_to_add}" type="language" extent="begin"/>'
@@ -610,13 +602,13 @@ def trs_empty_space_before_ne(input_trs: TRSParser):
     trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
     trs_list = trs.split("\n")
     print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
-    for l in range(len(trs_list)):
-        line = trs_list[l]
+    for line_id in range(len(trs_list)):
+        line = trs_list[line_id]
         if len(line) == 0 or re.search("<.*>", line):
             pass
         else:
-            line_succ = trs_list[l + 1]
-            line_prec = trs_list[l - 1]
+            line_succ = trs_list[line_id + 1]
+            line_prec = trs_list[line_id - 1]
             if re.search("<Event.*entities.*", line_succ) and re.search(
                 'extent="begin"', line_succ
             ):
@@ -651,13 +643,13 @@ def correction_la(input_trs: TRSParser):
     txt_output = os.path.join(target_path, f"{input_trs.filename}.txt")
     txt_input = open(txt_input, "r", encoding="utf-8").read()
     txt_input = txt_input.split("\n")
-    for l in txt_input:
-        l_splitted = l.split(" ")
-        if re.search("là", l_splitted[-1].lower()):
+    for line in txt_input:
+        line_splitted = line.split(" ")
+        if re.search("là", line_splitted[-1].lower()):
             nb_la += 1
-            l_splitted[-1] = "la"
-            l = " ".join(l_splitted)
-        txt_dump += f"{l}\n"
+            line_splitted[-1] = "la"
+            line = " ".join(line_splitted)
+        txt_dump += f"{line}\n"
     with open(txt_output, "w", encoding="utf-8") as f_txt:
         f_txt.write(txt_dump)
     print(f'\N{CHECK MARK} Corrected {nb_la} misplaced "là" in {input_trs.filename}')
@@ -677,12 +669,14 @@ def correction_maj(input_trs: TRSParser):
     txt_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
     txt_input = txt_input.split("\n")
     nb_l = len(txt_input)
-    for l in range(nb_l):
-        line = txt_input[l]
+    for line_id in range(nb_l):
+        line = txt_input[line_id]
         if re.search("<.*>", line):
             pass
         else:
-            is_entity = re.search('extent="begin" type="entities"', txt_input[l - 1])
+            is_entity = re.search(
+                'extent="begin" type="entities"', txt_input[line_id - 1]
+            )
             if is_entity:
                 try:
                     line = line[0].upper() + line[1:]

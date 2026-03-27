@@ -6,9 +6,10 @@
 #### trsproc direct dependency
 #####
 
-# Global imports
-import os, re
-import parselmouth, textgrids
+import os
+import re
+import parselmouth
+import textgrids
 from xml.etree import cElementTree as ElementTree
 from xml.etree.ElementTree import ParseError
 
@@ -89,12 +90,12 @@ def txt_to_trs(input_txt, from_correction=0):
     txt_input = open(txt_input, encoding="utf-8").read()
     txt_list = txt_input.split("\n")
     print(f"\N{PACKAGE} Re-writing {txt_name}...")
-    for l in trs_list:
-        if len(l) == 0 or re.search("<.*>", l):
-            output_trs_correct += f"{l}\n"
+    for line in trs_list:
+        if len(line) == 0 or re.search("<.*>", line):
+            output_trs_correct += f"{line}\n"
         ## writing TRS original XML structure into
-        elif re.search("[placeholder .+]", l):
-            plh = l.split(" ")[1]
+        elif re.search("[placeholder .+]", line):
+            plh = line.split(" ")[1]
             plh = int(plh.rstrip("]"))
             output_trs_correct += f"{txt_list[plh]}\n"
         ## adding new txt content
@@ -251,11 +252,11 @@ class TRSParser:
         trs = open(self.input_trs, encoding="utf-8").read()
         trs_list = trs.split("\n")
         for i in range(len(trs_list)):
-            l = trs_list[i]
-            if re.search("<Turn.*>", l):
+            line = trs_list[i]
+            if re.search("<Turn.*>", line):
                 # Turn info is not stored, only used for segment end times and speakers
                 turn_trans = ""
-                turn_trans = l
+                turn_trans = line
                 turn_id += 1
                 for t in trs_list[i + 1 :]:
                     if t == "</Turn>":
@@ -270,15 +271,15 @@ class TRSParser:
                 except KeyError:
                     turn_spk = "NA"
 
-            elif re.search("(<Sync.*>)", l):
+            elif re.search("(<Sync.*>)", line):
                 # Segment info retrieved starting here
                 seg_id += 1
                 seg_trans = ""
                 seg_line = ElementTree.fromstring(
-                    l
+                    line
                 )  # Acces attributes of a line as in root
                 seg_dict[seg_id] = {}
-                if re.search("<Sync.*>", l):
+                if re.search("<Sync.*>", line):
                     spk_type = "single"
                     seg_start = float(seg_line.attrib["time"])
 
@@ -452,17 +453,17 @@ class TRSParser:
         output_txt, output_trs_plh, placeholder = "", "", 0
         trs = open(self.input_trs, encoding="utf-8").read()
         trs_list = trs.split("\n")
-        for l in trs_list:
-            if len(l) == 0 or re.search("<.*>", l):
-                output_trs_plh += f"{l}\n"
+        for line in trs_list:
+            if len(line) == 0 or re.search("<.*>", line):
+                output_trs_plh += f"{line}\n"
             else:
                 ### Character entities representation correction and deletion of punctuation
                 if delete_punct:
-                    l = replace_punctuations(l)
+                    line = replace_punctuations(line)
                 if placeholder == 0:
-                    output_txt += l
+                    output_txt += line
                 else:
-                    output_txt += f"\n{l}"
+                    output_txt += f"\n{line}"
                 output_trs_plh += f"[placeholder {placeholder}]\n"
                 placeholder += 1
         if need_placeholder:
@@ -496,21 +497,21 @@ class TRSParser:
         output_trs_cleaned = trs_list[0]
         print(f"\N{PACKAGE} Cleaning {file_name}...")
         for i in range(1, len(trs_list)):
-            l = trs_list[i]
-            if re.search("<.*>", l):
-                if re.search("<Event.*entities.*", l):
+            line = trs_list[i]
+            if re.search("<.*>", line):
+                if re.search("<Event.*entities.*", line):
                     try:
                         last_char_trans_prec = trs_list[i - 1][-1]
                         if last_char_trans_prec not in [" ", "'", "-", "_"]:
                             output_trs_cleaned += " "
                     except IndexError:
                         pass
-                elif re.search("<Sync.*", l):
-                    output_trs_cleaned += f"\n{l}\n"
+                elif re.search("<Sync.*", line):
+                    output_trs_cleaned += f"\n{line}\n"
                 else:
-                    output_trs_cleaned += f"\n{l}"
+                    output_trs_cleaned += f"\n{line}"
             else:
-                output_trs_cleaned += f"{l}"
+                output_trs_cleaned += f"{line}"
         ## cleaning transcriptions from NE annotation white space
         output_trs_cleaned = output_trs_cleaned.replace("  ", " ")
         output_trs_cleaned = output_trs_cleaned.replace(" ,", ",")
@@ -671,18 +672,18 @@ class TRSParser:
         # Initialiser le variable section_txt avec l'entete du trs
         trs_header = ""
 
-        for l in trs_list:
-            if not re.search("<Section.*>", l):
-                trs_header += l + "\n"
+        for line in trs_list:
+            if not re.search("<Section.*>", line):
+                trs_header += line + "\n"
             else:
                 # trs_header += l
                 break
         trs_footer = "</Episode>\n</Trans>"
-        for l in trs_list:
-            if re.search("<Section.*>", l):
-                section_txt = l
+        for line in trs_list:
+            if re.search("<Section.*>", line):
+                section_txt = line
 
-                s_id = trs_list.index(l)
+                s_id = trs_list.index(line)
                 for s in trs_list[s_id + 1 :]:
                     section_txt += f"\n{s}"
                     if re.search("</Section>", s):
@@ -704,7 +705,7 @@ class TRSParser:
                             f_tmp_trs.write("".join(section_txt))
                 except Exception as e:
                     print(
-                        f"\N{WARNING SIGN} XML parsing error in {self.input_trs} line {l}:"
+                        f"\N{WARNING SIGN} XML parsing error in {self.input_trs} line\n{line}\n\n{e}"
                     )
                     pass
 

@@ -15,7 +15,7 @@ COL_SEG = "segment_id"
 COL_TRANS = "transcription"
 COL_ERR_SEG = "nb_erreur_seg"
 COL_ERR_TRANS = "nb_erreur_trans"
-COL_VALIDATED = "validated"          # 0/1 completed marker
+COL_VALIDATED = "validated"  # 0/1 completed marker
 SUMMARY_MARKER = "TOTAL_SUM"
 
 
@@ -40,7 +40,9 @@ def make_paths(tsv_path):
     if input_path.stem.endswith("_validated"):
         output_path = input_path
     else:
-        output_path = input_path.with_name(input_path.stem + "_validated" + input_path.suffix)
+        output_path = input_path.with_name(
+            input_path.stem + "_validated" + input_path.suffix
+        )
 
     return ValidationPaths(
         input_path=input_path,
@@ -72,12 +74,18 @@ def load_validation_tsv(input_path):
         if col not in df.columns:
             df[col] = 0
 
-    df[COL_ERR_SEG] = pd.to_numeric(df[COL_ERR_SEG], errors="coerce").fillna(0).astype(int)
-    df[COL_ERR_TRANS] = pd.to_numeric(df[COL_ERR_TRANS], errors="coerce").fillna(0).astype(int)
+    df[COL_ERR_SEG] = (
+        pd.to_numeric(df[COL_ERR_SEG], errors="coerce").fillna(0).astype(int)
+    )
+    df[COL_ERR_TRANS] = (
+        pd.to_numeric(df[COL_ERR_TRANS], errors="coerce").fillna(0).astype(int)
+    )
 
     if COL_VALIDATED not in df.columns:
         df[COL_VALIDATED] = 0
-    df[COL_VALIDATED] = pd.to_numeric(df[COL_VALIDATED], errors="coerce").fillna(0).astype(int)
+    df[COL_VALIDATED] = (
+        pd.to_numeric(df[COL_VALIDATED], errors="coerce").fillna(0).astype(int)
+    )
     df[COL_VALIDATED] = (df[COL_VALIDATED] != 0).astype(int)
 
     return df.reset_index(drop=True)
@@ -88,7 +96,7 @@ def compute_totals(df):
     >_ validated dataframe
     >>> total segment and transcript error counts
     """
-    
+
     return int(df[COL_ERR_SEG].sum()), int(df[COL_ERR_TRANS].sum())
 
 
@@ -130,5 +138,5 @@ def is_validation_complete(tsv_path):
     df = pd.read_csv(tsv_path, sep="\t")
     if COL_VALIDATED not in df.columns:
         return False
-    
+
     return df[COL_VALIDATED].all()

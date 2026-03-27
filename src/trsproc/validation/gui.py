@@ -38,6 +38,7 @@ from trsproc.validation.io import (
     save_validated_tsv_atomic,
 )
 
+
 class DirtyAction:
     CLEAN = "clean"
     SAVED = "saved"
@@ -250,7 +251,7 @@ class TranscriptionValidatorGUI(QWidget):
         """
         >_ validation controls
         >>> QWidget panel
-        """    
+        """
         widget = QWidget()
         layout = QVBoxLayout(widget)
 
@@ -454,8 +455,12 @@ class TranscriptionValidatorGUI(QWidget):
         >>> all player controls enabled or disabled
         """
         for w in (
-            self.play_btn, self.pause_btn, self.replay_btn,
-            self.save_next_btn, self.prev_btn, self.position_slider,
+            self.play_btn,
+            self.pause_btn,
+            self.replay_btn,
+            self.save_next_btn,
+            self.prev_btn,
+            self.position_slider,
         ):
             w.setEnabled(enabled)
 
@@ -496,7 +501,7 @@ class TranscriptionValidatorGUI(QWidget):
             return f"⚠ {wav}"
         if self._is_done(idx):
             return f"✓ {wav}"
-        
+
         return wav
 
     def _populate_list(self):
@@ -507,7 +512,7 @@ class TranscriptionValidatorGUI(QWidget):
         self.list_widget.clear()
         for i in range(len(self.df)):
             self.list_widget.addItem(QListWidgetItem(self._list_label(i)))
-        
+
         return
 
     def _update_list_item(self, idx):
@@ -518,7 +523,7 @@ class TranscriptionValidatorGUI(QWidget):
         item = self.list_widget.item(idx)
         if item:
             item.setText(self._list_label(idx))
-        
+
         return
 
     def _go_to(self, idx):
@@ -613,7 +618,9 @@ class TranscriptionValidatorGUI(QWidget):
         >_ current index
         >>> progress and current file labels updated
         """
-        self.status_label.setText(f"Progress: {self.current_index + 1} / {len(self.df)}")
+        self.status_label.setText(
+            f"Progress: {self.current_index + 1} / {len(self.df)}"
+        )
         self.file_label.setText(f"Current File: {self._wav_name(self.current_index)}")
 
         return
@@ -783,7 +790,10 @@ class TranscriptionValidatorGUI(QWidget):
         >>> segment error count adjusted
         """
         self.seg_spin.setValue(
-            max(self.seg_spin.minimum(), min(self.seg_spin.maximum(), self.seg_spin.value() + delta))
+            max(
+                self.seg_spin.minimum(),
+                min(self.seg_spin.maximum(), self.seg_spin.value() + delta),
+            )
         )
 
         return
@@ -794,7 +804,10 @@ class TranscriptionValidatorGUI(QWidget):
         >>> transcript error count adjusted
         """
         self.trans_spin.setValue(
-            max(self.trans_spin.minimum(), min(self.trans_spin.maximum(), self.trans_spin.value() + delta))
+            max(
+                self.trans_spin.minimum(),
+                min(self.trans_spin.maximum(), self.trans_spin.value() + delta),
+            )
         )
 
         return
@@ -817,7 +830,7 @@ class TranscriptionValidatorGUI(QWidget):
         self._go_to(new_idx)
 
         return
-    
+
     def save_and_next(self):
         """
         >_ user presses save / next
