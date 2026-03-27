@@ -164,7 +164,7 @@ def random_sampling(list_trs, save_path):
             )
         )
         print(
-            f"Adjusted population size to {population_size}, new minimum sample: {minimum_sample}"
+            f"Population seems smaller than minimum sample.\nAdjusted population size to {population_size}, new minimum sample: {minimum_sample}"
         )
 
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
@@ -190,19 +190,8 @@ def random_sampling(list_trs, save_path):
         f.write(
             "file_name\tsegment_start\ttranscription\tsegment_end\tsegment_duration\tsegment_id\tnb_tokens\tspeaker_name\tspeaker_sex\tSNR"
         )
-        for o in population_sample:
-            f.write("\n{}".format("\t".join(o)))
-            try:
-                sample_audio = parselmouth.Sound(o[0] + ".wav")
-                sample_audio = sample_audio.extract_part(
-                    float(population_sample[o][1]), float(population_sample[o][3])
-                )
-                sample_out = os.path.join(
-                    save_path, f"{population_sample[o][0]}_{o[1]}.wav"
-                )
-                sample_audio.save(sample_out, "WAV")
-            except (FileNotFoundError, parselmouth.PraatError, ValueError):
-                pass
+        for observation in population_sample:
+            f.write("\n{}".format("\t".join(observation)))
     print(f"\N{BOOKMARK} Samples saved in {tab_sample}")
 
     return tab_sample
@@ -348,7 +337,7 @@ def extract_segments(tsv_file: str):
             )
 
     for fname, segments in segments_by_file.items():
-        audio_path = os.path.join(base_dir, "..", f"{fname}.wav")
+        audio_path = os.path.join(base_dir, f"{fname}.wav")
 
         if not os.path.exists(audio_path):
             print(f"\N{WARNING SIGN} Missing audio: {audio_path}")
@@ -372,7 +361,7 @@ def extract_segments(tsv_file: str):
 
             out_path = os.path.join(out_dir, f"{fname}_{seg_id}.wav")
             sf.write(out_path, seg_audio, sr)
-            print(f"\N{BOOKMARK} Saved: {out_path}")
+            # print(f"\N{BOOKMARK} Saved: {out_path}")
 
     return
 
