@@ -15,11 +15,6 @@ from collections import defaultdict
 from pathlib import Path
 from xml.etree import cElementTree as ElementTree
 
-# TODO: Perhaps import large audio libraries only when necessary
-import librosa
-import parselmouth
-import soundfile as sf
-
 from .parser import TRSParser
 
 random.seed(42)
@@ -283,6 +278,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
         return
 
     if re.search("y", sample_use.lower()):
+        import parselmouth
         population_sample = sample_from_dict(population, minimum_sample)
 
         tab_sample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
@@ -336,6 +332,8 @@ def extract_segments(tsv_file: str):
                 }
             )
 
+    import librosa
+    import soundfile as sf
     for fname, segments in segments_by_file.items():
         audio_path = os.path.join(base_dir, f"{fname}.wav")
 
