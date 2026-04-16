@@ -1,7 +1,10 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 #
 ##
+### definition of a GUI for transcription validation
+#### trsproc direct dependency
+#####
 
 from __future__ import annotations
 

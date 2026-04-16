@@ -2,8 +2,8 @@
 #!/usr/bin/env python3
 #
 ##
-### ELDA-R&D-2023
-#### Gabriele CHIGNOLI
+### trsproc ELDA-R&D-2023
+#### A Python library to process Transcriber TRS files
 #####
 
 import re
