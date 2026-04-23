@@ -1,0 +1,384 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0
+xmax = 120.491
+tiers? <exists>
+size = 4
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "transcription"
+		xmin = 0
+		xmax = 120.491
+		intervals: size = 22
+		intervals [1]:
+			xmin = 0.0
+			xmax = 4.789
+			text = "The town of Lyon is served by the Coahoma County School District."
+		intervals [2]:
+			xmin = 4.789
+			xmax = 9.563
+			text = "[pronpi]"
+		intervals [3]:
+			xmin = 9.563
+			xmax = 16.031
+			text = "After effecting electrical repairs, the plane safely took off and continued to Oshkosh."
+		intervals [4]:
+			xmin = 16.031
+			xmax = 20.966
+			text = "Arundel High School's rival school is South River High School."
+		intervals [5]:
+			xmin = 20.966
+			xmax = 26.633
+			text = "[nontrans]"
+		intervals [6]:
+			xmin = 26.633
+			xmax = 31.61
+			text = "As the wings' lift disappeared, a fatal sink rate was induced."
+		intervals [7]:
+			xmin = 31.61
+			xmax = 37.066
+			text = "This emplacement and a similar tower nearby were (de)stroyed during the Peninsular War."
+		intervals [8]:
+			xmin = 37.066
+			xmax = 41.081
+			text = "Brown was born in Maquoketa, [pronpi]."
+		intervals [9]:
+			xmin = 41.081
+			xmax = 46.092
+			text = "His career continued in sports publishing, and sporting goods businesses."
+		intervals [10]:
+			xmin = 46.092
+			xmax = 51.691
+			text = "Faulkner and Reiter went on to form the New York Ska Jazz Ensemble."
+		intervals [11]:
+			xmin = 51.691
+			xmax = 57.827
+			text = "It was named for the small town of Aitape, Sandaun Province, Papua New Guinea. [nontrans]"
+		intervals [12]:
+			xmin = 57.827
+			xmax = 64.074
+			text = "Maori" then rescued some of the survivors from "Bismarck" after the battleship sank."
+		intervals [13]:
+			xmin = 64.074
+			xmax = 68.904
+			text = "The previously constructed bridge had to be disassembled and re-anchored."
+		intervals [14]:
+			xmin = 68.904
+			xmax = 72.271
+			text = "Barleti wrote %uh this work as an eyewitness."
+		intervals [15]:
+			xmin = 72.271
+			xmax = 76.428
+			text = "Salcedo, desolate and grieving, returned to Ilocos."
+		intervals [16]:
+			xmin = 76.428
+			xmax = 88.80396875
+			text = "Some American [pronpi], like Newark, Cincinnati and Rochester, were initially built around canals. It starred Brian Dennehy as Clarence Darrow and Fred Thompson as William Jennings Bryan"
+		intervals [17]:
+			xmin = 88.80396875
+			xmax = 93.455
+			text = "It is the county seat of Northampton County."
+		intervals [18]:
+			xmin = 93.455
+			xmax = 97.588
+			text = "The present-day cities were created on nearby sites after the lake was impounded."
+		intervals [19]:
+			xmin = 97.588
+			xmax = 98.821
+			text = "[nontrans]"
+		intervals [20]:
+			xmin = 98.821
+			xmax = 103.658
+			text = "In the fifth century, the text was translated into a rather mediocre Greek."
+		intervals [21]:
+			xmin = 103.658
+			xmax = 106.155
+			text = "Walford grew up in Sydney."
+		intervals [22]:
+			xmin = 106.155
+			xmax = 120.491
+			text = "Gobryas' family was closely entwined with the family of Darius the Great. He is compared to John Hollander and Philip Larkin. Cooper was subsequently hospitalized with a high fever."
+	item [2]:
+		class = "IntervalTier"
+		name = "speaker"
+		xmin = 0
+		xmax = 120.491
+		intervals: size = 22
+		intervals [1]:
+			xmin = 0.0
+			xmax = 4.789
+			text = "fs1"
+		intervals [2]:
+			xmin = 4.789
+			xmax = 9.563
+			text = "fs1"
+		intervals [3]:
+			xmin = 9.563
+			xmax = 16.031
+			text = "fs1"
+		intervals [4]:
+			xmin = 16.031
+			xmax = 20.966
+			text = "fs1"
+		intervals [5]:
+			xmin = 20.966
+			xmax = 26.633
+			text = "fs1"
+		intervals [6]:
+			xmin = 26.633
+			xmax = 31.61
+			text = "fs1"
+		intervals [7]:
+			xmin = 31.61
+			xmax = 37.066
+			text = "fs1"
+		intervals [8]:
+			xmin = 37.066
+			xmax = 41.081
+			text = "fs1"
+		intervals [9]:
+			xmin = 41.081
+			xmax = 46.092
+			text = "fs1"
+		intervals [10]:
+			xmin = 46.092
+			xmax = 51.691
+			text = "fs1"
+		intervals [11]:
+			xmin = 51.691
+			xmax = 57.827
+			text = "fs1"
+		intervals [12]:
+			xmin = 57.827
+			xmax = 64.074
+			text = "fs1"
+		intervals [13]:
+			xmin = 64.074
+			xmax = 68.904
+			text = "fs1"
+		intervals [14]:
+			xmin = 68.904
+			xmax = 72.271
+			text = "fs1"
+		intervals [15]:
+			xmin = 72.271
+			xmax = 76.428
+			text = "fs1"
+		intervals [16]:
+			xmin = 76.428
+			xmax = 88.80396875
+			text = "fs1"
+		intervals [17]:
+			xmin = 88.80396875
+			xmax = 93.455
+			text = "fs1"
+		intervals [18]:
+			xmin = 93.455
+			xmax = 97.588
+			text = "fs1"
+		intervals [19]:
+			xmin = 97.588
+			xmax = 98.821
+			text = "fs1"
+		intervals [20]:
+			xmin = 98.821
+			xmax = 103.658
+			text = "fs1"
+		intervals [21]:
+			xmin = 103.658
+			xmax = 106.155
+			text = "fs1"
+		intervals [22]:
+			xmin = 106.155
+			xmax = 120.491
+			text = "fs1"
+	item [3]:
+		class = "IntervalTier"
+		name = "sex"
+		xmin = 0
+		xmax = 120.491
+		intervals: size = 22
+		intervals [1]:
+			xmin = 0.0
+			xmax = 4.789
+			text = "female"
+		intervals [2]:
+			xmin = 4.789
+			xmax = 9.563
+			text = "female"
+		intervals [3]:
+			xmin = 9.563
+			xmax = 16.031
+			text = "female"
+		intervals [4]:
+			xmin = 16.031
+			xmax = 20.966
+			text = "female"
+		intervals [5]:
+			xmin = 20.966
+			xmax = 26.633
+			text = "female"
+		intervals [6]:
+			xmin = 26.633
+			xmax = 31.61
+			text = "female"
+		intervals [7]:
+			xmin = 31.61
+			xmax = 37.066
+			text = "female"
+		intervals [8]:
+			xmin = 37.066
+			xmax = 41.081
+			text = "female"
+		intervals [9]:
+			xmin = 41.081
+			xmax = 46.092
+			text = "female"
+		intervals [10]:
+			xmin = 46.092
+			xmax = 51.691
+			text = "female"
+		intervals [11]:
+			xmin = 51.691
+			xmax = 57.827
+			text = "female"
+		intervals [12]:
+			xmin = 57.827
+			xmax = 64.074
+			text = "female"
+		intervals [13]:
+			xmin = 64.074
+			xmax = 68.904
+			text = "female"
+		intervals [14]:
+			xmin = 68.904
+			xmax = 72.271
+			text = "female"
+		intervals [15]:
+			xmin = 72.271
+			xmax = 76.428
+			text = "female"
+		intervals [16]:
+			xmin = 76.428
+			xmax = 88.80396875
+			text = "female"
+		intervals [17]:
+			xmin = 88.80396875
+			xmax = 93.455
+			text = "female"
+		intervals [18]:
+			xmin = 93.455
+			xmax = 97.588
+			text = "female"
+		intervals [19]:
+			xmin = 97.588
+			xmax = 98.821
+			text = "female"
+		intervals [20]:
+			xmin = 98.821
+			xmax = 103.658
+			text = "female"
+		intervals [21]:
+			xmin = 103.658
+			xmax = 106.155
+			text = "female"
+		intervals [22]:
+			xmin = 106.155
+			xmax = 120.491
+			text = "female"
+	item [4]:
+		class = "IntervalTier"
+		name = "NE"
+		xmin = 0
+		xmax = 120.491
+		intervals: size = 22
+		intervals [1]:
+			xmin = 0.0
+			xmax = 4.789
+			text = ""
+		intervals [2]:
+			xmin = 4.789
+			xmax = 9.563
+			text = ""
+		intervals [3]:
+			xmin = 9.563
+			xmax = 16.031
+			text = ""
+		intervals [4]:
+			xmin = 16.031
+			xmax = 20.966
+			text = ""
+		intervals [5]:
+			xmin = 20.966
+			xmax = 26.633
+			text = ""
+		intervals [6]:
+			xmin = 26.633
+			xmax = 31.61
+			text = ""
+		intervals [7]:
+			xmin = 31.61
+			xmax = 37.066
+			text = ""
+		intervals [8]:
+			xmin = 37.066
+			xmax = 41.081
+			text = ""
+		intervals [9]:
+			xmin = 41.081
+			xmax = 46.092
+			text = ""
+		intervals [10]:
+			xmin = 46.092
+			xmax = 51.691
+			text = ""
+		intervals [11]:
+			xmin = 51.691
+			xmax = 57.827
+			text = ""
+		intervals [12]:
+			xmin = 57.827
+			xmax = 64.074
+			text = ""
+		intervals [13]:
+			xmin = 64.074
+			xmax = 68.904
+			text = ""
+		intervals [14]:
+			xmin = 68.904
+			xmax = 72.271
+			text = ""
+		intervals [15]:
+			xmin = 72.271
+			xmax = 76.428
+			text = ""
+		intervals [16]:
+			xmin = 76.428
+			xmax = 88.80396875
+			text = ""
+		intervals [17]:
+			xmin = 88.80396875
+			xmax = 93.455
+			text = ""
+		intervals [18]:
+			xmin = 93.455
+			xmax = 97.588
+			text = ""
+		intervals [19]:
+			xmin = 97.588
+			xmax = 98.821
+			text = ""
+		intervals [20]:
+			xmin = 98.821
+			xmax = 103.658
+			text = ""
+		intervals [21]:
+			xmin = 103.658
+			xmax = 106.155
+			text = ""
+		intervals [22]:
+			xmin = 106.155
+			xmax = 120.491
+			text = ""
