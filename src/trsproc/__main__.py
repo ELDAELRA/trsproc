@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python3
-#
-##
-### trsproc ELDA-R&D-2023
-#### A Python library to process Transcriber TRS files
-#####
+"""
+trsproc ELDA-R&D-2023
+
+A Python library to process Transcriber TRS files.
+
+"""
+
+"""
+CLI entry point for the trsproc tool.
+
+Provides a Typer-based command-line interface for processing Transcriber TRS files.
+Allows users to convert, validate, sample, and annotate TRS files interactively.
+"""
 
 import re
 from pathlib import Path
@@ -28,6 +36,20 @@ def get_files(
     file: Optional[Path],
     extension: str,
 ) -> list[Path]:
+    """Collect files of a given extension from a folder or a single file.
+
+    Args:
+        folder: Directory to search for files (defaults to current working
+            directory when neither folder nor file is given).
+        file: A single file path. If provided, ``folder`` is ignored.
+        extension: File extension to match (without the dot).
+
+    Returns:
+        A list of matching file paths.
+
+    Raises:
+        typer.BadParameter: If the file is not found or the folder is not a directory.
+    """
     # TODO : handle cases where user gives both folder and file (without breaking the default folder behaviour)
     if file:
         if not file.exists():
@@ -320,7 +342,7 @@ def pne(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:  # TODO: Get a pre-annotation json file to understand and test the utils.pre_annotate function, and add the required tsv and json files as arguments.
-    """Pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary"""
+    """Pre-annotates the input TRS using the table created with the `ne` command as a custom annotation dictionary."""
     if folder is None:
         folder = Path.cwd()
     files: list[Path] = get_files(folder, file, "trs")
@@ -431,7 +453,7 @@ def rsne(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """calculates the minimum sample needed for the validation of Named Entities of the input TRS
+    """Calculates the minimum sample needed for the validation of Named Entities of the input TRS
     and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount."""
     if folder is None:
         folder = Path.cwd()
@@ -506,7 +528,7 @@ def vad(
     ] = None,
 ) -> None:
     # TODO: Get one of those TextGrid file for testing.
-    """converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files."""
+    """Converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "TextGrid"):
@@ -528,7 +550,7 @@ def vsi(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Produces a tabular file containing basic lexical information and statistics concerning the input TRS"""
+    """Produces a tabular file containing basic lexical information and statistics concerning the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -537,7 +559,7 @@ def vsi(
 
 
 @app.command(
-    short_help="Extracts language informations from .trs files",
+    short_help="Extracts language information from .trs files",
 )
 def vsi_lang(
     folder: Annotated[
@@ -552,7 +574,7 @@ def vsi_lang(
     ] = None,
 ) -> None:
     # FIXME: command seems to be broken, don't know since when
-    """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
+    """Produces a tabular file containing basic information about the language tags present in the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -561,7 +583,7 @@ def vsi_lang(
 
 
 @app.command(
-    short_help="Extracts language informations from .trs files in a temporary folder",
+    short_help="Extracts validation information from .trs files in a temporary folder",
 )
 def rpt(
     folder: Annotated[
@@ -575,7 +597,8 @@ def rpt(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
+    """Produces a tabular file containing validation information about segments
+    and pauses in the report sections of the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -584,6 +607,7 @@ def rpt(
 
 
 def main():
+    """Run the trsproc CLI application."""
     app()
 
 

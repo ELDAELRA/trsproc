@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-##
-### definition of a GUI for transcription validation
-#### trsproc direct dependency
-#####
+"""Validation GUI for trsproc transcription review.
+
+Provides a PyQt6-based graphical interface for reviewing and validating
+transcription segments with audio playback, error counting, and progress
+tracking. The main entry point is :class:`TranscriptionValidatorGUI`.
+"""
 
 from __future__ import annotations
 
@@ -43,6 +44,15 @@ from trsproc.validation.io import (
 
 
 class DirtyAction:
+    """Constants for dirty-state handling during navigation.
+
+    Attributes:
+        CLEAN: No unsaved changes.
+        SAVED: Changes were saved by the user.
+        DISCARDED: Changes were discarded.
+        CANCELLED: The operation was cancelled.
+    """
+
     CLEAN = "clean"
     SAVED = "saved"
     DISCARDED = "discarded"
@@ -153,9 +163,13 @@ color: #333333;
 
 
 def format_ms(ms):
-    """
-    >_ duration in milliseconds
-    >>> formatted time string (MM:SS)
+    """Convert a duration in milliseconds to a ``MM:SS`` formatted string.
+
+    Args:
+        ms: Duration in milliseconds.
+
+    Returns:
+        A string in ``"MM:SS"`` format, or ``"00:00"`` if the input is invalid.
     """
     if ms is None or ms < 0:
         return "00:00"
@@ -165,7 +179,14 @@ def format_ms(ms):
 
 
 class ClickableSlider(QSlider):
+    """A QSlider that responds to mouse clicks to jump to a position."""
+
     def mousePressEvent(self, event):  # Qt override
+        """Handle mouse press events to allow click-to-seek behavior.
+
+        Computes the slider ratio from the click position and sets the value
+        accordingly.
+        """
         if event.button() == Qt.MouseButton.LeftButton:
             if self.orientation() == Qt.Orientation.Horizontal:
                 ratio = event.position().x() / max(1, self.width())
@@ -182,16 +203,29 @@ class ClickableSlider(QSlider):
 
 
 class TranscriptionValidatorGUI(QWidget):
-    """
+    """PyQt6 GUI for validating audio transcription segments.
+
+    Displays a segment list, transcript viewer, audio player, and error
+    counters. Supports keyboard shortcuts for efficient navigation.
+
     Hotkeys:
-      Space      : Play / Pause
-      R          : Replay from start
-      Enter      : Save & Next
-      ← / →      : Segment errors -/+
-      ↓ / ↑      : Transcript errors -/+
+        - ``Space``: Play / Pause
+        - ``R``: Replay from start
+        - ``Enter``: Save and Next
+        - ``Left / Right``: Segment errors -1 / +1
+        - ``Down / Up``: Transcript errors -1 / +1
     """
 
     def __init__(self, paths):
+        """Initialize the validation GUI.
+
+        Args:
+            paths: A :class:`~trsproc.validation.io.ValidationPaths` instance
+                containing the input TSV path, audio directory, and output path.
+
+        Raises:
+            FileNotFoundError: If the input TSV file does not exist.
+        """
         super().__init__()
         self.paths = paths
 
@@ -205,9 +239,11 @@ class TranscriptionValidatorGUI(QWidget):
         self._init_ui()
 
     def _init_ui(self):
-        """
-        >_ ValidationPaths
-        >>> initialized main window layout
+        """Build and initialize the main window layout.
+
+        Sets up the left/right panels, populates the segment list, and
+        connects signal/slot handlers. Shows an information dialog if the
+        data is empty.
         """
         self.setWindowTitle("Audio Transcription Validation Tool")
         self.resize(1050, 550)
@@ -240,9 +276,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _build_left_panel(self):
-        """
-        >_ segment list
-        >>> QListWidget panel
+        """Create the segment list panel.
+
+        Returns:
+            A :class:`QListWidget` styled for segment navigation.
         """
         self.list_widget = QListWidget()
         self.list_widget.setMinimumWidth(320)
@@ -251,9 +288,11 @@ class TranscriptionValidatorGUI(QWidget):
         return self.list_widget
 
     def _build_right_panel(self):
-        """
-        >_ validation controls
-        >>> QWidget panel
+        """Create the right-side validation controls panel.
+
+        Returns:
+            A :class:`QWidget` containing the header, transcript viewer,
+            audio player, error counters, and navigation buttons.
         """
         widget = QWidget()
         layout = QVBoxLayout(widget)
@@ -272,9 +311,10 @@ class TranscriptionValidatorGUI(QWidget):
         return widget
 
     def _build_header(self):
-        """
-        >_ progress and file info
-        >>> QHBoxLayout header
+        """Create the progress and file-info header.
+
+        Returns:
+            A :class:`QHBoxLayout` with progress status and current file labels.
         """
         layout = QHBoxLayout()
         self.status_label = QLabel("")
@@ -287,9 +327,11 @@ class TranscriptionValidatorGUI(QWidget):
         return layout
 
     def _build_transcript(self):
-        """
-        >_ transcript text
-        >>> QVBoxLayout transcript viewer
+        """Create the transcript text viewer.
+
+        Returns:
+            A :class:`QVBoxLayout` with a label and a read-only
+            :class:`QTextBrowser` for displaying the current transcript.
         """
         layout = QVBoxLayout()
         label = QLabel("Transcript:")
@@ -303,9 +345,11 @@ class TranscriptionValidatorGUI(QWidget):
         return layout
 
     def _build_player(self):
-        """
-        >_ audio playback section
-        >>> QVBoxLayout media player with buttons and seek bar
+        """Create the audio playback section.
+
+        Returns:
+            A :class:`QVBoxLayout` containing the media player buttons,
+            seek slider, and time label.
         """
         layout = QVBoxLayout()
 
@@ -318,10 +362,7 @@ class TranscriptionValidatorGUI(QWidget):
         return layout
 
     def _init_media_player(self):
-        """
-        >_ media player setup
-        >>> QMediaPlayer and QAudioOutput initialized
-        """
+        """Initialize the QMediaPlayer and QAudioOutput for audio playback."""
         self.media_player = QMediaPlayer()
         self.audio_output = QAudioOutput()
         self.media_player.setAudioOutput(self.audio_output)
@@ -329,9 +370,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _build_player_buttons(self):
-        """
-        >_ playback controls
-        >>> QHBoxLayout with play, pause, and replay buttons
+        """Create the playback control buttons.
+
+        Returns:
+            A :class:`QHBoxLayout` with Play, Pause, and Replay buttons.
         """
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
@@ -352,9 +394,10 @@ class TranscriptionValidatorGUI(QWidget):
         return btn_row
 
     def _build_seek_slider(self):
-        """
-        >_ seek bar setup
-        >>> clickable position slider initialized
+        """Create the seek/progress slider.
+
+        Returns:
+            A :class:`ClickableSlider` configured for horizontal audio seeking.
         """
         self.position_slider = ClickableSlider(Qt.Orientation.Horizontal)
         self.position_slider.setRange(0, 0)
@@ -364,9 +407,10 @@ class TranscriptionValidatorGUI(QWidget):
         return self.position_slider
 
     def _build_time_label(self):
-        """
-        >_ playback time display
-        >>> QLabel initialized with current and total time
+        """Create the playback time display label.
+
+        Returns:
+            A :class:`QLabel` showing the current position and total duration.
         """
         self.time_label = QLabel("00:00 / 00:00")
         self.time_label.setStyleSheet("color: #555;")
@@ -374,9 +418,10 @@ class TranscriptionValidatorGUI(QWidget):
         return self.time_label
 
     def _connect_player_signals(self):
-        """
-        >_ media player and slider signals
-        >>> playback and seek events connected
+        """Connect media player and slider signals to their handlers.
+
+        Wires ``durationChanged``, ``positionChanged``, and slider events
+        to the corresponding slot methods.
         """
         self.media_player.durationChanged.connect(self._on_duration_changed)
         self.media_player.positionChanged.connect(self._on_position_changed)
@@ -387,9 +432,11 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _build_counters(self):
-        """
-        >_ segment and transcript error counts
-        >>> QHBoxLayout counter spinboxes
+        """Create the segment and transcript error counters.
+
+        Returns:
+            A :class:`QHBoxLayout` with two :class:`QSpinBox` widgets for
+            segment errors and transcript errors.
         """
         layout = QHBoxLayout()
 
@@ -415,9 +462,10 @@ class TranscriptionValidatorGUI(QWidget):
         return layout
 
     def _build_nav(self):
-        """
-        >_ navigation controls
-        >>> QHBoxLayout previous and save/next buttons
+        """Create the navigation controls.
+
+        Returns:
+            A :class:`QHBoxLayout` with Previous and Save/Next buttons.
         """
         layout = QHBoxLayout()
 
@@ -437,9 +485,14 @@ class TranscriptionValidatorGUI(QWidget):
         return layout
 
     def _init_shortcuts(self):
-        """
-        >_ keyboard shortcuts
-        >>> shortcuts registered for playback and navigation
+        """Register keyboard shortcuts for playback and navigation.
+
+        Shortcuts:
+            - ``Space``: toggle play/pause
+            - ``R``: replay from start
+            - ``Return/Enter``: save and next
+            - ``Left/Right``: decrease/increase segment errors
+            - ``Down/Up``: decrease/increase transcript errors
         """
         QShortcut(QKeySequence("Space"), self, activated=self.toggle_play_pause)
         QShortcut(QKeySequence("R"), self, activated=self.replay_audio)
@@ -453,9 +506,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _set_controls_enabled(self, enabled):
-        """
-        >_ enabled state
-        >>> all player controls enabled or disabled
+        """Enable or disable all player and navigation controls.
+
+        Args:
+            enabled: ``True`` to enable controls, ``False`` to disable.
         """
         for w in (
             self.play_btn,
@@ -470,34 +524,51 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _wav_name(self, idx):
-        """
-        >_ segment index
-        >>> WAV filename for the segment
+        """Build the WAV filename for a segment at the given index.
+
+        Args:
+            idx: Row index in the DataFrame.
+
+        Returns:
+            The WAV filename as ``"<file_name>_<segment_id>.wav"``.
         """
         row = self.df.iloc[idx]
 
         return f"{row[COL_FILE]}_{str(row[COL_SEG]).strip()}.wav"
 
     def _audio_path(self, idx):
-        """
-        >_ segment index
-        >>> full path to the WAV file
+        """Build the full path to the WAV file for a segment.
+
+        Args:
+            idx: Row index in the DataFrame.
+
+        Returns:
+            The full :class:`Path` to the WAV audio file.
         """
 
         return self.paths.audio_dir / self._wav_name(idx)
 
     def _is_done(self, idx):
-        """
-        >_ segment index
-        >>> True if segment has been validated
+        """Check whether a segment has already been validated.
+
+        Args:
+            idx: Row index in the DataFrame.
+
+        Returns:
+            ``True`` if the segment's ``validated`` column equals 1.
         """
 
         return int(self.df.iloc[idx].get(COL_VALIDATED, 0)) == 1
 
     def _list_label(self, idx):
-        """
-        >_ segment index
-        >>> formatted list item label with status icon
+        """Create a formatted list item label with a status icon.
+
+        Args:
+            idx: Row index in the DataFrame.
+
+        Returns:
+            A string with ``✓`` for validated segments, ``⚠`` for missing
+            audio, or the plain WAV filename.
         """
         wav = self._wav_name(idx)
         if not self._audio_path(idx).exists():
@@ -508,10 +579,7 @@ class TranscriptionValidatorGUI(QWidget):
         return wav
 
     def _populate_list(self):
-        """
-        >_ dataframe segments
-        >>> populated list widget
-        """
+        """Populate the list widget with segment labels from the DataFrame."""
         self.list_widget.clear()
         for i in range(len(self.df)):
             self.list_widget.addItem(QListWidgetItem(self._list_label(i)))
@@ -519,9 +587,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _update_list_item(self, idx):
-        """
-        >_ segment index
-        >>> updated list item label
+        """Refresh the label of a single list item after validation changes.
+
+        Args:
+            idx: Row index of the segment to update.
         """
         item = self.list_widget.item(idx)
         if item:
@@ -530,9 +599,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _go_to(self, idx):
-        """
-        >_ target index
-        >>> UI and list selection updated to target index
+        """Navigate the UI to a specific segment index.
+
+        Args:
+            idx: Target row index in the DataFrame.
         """
         self.current_index = idx
         self._refresh_ui()
@@ -543,18 +613,19 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _mark_dirty(self):
-        """
-        >_ spin value change
-        >>> dirty flag set to True
-        """
+        """Set the dirty flag to indicate unsaved changes."""
         self.dirty = True
 
         return
 
     def _handle_dirty(self):
-        """
-        >_ current dirty state
-        >>> DirtyAction result after save / discard / cancel decision
+        """Resolve unsaved changes before navigation.
+
+        If the dirty flag is set, prompts the user to save, discard, or
+        cancel. Saves the row if the user agrees.
+
+        Returns:
+            A :attr:`DirtyAction` constant indicating the outcome.
         """
         if not self.dirty:
             return DirtyAction.CLEAN
@@ -574,9 +645,11 @@ class TranscriptionValidatorGUI(QWidget):
         return DirtyAction.DISCARDED
 
     def _ask_save_before_continue(self):
-        """
-        >_ unsaved changes before navigation
-        >>> user decision returned from confirmation dialog
+        """Show a confirmation dialog for unsaved changes.
+
+        Returns:
+            The :class:`QMessageBox.StandardButton` chosen by the user
+            (Yes, No, or Cancel).
         """
         return QMessageBox.question(
             self,
@@ -588,9 +661,9 @@ class TranscriptionValidatorGUI(QWidget):
         )
 
     def _save_row(self):
-        """
-        >_ current spin values
-        >>> updated df row and saved TSV file
+        """Save the current segment's error counts to the DataFrame and disk.
+
+        Marks the segment as validated and writes the output TSV atomically.
         """
         self.df.at[self.current_index, COL_ERR_SEG] = int(self.seg_spin.value())
         self.df.at[self.current_index, COL_ERR_TRANS] = int(self.trans_spin.value())
@@ -601,9 +674,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _refresh_ui(self):
-        """
-        >_ current index
-        >>> UI updated to reflect current segment
+        """Refresh the UI to display the current segment's data.
+
+        Updates the header, transcript, audio player, and error counters.
+        Resets the dirty flag.
         """
         row = self.df.iloc[self.current_index]
 
@@ -617,10 +691,7 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _update_header(self):
-        """
-        >_ current index
-        >>> progress and current file labels updated
-        """
+        """Update the progress and current-file labels for the current index."""
         self.status_label.setText(
             f"Progress: {self.current_index + 1} / {len(self.df)}"
         )
@@ -629,18 +700,19 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _update_transcript(self, row):
-        """
-        >_ current dataframe row
-        >>> transcript viewer updated with current text
+        """Display the transcript text for the current segment.
+
+        Args:
+            row: The current pandas Series row from the DataFrame.
         """
         self.transcript_view.setText(str(row[COL_TRANS]))
 
         return
 
     def _load_current_audio(self):
-        """
-        >_ current segment audio path
-        >>> audio source loaded or player reset if file is missing
+        """Load the audio file for the current segment into the media player.
+
+        If the audio file is missing, disables controls and shows a warning hint.
         """
         audio_path = self._audio_path(self.current_index)
 
@@ -660,9 +732,13 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _restore_spin_values(self, row):
-        """
-        >_ current dataframe row
-        >>> spinbox values restored without triggering dirty state
+        """Restore the spinbox values from the DataFrame row.
+
+        Signals are blocked during restoration to avoid triggering the
+        dirty-state handler.
+
+        Args:
+            row: The current pandas Series row from the DataFrame.
         """
         self.seg_spin.blockSignals(True)
         self.trans_spin.blockSignals(True)
@@ -676,9 +752,13 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _on_duration_changed(self, duration_ms):
-        """
-        >_ audio duration in milliseconds
-        >>> seek bar range updated
+        """Handle audio duration changes (Qt slot).
+
+        Updates the seek bar range and enables/disables it based on
+        whether a source is loaded.
+
+        Args:
+            duration_ms: New audio duration in milliseconds.
         """
         duration_ms = max(0, int(duration_ms))
         with QSignalBlocker(self.position_slider):
@@ -691,9 +771,12 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _on_position_changed(self, position_ms):
-        """
-        >_ playback position in milliseconds
-        >>> seek bar position updated
+        """Handle playback position changes (Qt slot).
+
+        Updates the seek bar position unless the user is currently dragging it.
+
+        Args:
+            position_ms: Current playback position in milliseconds.
         """
         position_ms = max(0, int(position_ms))
         if not self._is_user_seeking:
@@ -704,37 +787,34 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _on_slider_pressed(self):
-        """
-        >_ slider press event
-        >>> seeking state set to True
-        """
+        """Handle slider press: enable user-seeking state."""
         self._is_user_seeking = True
 
         return
 
     def _on_slider_released(self):
-        """
-        >_ slider release event
-        >>> audio position updated to slider value
-        """
+        """Handle slider release: disable user-seeking state and seek to position."""
         self._is_user_seeking = False
         self.media_player.setPosition(int(self.position_slider.value()))
 
         return
 
     def _on_slider_moved(self, value_ms):
-        """
-        >_ slider value in milliseconds
-        >>> audio position updated
+        """Handle slider drag: seek the audio to the slider value.
+
+        Args:
+            value_ms: New slider position in milliseconds.
         """
         self.media_player.setPosition(int(value_ms))
 
         return
 
     def _update_time_label(self, pos_ms, dur_ms):
-        """
-        >_ current position and duration in milliseconds
-        >>> time label updated
+        """Update the time label with the current position and duration.
+
+        Args:
+            pos_ms: Current playback position in milliseconds.
+            dur_ms: Total audio duration in milliseconds.
         """
         self.time_label.setText(
             f"{format_ms(max(0, int(pos_ms)))} / {format_ms(max(0, int(dur_ms)))}"
@@ -743,30 +823,21 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def play_audio(self):
-        """
-        >_ media player state
-        >>> audio playback started
-        """
+        """Start audio playback from the current position."""
         if not self.media_player.source().isEmpty():
             self.media_player.play()
 
         return
 
     def pause_audio(self):
-        """
-        >_ media player state
-        >>> audio playback paused
-        """
+        """Pause audio playback."""
         if not self.media_player.source().isEmpty():
             self.media_player.pause()
 
         return
 
     def toggle_play_pause(self):
-        """
-        >_ media player state
-        >>> audio playback toggled
-        """
+        """Toggle between play and pause states."""
         if self.media_player.source().isEmpty():
             return
         if self.media_player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
@@ -777,10 +848,7 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def replay_audio(self):
-        """
-        >_ media player state
-        >>> audio restarted from beginning
-        """
+        """Restart audio playback from the beginning."""
         if not self.media_player.source().isEmpty():
             self.media_player.setPosition(0)
             self.media_player.play()
@@ -788,9 +856,11 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _adjust_seg(self, delta):
-        """
-        >_ delta value
-        >>> segment error count adjusted
+        """Adjust the segment error count by a delta value.
+
+        Args:
+            delta: Integer amount to add to the segment error counter
+                (positive or negative).
         """
         self.seg_spin.setValue(
             max(
@@ -802,9 +872,11 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _adjust_trans(self, delta):
-        """
-        >_ delta value
-        >>> transcript error count adjusted
+        """Adjust the transcript error count by a delta value.
+
+        Args:
+            delta: Integer amount to add to the transcript error counter
+                (positive or negative).
         """
         self.trans_spin.setValue(
             max(
@@ -816,9 +888,12 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def jump_to_index(self, new_idx):
-        """
-        >_ target index
-        >>> UI jumped to selected segment
+        """Jump to a segment selected from the list (Qt slot).
+
+        Handles dirty-state resolution before navigating.
+
+        Args:
+            new_idx: Target row index in the DataFrame.
         """
         if new_idx < 0 or new_idx >= len(self.df):
             return
@@ -835,9 +910,9 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def save_and_next(self):
-        """
-        >_ user presses save / next
-        >>> current row saved and navigation handled
+        """Save the current segment and move to the next one.
+
+        If this is the last segment, triggers the validation summary.
         """
         self._save_row()
         self._update_list_item(self.current_index)
@@ -850,9 +925,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _finish_validation(self):
-        """
-        >_ last segment reached
-        >>> show summary and optional cleanup
+        """Show the final validation summary and offer optional audio cleanup.
+
+        Displays total segment and transcript error counts, then asks
+        whether to delete the temporary audio files.
         """
         total_seg, total_trans = compute_totals(self.df)
 
@@ -878,10 +954,7 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def _cleanup_audio_dir(self):
-        """
-        >_ user confirms cleanup
-        >>> stop player and remove audio directory
-        """
+        """Stop playback and remove the temporary audio directory."""
         self.media_player.stop()
         self.media_player.setSource(QUrl())
 
@@ -891,9 +964,9 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def prev_item(self):
-        """
-        >_ current index
-        >>> UI moved to previous segment
+        """Navigate to the previous segment.
+
+        Handles dirty-state resolution before moving.
         """
         if self.current_index <= 0:
             return
@@ -904,6 +977,10 @@ class TranscriptionValidatorGUI(QWidget):
         return
 
     def closeEvent(self, event):  # Qt override
+        """Handle window close event: resolve unsaved changes before closing.
+
+        If the user cancels, the close event is ignored.
+        """
         result = self._handle_dirty()
         if result == DirtyAction.CANCELLED:
             event.ignore()

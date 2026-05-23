@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-##
-### complementary functions for TRS processing
-#### trsproc direct dependency
-#####
+"""Utility functions for TRS file processing.
+
+Provides helper functions for random sampling, JSON parsing, Named Entity
+pre-annotation, language tag insertion, TRS corrections, and report generation.
+"""
 
 import csv
 import json
@@ -23,18 +23,29 @@ script_dir = os.path.dirname(__file__)
 
 # ----------
 def parse_json(json_input):
-    """
-    >_ json file
-    >>> python dict
+    """Parse a JSON file into a Python dictionary.
+
+    Args:
+        json_input: Path to the JSON file.
+
+    Returns:
+        The parsed JSON data as a Python dictionary.
     """
     with open(json_input, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def tmp_report(trs_input, section_type="report"):
-    """
-    >_ TRS file for statistical validation only in the specified section
-    >>> Section validation report, table with segments < 10s and pauses > 0.5s
+    """Generate a validation report for sections of the given type.
+
+    Extracts the specified section type from the TRS, validates it, and
+    produces a TSV report listing segments longer than 10s and pauses
+    longer than 0.5s.
+
+    Args:
+        trs_input: A :class:`TRSParser` instance for the input TRS file.
+        section_type: The section ``type`` attribute to analyse. Defaults
+            to ``"report"``.
     """
     trs_tmp = TRSParser.trs_tmp(trs_input, section_type)
     folder_out = trs_input.corpus
@@ -86,6 +97,15 @@ def tmp_report(trs_input, section_type="report"):
 
 
 def sample_from_dict(input_dict, sample):
+    """Draw a random sample of values from a dictionary.
+
+    Args:
+        input_dict: The dictionary to sample from.
+        sample: Number of entries to draw.
+
+    Returns:
+        A list of values corresponding to the randomly selected keys.
+    """
     keys = random.sample(list(input_dict.keys()), sample)
     values = [input_dict[k] for k in keys]
 
@@ -93,9 +113,17 @@ def sample_from_dict(input_dict, sample):
 
 
 def random_sampling(list_trs, save_path):
-    """
-    >_ TRS list from which to extract random segments
-    >>> minimum sample size based on population input, table with random sampled segments from population, audio segment files
+    """Extract random transcription segments from a list of TRS files.
+
+    Prompts the user for a population size, computes the minimum statistical
+    sample, and writes the sampled segments to a TSV file.
+
+    Args:
+        list_trs: List of paths to TRS files to sample from.
+        save_path: Directory where the sample TSV file will be saved.
+
+    Returns:
+        Path to the generated sample TSV file, or ``None`` if sampling cannot proceed.
     """
     valid_population = False
     while not valid_population:
@@ -193,9 +221,15 @@ def random_sampling(list_trs, save_path):
 
 
 def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
-    """
-    >_ TRS list from which extracting random named entities
-    >>> minimum sample size based on population input, table with random sampled named entities from population,
+    """Extract random Named Entity segments from a list of TRS files.
+
+    Prompts the user for a population size, computes the minimum statistical
+    sample, and writes the sampled NE segments to a TSV file. Also extracts
+    the corresponding audio segments.
+
+    Args:
+        list_trs: List of paths to TRS files to sample from.
+        save_path: Directory where the sample TSV and audio files will be saved.
     """
 
     valid_population = False
@@ -310,9 +344,14 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
 
 
 def extract_segments(tsv_file: str):
-    """
-    >_ TSV file with segment information
-    >>> WAV segment files extracted to a validation subfolder
+    """Extract WAV audio segments from a sample TSV file.
+
+    Reads segment timing information from the TSV and cuts the corresponding
+    audio files into individual WAV files stored in a ``validation/`` subfolder.
+
+    Args:
+        tsv_file: Path to the sample segments TSV file. The TSV must contain
+            ``file_name``, ``segment_start``, ``segment_end``, and ``segment_id`` columns.
     """
     base_dir = os.path.dirname(tsv_file)
     out_dir = os.path.join(base_dir, "validation")
@@ -365,9 +404,18 @@ def extract_segments(tsv_file: str):
 
 
 def create_update_dict_ne(table_info, ne_dict, ne_origin):
-    """
-    >_ table with extracted NE from TRS
-    >>> update or creation of NE-dict for pre-annotation
+    """Create or update a Named Entity dictionary for pre-annotation.
+
+    Reads extracted NE data from a TSV file and merges it into a JSON-based
+    NE dictionary. If the JSON file does not exist, a new one is created.
+
+    Args:
+        table_info: Path to the NE extraction TSV file.
+        ne_dict: Path to the JSON-based NE dictionary file.
+        ne_origin: Name of the data source (appended to the sources list).
+
+    Returns:
+        The updated NE dictionary (mapping content strings to NE class names).
     """
     try:
         neSet = parse_json(ne_dict)
@@ -399,9 +447,14 @@ def create_update_dict_ne(table_info, ne_dict, ne_origin):
 
 
 def trs_preannotation(input_trs: TRSParser):
-    """
-    >_ TRS file
-    >>> TRS pre-annotated using the specified NE-dict
+    """Pre-annotate Named Entities in a TRS file using a reference dictionary.
+
+    Uses the NE extraction TSV and an optional JSON reference dictionary to
+    add ``<Event type="entities">`` tags to the TRS for both single-word and
+    multi-word named entities.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     dictNE = os.path.join(input_trs.filepath, f"{input_trs.corpus}_NE-reference.json")
     tableInfo = os.path.join(
@@ -428,9 +481,17 @@ def trs_preannotation(input_trs: TRSParser):
 
 
 def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
-    """
-    >_ TRS for NE pre-annotation
-    >>> TRS pre-annotated with NE of length 1
+    """Pre-annotate single-word (length 1) Named Entities in a TRS file.
+
+    Iterates through each transcribed line and wraps tokens that appear in
+    the NE dictionary with ``<Event>`` begin/end tags.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
+        dict_ne: Dictionary mapping NE content strings to their class labels.
+
+    Returns:
+        Path to the pre-annotated TRS file.
     """
     trs_preannotated = ""
     trs_output = os.path.join(
@@ -468,9 +529,15 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
 
 
 def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
-    """
-    >_ TRE for pre-annotation of NE of length 2+
-    >>> TRS pre-annotated with NE of length 2+
+    """Pre-annotate multi-word (length 2+) Named Entities in a TRS file.
+
+    Searches for multi-word NE patterns in each transcribed line and wraps
+    matches with ``<Event>`` begin/end tags. Overwrites the input file.
+
+    Args:
+        input_file: Path to the TRS file to annotate.
+        list_ne: List of multi-word NE content strings to search for.
+        dict_ne: Dictionary mapping NE content strings to their class labels.
     """
     trs_preannotated = ""
     print("\N{CARD FILE BOX} Preannotating complex NE...")
@@ -511,9 +578,17 @@ def add_lang_tag(
     json_dict_path: Path,
     lang_to_add: str,
 ):
-    """
-    >_ TRS in which language tags must be annotated, language tag dictionary (JSON)
-    >>> TRS with new language tag annotation
+    """Add language tags to all transcription segments in a TRS file.
+
+    Wraps each non-silence, non-language-tagged segment with
+    ``<Event type="language">`` begin/end tags using the specified language.
+    Also remaps existing language tags via the JSON dictionary if provided.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
+        json_dict_path: Path to a JSON file mapping existing language tags
+            to their canonical codes.
+        lang_to_add: Language code string to use for the new tags.
     """
     try:
         dicolang = parse_json(json_dict_path)
@@ -562,9 +637,13 @@ def add_lang_tag(
 
 ## Ad hoc correction functions ---------------
 def turn_difference_trs(input_trs: TRSParser):
-    """
-    >_ TRS for which differences in segments might be identified with its twin
-    >>> Differences list
+    """Compare a TRS file with its twin for segmentation differences.
+
+    Loads the twin TRS from the ``twins/`` subdirectory and prints any
+    differences in segment start or end times.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     twin_trs_path = os.path.join(
         input_trs.filepath, "twins", f"{input_trs.filename}.trs"
@@ -592,9 +671,14 @@ def turn_difference_trs(input_trs: TRSParser):
 
 
 def trs_empty_space_before_ne(input_trs: TRSParser):
-    """
-    >_ TRS file in which to add an empty space before each NE
-    >>> corrected TRS
+    """Insert a space before each Named Entity annotation in the TRS.
+
+    Ensures proper tokenization by adding a space character before
+    ``<Event type="entities" extent="begin">`` tags and after
+    ``<Event type="entities" extent="end">`` tags.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     output_trs = ""
     trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
@@ -629,9 +713,13 @@ def trs_empty_space_before_ne(input_trs: TRSParser):
 
 
 def correction_la(input_trs: TRSParser):
-    """
-    >_ TRS file for correction of sentences ending with là
-    >>> corrected txt from the origin TRS
+    """Correct sentences ending with ``"là"`` to ``"la"``.
+
+    Reads the TXT export of the TRS and replaces the accented form ``"là"``
+    with ``"la"`` at the end of each segment.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     txt_dump, nb_la = "", 0
     txt_folder = os.path.join(input_trs.filepath, "txt")
@@ -656,9 +744,13 @@ def correction_la(input_trs: TRSParser):
 
 
 def correction_maj(input_trs: TRSParser):
-    """
-    >_ TRS file for correction of misplaced capital letters
-    >>> corrected TRS
+    """Fix misplaced capital letters in the TRS file.
+
+    Capitalizes words appearing directly after an NE ``<Event begin>`` tag,
+    and lowercases all other non-XML transcription text.
+
+    Args:
+        input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     txt_dump, nb_maj = "", 0
     target_path = os.path.join(input_trs.filepath, "corrections", "maj")

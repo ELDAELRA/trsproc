@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-#
-##
-### TRS parsing class
-#### trsproc direct dependency
-#####
+"""TRS file parsing and conversion module.
+
+Provides the :class:`TRSParser` class for parsing Transcriber TRS files
+and extracting transcription data, as well as standalone functions for
+converting between TRS, TextGrid, TXT, and VAD formats.
+"""
 
 import os
 import re
@@ -16,9 +17,13 @@ from xml.etree.ElementTree import ParseError
 
 # ----------
 def replace_punctuations(sentence):
-    """
-    >_ sentence to delete punctuation from
-    >>> original sentence without punctuation
+    """Delete punctuation characters from the input sentence.
+
+    Args:
+        sentence: The sentence to strip punctuation from.
+
+    Returns:
+        The original sentence with all punctuation removed.
     """
     sentence = sentence.strip()
     punct_list = ["\ufeff", "\u00a0", "\u2019", ".", ",", ":", ";", "!", '"', "/", "\\"]
@@ -29,9 +34,15 @@ def replace_punctuations(sentence):
 
 
 def praat_snr_for_segment(audio, seg_start, seg_end):
-    """
-    >_audio file, timestaps for start and end of segment
-    >>> segment SNR from Praat HNR computation
+    """Compute the Signal-to-Noise Ratio (SNR) for an audio segment using Praat.
+
+    Args:
+        audio: Path to the audio file.
+        seg_start: Start time of the segment in seconds.
+        seg_end: End time of the segment in seconds.
+
+    Returns:
+        The mean harmonicity (SNR) value rounded to 2 decimal places.
     """
     sound = parselmouth.Sound(audio)
     sound_part = sound.extract_part(seg_start, seg_end)
@@ -45,9 +56,16 @@ def praat_snr_for_segment(audio, seg_start, seg_end):
 def txt_to_trs(input_txt, from_correction=0):
     # TODO: remove the need for placeholders
     # TODO: add an option to choose where to save the new .trs (or perhaps overwrite the original one ?)
-    """
-    >_ txt file having the transcription to be rewritten in a TRS, one segment per line and line length = last placeholder
-    >>> rewritten TRS, from_correction parameter helps to identify the file name
+    """Rewrite a TRS file using an input TXT file and a placeholder TRS.
+
+    Args:
+        input_txt: Path to the TXT file containing the transcription text,
+            with one segment per line. The line count must match the placeholder count.
+        from_correction: Correction level identifier (0=none, 1=csp, 2=sp,
+            3=gram, or combinations). Defaults to 0. Helps identify the file name.
+
+    Returns:
+        None. Writes the rewritten TRS file to disk.
     """
     output_trs_correct = ""
     txt_path, txt_name = os.path.split(input_txt)
@@ -106,9 +124,14 @@ def txt_to_trs(input_txt, from_correction=0):
 
 
 def textgrid_to_trs(input_tg):
-    """
-    >_ TextGrid file
-    >>> TRS following textgrid segmentations
+    """Convert a TextGrid file to a TRS file following TextGrid segmentations.
+
+    Args:
+        input_tg: Path to the input TextGrid file. The TextGrid must contain
+            ``transcription``, ``speaker``, and optionally ``sex`` tiers.
+
+    Returns:
+        None. Writes the resulting TRS file alongside the input.
     """
     tg_path, tg_name = os.path.split(input_tg)
     tg_name = tg_name.split(".")[0]
@@ -164,9 +187,14 @@ def textgrid_to_trs(input_tg):
 
 
 def vad_to_trs(input_tg):
-    """
-    >_ TextGrid file with Tier named VAD
-    >>> TRS file
+    """Convert a VAD (Voice Activity Detection) TextGrid file to a TRS file.
+
+    Args:
+        input_tg: Path to the input TextGrid file. Must contain a tier named
+            ``VAD`` with intervals labeled ``"speech"`` or ``"non-speech"``.
+
+    Returns:
+        None. Writes the resulting TRS file alongside the input.
     """
     tg_path, tg_name = os.path.split(input_tg)
     tg_name = tg_name.split(".")[0]
@@ -196,7 +224,42 @@ def vad_to_trs(input_tg):
 
 
 class TRSParser:
+    """Parser for Transcriber TRS files.
+
+    Parses a TRS XML file and extracts transcription segments, speaker
+    information, language tags, named entities, and audio metadata.
+
+    Attributes:
+        tree: The parsed ElementTree object.
+        root: The root element of the TRS XML.
+        input_trs: Path to the input TRS file.
+        filepath: Directory containing the TRS file.
+        filename: Base name of the TRS file (without extension).
+        corpus: Name of the parent directory (corpus name).
+        lang: Language code for the transcription data.
+        section_duration: Total duration of all sections in seconds, or
+            ``"Section not found"`` if no sections exist.
+        audio_file: Path to the associated audio file.
+        file_duration: Duration of the audio file in seconds, or
+            ``"audio not found"`` if the file is missing.
+        speakers: Dictionary mapping speaker IDs to ``(name, sex)`` tuples.
+        contents: Dictionary of parsed segment data returned by
+            :meth:`retrieve_contents`.
+    """
+
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
+        """Initialize the TRS parser.
+
+        Parses the TRS file, extracts speaker and duration metadata, and
+        populates the ``contents`` attribute.
+
+        Args:
+            trs_in: Path to the input TRS file.
+            audio_format: File extension of the accompanying audio file
+                (e.g., ``"wav"``). Defaults to ``"wav"``.
+            lang: Language code for tokenization. Use ``"jkz"`` for
+                character-level token counting. Defaults to ``"eu"``.
+        """
         self.tree = ElementTree.parse(trs_in)
         self.root = self.tree.getroot()
 
@@ -238,9 +301,16 @@ class TRSParser:
         self.contents = self.retrieve_contents()
 
     def retrieve_contents(self):
-        """
-        >_ TRS file to be parsed for information retrieving
-        >>> Dictionary of all contents information
+        """Parse the TRS file and extract all segment-level information.
+
+        Reads the TRS file line-by-line, identifies segments via ``<Sync>``
+        tags, and collects metadata including timestamps, tokens, speaker
+        information, language tags, named entities, and SNR values.
+
+        Returns:
+            A dictionary where key ``0`` holds summary statistics and keys
+            ``1..N`` contain per-segment data. Key ``"NE"`` maps to the
+            named entity dictionary.
         """
         seg_dict, seg_id, seg_start, seg_end = {}, 0, 0, 0
         nb_nontrans, nb_pronpi, nb_lang, nb_words = 0, 0, 0, 0
@@ -411,8 +481,10 @@ class TRSParser:
         return seg_dict
 
     def print(self):
-        """
-        >>> print TRS contents in the console
+        """Print the parsed TRS contents to the console.
+
+        Displays the file name, section/audio duration, file path, speaker
+        information, and parsed contents.
         """
         print(
             f"{self.filename} with section duration {self.section_duration} and audio duration {self.file_duration} in\n{self.filepath}\nSPEAKERS ====================\n{self.speakers}\nCONTENTS ====================\n{self.contents}"
@@ -421,9 +493,11 @@ class TRSParser:
         return
 
     def summary_lang_trs(self):
-        """
-        >_ TRS file
-        >>> tsv with information about the languages spoken in the TRS
+        """Generate a TSV summary of language tags found in the TRS file.
+
+        Extracts language annotation information from each segment and
+        writes it to a tab-separated file named
+        ``summary_languages-<corpus>.tsv``.
         """
         tab_out = os.path.join(self.filepath, f"summary_languages-{self.corpus}.tsv")
         print(f"\N{CARD FILE BOX} Retriveving languages from {self.filename}")
@@ -444,10 +518,17 @@ class TRSParser:
         return
 
     def trs_to_txt(self, need_placeholder=True, delete_punct=False):
-        """
-        >_ TRS file
-        >>> txt file having transcribed text
-        >>> if need_placeholder=True, trs with [placeholder x] where x = index from the txt list for TRS rewriting
+        """Extract transcription text from the TRS and write it to TXT files.
+
+        Outputs the plain text transcription to a ``txt/`` subdirectory and,
+        if requested, creates a placeholder TRS with ``[placeholder N]``
+        markers for later rewriting.
+
+        Args:
+            need_placeholder: If ``True``, create a placeholder TRS file
+                alongside the txt output. Defaults to ``True``.
+            delete_punct: If ``True``, strip punctuation from the output
+                text. Defaults to ``False``.
         """
         print(f"\N{LINKED PAPERCLIPS} Processing {self.filename}...")
         output_txt, output_trs_plh, placeholder = "", "", 0
@@ -483,9 +564,11 @@ class TRSParser:
         return
 
     def clean_ne_from_trs(self):
-        """
-        >_ TRS file transcribed and annotated to NE
-        >>> TRS file without NE annotations
+        """Remove Named Entity annotations from the TRS file.
+
+        Strips ``<Event>`` tags with ``type="entities"`` and cleans up
+        residual whitespace and punctuation artifacts. Writes the cleaned
+        TRS file to a ``clean/`` subdirectory.
         """
         txt_path, file_name = self.filepath, self.filename
         cleaned_folder = os.path.join(txt_path, "clean")
@@ -522,9 +605,11 @@ class TRSParser:
         return
 
     def validate_trs(self):
-        """
-        >_ TRS for infrmation extraction
-        >>> validation table with technical info about TRS
+        """Produce a validation summary TSV from the parsed TRS contents.
+
+        Extracts technical statistics (segment counts, durations,
+        speaker/language counts, SNR) and appends a row to
+        ``summary_validation-<corpus>.tsv``.
         """
         # assert False, self.contents
         tab_out = os.path.join(self.filepath, f"summary_validation-{self.corpus}.tsv")
@@ -546,9 +631,10 @@ class TRSParser:
         return
 
     def trs_to_tsv(self):
-        """
-        >_ TRS file
-        >>> tsv file representing the origin TRS
+        """Convert the TRS file into a tab-separated values (TSV) file.
+
+        Writes each segment's metadata (timestamps, content, speaker info)
+        to ``<corpus>.tsv`` in the same directory as the input file.
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}.tsv")
         print(f"\N{CARD FILE BOX} Creating tsv from {self.filename}...")
@@ -576,9 +662,14 @@ class TRSParser:
         return
 
     def trs_to_textgrid(self, tiers_list=["transcription", "speaker", "sex", "NE"]):
-        """
-        >_ TRS file
-        >>> TextGrid file
+        """Convert the TRS file to a Praat TextGrid file.
+
+        Args:
+            tiers_list: List of tier names to include in the output
+                TextGrid. Defaults to ``["transcription", "speaker", "sex", "NE"]``.
+
+        Returns:
+            None. Writes the TextGrid file alongside the input TRS.
         """
         tg_out = os.path.join(self.filepath, f"{self.filename}.TextGrid")
         nb_tiers = len(tiers_list)
@@ -627,9 +718,11 @@ class TRSParser:
         return
 
     def retrieve_ne_to_tsv(self):
-        """
-        >_ TRS file with NE annotation
-        >>> tsv with NE annotation information
+        """Extract Named Entity annotations into a TSV file.
+
+        Reads NE data from the parsed contents and writes each entity's
+        class, content, segment context, and timing to
+        ``<corpus>_NE_extraction.tsv``.
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}_NE_extraction.tsv")
         print(f"\N{CARD FILE BOX} Retrieving NE from {self.filename}...")
@@ -657,9 +750,14 @@ class TRSParser:
         return
 
     def trs_tmp(self, section_type="report"):
-        """
-        >_ TRS file with specific section to be extracted
-        >>> temporary TRS only retaining the target section
+        """Extract specific section types from the TRS into temporary files.
+
+        Args:
+            section_type: The section ``type`` attribute to extract (e.g.,
+                ``"report"``). Defaults to ``"report"``.
+
+        Returns:
+            List of paths to the extracted temporary TRS files.
         """
         print(
             f"\N{BULLSEYE} Extracting '{section_type}' Section from {self.filename}..."
