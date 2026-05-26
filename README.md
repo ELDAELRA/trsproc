@@ -4,10 +4,34 @@
 
 *trsproc* is a Python module allowing multiple operations and automatic processing of TRS files from [Transcriber](https://sourceforge.net/projects/trans/ "Download link").
 
-Prior installation of Python 3.6+ is necessary. Install *trsproc* using pip and fork it on GitHub.
+Prior installation of Python 3.10+ is necessary. Install *trsproc* using pip and fork it on GitHub.
+
+
+## Installation
+
+### Using `pip`
+
 
 ```
 pip install trsproc
+```
+
+Install documentation dependencies
+
+```
+pip install ".[docs]"
+```
+
+### Using `uv`
+
+```
+uv sync
+```
+
+Install documentation dependencies
+
+```
+uv sync --extra docs
 ```
 
 ## USAGE FROM THE COMMAND LINE
