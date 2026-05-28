@@ -1,8 +1,8 @@
 site_name: trsproc
-site_url: https://elda.org/trsproc
-repo_url: https://github.com/ELDAELRA/trsproc
-repo_name: ELDAELRA/trsproc
 site_description: A Python library to process Transcriber TRS files
+site_url: https://elda-elra.github.io/trsproc/
+repo_name: ELDAELRA/trsproc
+repo_url: https://github.com/ELDAELRA/trsproc
 
 watch:
   - src
@@ -10,16 +10,38 @@ watch:
 theme:
   name: material
   palette:
-    primary: indigo
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
-    - navigation.tabs
     - navigation.sections
+    - navigation.expand
     - navigation.top
+    - navigation.footer
     - search.suggest
+    - search.highlight
     - content.code.copy
+    - content.code.annotate
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon:
+    repo: fontawesome/brands/github
 
 plugins:
-  - search
+  - search:
+      lang: en
   - gen-files:
       scripts:
         - docs/gen_api.py
@@ -40,9 +62,33 @@ plugins:
 
 markdown_extensions:
   - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
-  - attr_list
-  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+

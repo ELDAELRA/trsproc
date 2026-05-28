@@ -1,60 +1,53 @@
 # trsproc
 
-*A Python library to process Transcriber TRS files.*
-
-trsproc provides tools for parsing, converting, validating, and pre-annotating
-[Transcriber](https://sourceforge.net/projects/trans/) TRS files used in speech
-transcription workflows.
+A Python library for processing [Transcriber](https://sourceforge.net/projects/trans/) TRS files — the XML format used for speech transcription, speaker annotation, named entity labeling, and language tagging.
 
 ## Features
 
-- **Parse TRS files** — Extract segments, speakers, language tags, named entities,
-  and audio metadata via the [`TRSParser`](api/parser.md#trsproc.parser.TRSParser) class.
-- **Convert formats** — TRS ↔ TextGrid, TRS → TXT/TSV, VAD TextGrid → TRS.
-- **Validate transcriptions** — Statistical reports and an interactive
-  [validation GUI](api/validation.md#trsproc.validation.gui.TranscriptionValidatorGUI) with audio playback.
-- **Pre-annotate Named Entities** — Build and apply NE dictionaries to annotate TRS files.
-- **Language tagging** — Add or remap language tags across segments.
-- **Corrections** — Fix common issues (capitalisation, spacing, accented words,
-  twin segmentation differences).
-- **Random sampling** — Statistically sound segment and NE sampling for quality control.
+- **Parse & Inspect** — Convert TRS files into structured Python objects with segment-level detail
+- **Format Conversion** — Convert between TRS ↔ Praat TextGrid, generate TRS from VAD output
+- **Named Entity Annotation** — Extract, pre-annotate, and clean NE labels
+- **Language Tagging** — Add or modify language tags on transcription segments
+- **Transcription Validation** — Random sampling, audio extraction, and a PyQt6 validation GUI
+- **Text Editing Workflow** — Extract text to `.txt`, edit, and merge back into TRS structure
+- **Statistics & Reports** — Generate TSV reports with lexical stats, SNR, and quality checks
+- **Custom Corrections** — Fix segmentation differences, misplaced capitals, spacing, and more
 
-## Quick start
+## Quick Start
 
-Install with pip:
+Install:
 
 ```bash
 pip install trsproc
 ```
 
-Process TRS files from the command line:
-
-```bash
-# Extract text from TRS files
-trsproc txt
-
-# Produce validation statistics
-trsproc vsi
-
-# Convert to TextGrid
-trsproc tg
-
-# Launch the validation GUI with random sampling
-trsproc rs
-```
-
-Or use as a Python library:
+Parse a TRS file:
 
 ```python
 from trsproc.parser import TRSParser
 
-trs = TRSParser("path/to/file.trs")
-print(trs.contents[0]["totalWords"])
-trs.trs_to_textgrid()
+trs = TRSParser("interview.trs")
+
+# Speaker information
+print(trs.speakers)
+# {'spk1': ('Alice', 'female'), 'spk2': ('Bob', 'male')}
+
+# Overall statistics
+stats = trs.contents[0]
+print(f"Segments: {stats['totalSegments']}, Words: {stats['totalWords']}")
 ```
 
-## Next steps
+Use the CLI:
 
-- :material-download: [Installation guide](installation.md)
-- :material-console: [CLI reference](cli.md)
-- :material-api: [API reference](api/trsproc.md)
+```bash
+trsproc txt          # Extract text from TRS
+trsproc tg           # Convert TRS to TextGrid
+trsproc lang -l fr   # Add language tags
+trsproc rs           # Validate transcriptions (with GUI)
+```
+
+See [Getting Started](getting-started.md) for detailed installation and usage instructions, or [CLI Reference](cli-reference.md) for the full command list.
+
+## License
+
+[MIT License](https://github.com/ELDAELRA/trsproc/blob/main/LICENSE)

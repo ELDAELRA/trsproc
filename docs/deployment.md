@@ -1,19 +1,26 @@
 # Deployment
 
-This guide explains how to deploy the trsproc documentation site to
-[GitHub Pages](https://pages.github.com/).
+This guide explains how to deploy the trsproc documentation site to [GitHub Pages](https://pages.github.com/).
 
 ## Prerequisites
 
 - A GitHub repository with the trsproc source code
 - Push access to the repository
-- Python >= 3.8 with the documentation dependencies installed:
+- Python >= 3.10 with the documentation dependencies installed:
 
-```bash
-pip install -r docs/requirements.txt
-```
+=== "pip"
 
-## One-time setup
+    ```bash
+    pip install trsproc[docs]
+    ```
+
+=== "uv"
+
+    ```bash
+    uv sync --extra docs
+    ```
+
+## One-time Setup
 
 ### 1. Enable GitHub Pages
 
@@ -37,9 +44,7 @@ git checkout main  # or dev
 
 The branch will be populated automatically the first time you deploy.
 
----
-
-## Manual deployment
+## Manual Deployment
 
 From the project root directory:
 
@@ -65,12 +70,9 @@ GitHub Pages will detect the push and publish the site within a few minutes.
 
     Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser.
 
----
+## CI Automatic Deployment (Recommended)
 
-## CI automatic deployment (recommended)
-
-You can automate deployment using GitHub Actions so that the documentation is
-rebuilt and published every time you push to the main branch.
+You can automate deployment using GitHub Actions so that the documentation is rebuilt and published every time you push to the main branch.
 
 ### Create the workflow file
 
@@ -102,7 +104,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install -r docs/requirements.txt
+        run: pip install -e .[docs]
 
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
@@ -110,16 +112,39 @@ jobs:
 
 ### How it works
 
-- The workflow triggers on pushes to `main` that modify documentation or source
-  files.
-- It installs the documentation dependencies, builds the site, and pushes to
-  the `gh-pages` branch.
-- The `--force` flag ensures the deploy succeeds even if there are conflicts
-  on the `gh-pages` branch.
+- The workflow triggers on pushes to `main` that modify documentation or source files.
+- It installs the documentation dependencies, builds the site, and pushes to the `gh-pages` branch.
+- The `--force` flag ensures the deploy succeeds even if there are conflicts on the `gh-pages` branch.
 
----
+## Versioned Documentation with Mike
 
-## Custom domain (optional)
+The project includes [mike](https://github.com/jimporter/mike) in its docs dependencies, which supports publishing versioned documentation (e.g., `latest`, `2.1`, `2.0`).
+
+### Deploy a version
+
+```bash
+mike deploy --push 2.1 latest
+```
+
+This deploys version `2.1` and sets it as the `latest` alias.
+
+### Set the default version
+
+```bash
+mike set-default --push latest
+```
+
+### Preview locally
+
+```bash
+mike serve
+```
+
+### GitHub Pages setup
+
+When using mike, the GitHub Pages source should still point to the `gh-pages` branch. Mike manages the version directories and `index.html` redirect automatically.
+
+## Custom Domain (Optional)
 
 To use a custom domain (e.g., `trsproc.elda.org`):
 
@@ -130,14 +155,10 @@ To use a custom domain (e.g., `trsproc.elda.org`):
    trsproc.elda.org
    ```
 
-3. Configure your DNS provider to add a `CNAME` record pointing to
-   `ELDAELRA.github.io`.
-
+3. Configure your DNS provider to add a `CNAME` record pointing to `ELDAELRA.github.io`.
 4. Enable **Enforce HTTPS** in the GitHub Pages settings.
 
 mkdocs will automatically include the `CNAME` file in the build output.
-
----
 
 ## Troubleshooting
 
