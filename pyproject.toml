@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-keywords = ['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
 dependencies = [
     "librosa",
     "pandas",
@@ -33,6 +32,29 @@ dependencies = [
     "soundfile",
     "typer",
     'tomli; python_version < "3.11"',
+]
+
+[project.urls]
+Homepage = "https://github.com/ELDAELRA/trsproc"
+
+[project.scripts]
+trsproc = "trsproc.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-md",
+    "pytest-emoji",
+    "ruff",
+]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.0",
+    "mkdocstrings[python]>=0.24",
+    "mkdocs-gen-files>=0.5",
+    "mkdocs-literate-nav>=0.6",
+    "pymdown-extensions>=10",
+    "mike>=2",
 ]
 
 requires-python = ">=3.6"

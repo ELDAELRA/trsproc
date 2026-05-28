@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "lang"
 
@@ -56,6 +58,4 @@ def test_lang_command_output(
     assert lang_command_output_dir.exists()
     for output_file in lang_command_output_dir.glob("*"):
         expected_output_file = lang_command_expected_output_dir / output_file.name
-        assert (
-            output_file.read_text().strip() == expected_output_file.read_text().strip()
-        )
+        assert output_file.read_text().strip() == expected_output_file.read_text().strip()

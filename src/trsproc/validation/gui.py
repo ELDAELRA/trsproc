@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Validation GUI for trsproc transcription review.
 
 Provides a PyQt6-based graphical interface for reviewing and validating
@@ -181,7 +180,7 @@ def format_ms(ms):
 class ClickableSlider(QSlider):
     """A QSlider that responds to mouse clicks to jump to a position."""
 
-    def mousePressEvent(self, event):  # Qt override
+    def mousePressEvent(self, event):  # noqa: N802
         """Handle mouse press events to allow click-to-seek behavior.
 
         Computes the slider ratio from the click position and sets the value
@@ -692,9 +691,7 @@ class TranscriptionValidatorGUI(QWidget):
 
     def _update_header(self):
         """Update the progress and current-file labels for the current index."""
-        self.status_label.setText(
-            f"Progress: {self.current_index + 1} / {len(self.df)}"
-        )
+        self.status_label.setText(f"Progress: {self.current_index + 1} / {len(self.df)}")
         self.file_label.setText(f"Current File: {self._wav_name(self.current_index)}")
 
         return
@@ -976,7 +973,7 @@ class TranscriptionValidatorGUI(QWidget):
 
         return
 
-    def closeEvent(self, event):  # Qt override
+    def closeEvent(self, event):  # noqa: N802
         """Handle window close event: resolve unsaved changes before closing.
 
         If the user cancels, the close event is ignored.

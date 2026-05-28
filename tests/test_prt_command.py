@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "prt"
 

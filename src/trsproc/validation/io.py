@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Validation I/O utilities for the trsproc GUI.
 
 Provides dataclasses and helper functions for loading, manipulating, and
@@ -58,9 +57,7 @@ def make_paths(tsv_path):
     if input_path.stem.endswith("_validated"):
         output_path = input_path
     else:
-        output_path = input_path.with_name(
-            input_path.stem + "_validated" + input_path.suffix
-        )
+        output_path = input_path.with_name(input_path.stem + "_validated" + input_path.suffix)
 
     return ValidationPaths(
         input_path=input_path,
@@ -102,18 +99,12 @@ def load_validation_tsv(input_path):
         if col not in df.columns:
             df[col] = 0
 
-    df[COL_ERR_SEG] = (
-        pd.to_numeric(df[COL_ERR_SEG], errors="coerce").fillna(0).astype(int)
-    )
-    df[COL_ERR_TRANS] = (
-        pd.to_numeric(df[COL_ERR_TRANS], errors="coerce").fillna(0).astype(int)
-    )
+    df[COL_ERR_SEG] = pd.to_numeric(df[COL_ERR_SEG], errors="coerce").fillna(0).astype(int)
+    df[COL_ERR_TRANS] = pd.to_numeric(df[COL_ERR_TRANS], errors="coerce").fillna(0).astype(int)
 
     if COL_VALIDATED not in df.columns:
         df[COL_VALIDATED] = 0
-    df[COL_VALIDATED] = (
-        pd.to_numeric(df[COL_VALIDATED], errors="coerce").fillna(0).astype(int)
-    )
+    df[COL_VALIDATED] = pd.to_numeric(df[COL_VALIDATED], errors="coerce").fillna(0).astype(int)
     df[COL_VALIDATED] = (df[COL_VALIDATED] != 0).astype(int)
 
     return df.reset_index(drop=True)
@@ -144,7 +135,7 @@ def build_output_df_with_summary(df):
     total_seg, total_trans = compute_totals(df)
 
     out = df.copy()
-    summary = {col: "" for col in out.columns}
+    summary = dict.fromkeys(out.columns, "")
     summary[COL_FILE] = SUMMARY_MARKER
     summary[COL_SEG] = ""
     summary[COL_ERR_SEG] = total_seg

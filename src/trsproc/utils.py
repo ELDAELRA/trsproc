@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """Utility functions for TRS file processing.
 
 Provides helper functions for random sampling, JSON parsing, Named Entity
@@ -13,7 +12,7 @@ import random
 import re
 from collections import defaultdict
 from pathlib import Path
-from xml.etree import cElementTree as ElementTree
+from xml.etree import ElementTree as ElementTree
 
 from .parser import TRSParser
 
@@ -31,7 +30,7 @@ def parse_json(json_input):
     Returns:
         The parsed JSON data as a Python dictionary.
     """
-    with open(json_input, "r", encoding="utf-8") as f:
+    with open(json_input, encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -49,9 +48,7 @@ def tmp_report(trs_input, section_type="report"):
     """
     trs_tmp = TRSParser.trs_tmp(trs_input, section_type)
     folder_out = trs_input.corpus
-    tab_out = os.path.join(
-        trs_input.filepath, "tmp", f"summary_report-{folder_out}.tsv"
-    )
+    tab_out = os.path.join(trs_input.filepath, "tmp", f"summary_report-{folder_out}.tsv")
     for t in trs_tmp:
         t = TRSParser(t, lang=trs_input.lang)
         TRSParser.validate_trs(t)
@@ -136,13 +133,12 @@ def random_sampling(list_trs, save_path):
             print("\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
 
     minimum_sample = round(
-        (
-            ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
-            / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
-        )
+        ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
+        / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
     )
     print(
-        f"\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}"
+        f"\N{NERD FACE} Based on population size {population_size}"
+        f" minimum sample is: {minimum_sample}"
     )
     population = {}
     for t in list_trs:
@@ -181,13 +177,13 @@ def random_sampling(list_trs, save_path):
     if len(population.keys()) < population_size:
         population_size = len(population.keys())
         minimum_sample = round(
-            (
-                ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
-                / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
-            )
+            ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
+            / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
         )
         print(
-            f"Population seems smaller than minimum sample.\nAdjusted population size to {population_size}, new minimum sample: {minimum_sample}"
+            "Population seems smaller than minimum sample.\n"
+            f"Adjusted population size to {population_size},"
+            f" new minimum sample: {minimum_sample}"
         )
 
     sample_use = input(f"Use {minimum_sample} as sample size? (y/n)\t")
@@ -198,7 +194,8 @@ def random_sampling(list_trs, save_path):
         return
     if minimum_sample > len(population.keys()):
         print(
-            "\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size"
+            "\N{WARNING SIGN} Sample size is larger than population size,"
+            " please provide a new sample size"
         )
         return
 
@@ -243,13 +240,12 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
             print("\N{WARNING SIGN} Invalid input. Please enter a positive integer.")
 
     minimum_sample = round(
-        (
-            ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
-            / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
-        )
+        ((3.84 * (0.5 * (1 - 0.5))) / (0.05 * 0.05))
+        / (1 + (3.84 * (0.5 * (1 - 0.5))) / ((0.05 * 0.05) * population_size))
     )
     print(
-        "\N{NERD FACE} Based on population size {population_size} minimum sample is: {minimum_sample}"
+        "\N{NERD FACE} Based on population size"
+        f" {population_size} minimum sample is: {minimum_sample}"
     )
     population = {}
     for t in list_trs:
@@ -267,11 +263,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
                 else "NA"
             )
             nb_ne = len(
-                [
-                    ne
-                    for ne in trs.contents["NE"]
-                    if trs.contents["NE"][ne]["segmentID"] == s
-                ]
+                [ne for ne in trs.contents["NE"] if trs.contents["NE"][ne]["segmentID"] == s]
             )
             if (trs.filename, s) not in population:
                 population[(trs.filename, s)] = []
@@ -301,7 +293,8 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
         return
     if minimum_sample > len(population.keys()):
         print(
-            "\N{WARNING SIGN} Sample size is larger than population size, please provide a new sample size !"
+            "\N{WARNING SIGN} Sample size is larger than population size,"
+            " please provide a new sample size !"
         )
 
         return
@@ -313,6 +306,7 @@ def random_sampling_ne(list_trs: list[Path], save_path: Path) -> None:
 
     if re.search("y", sample_use.lower()):
         import parselmouth
+
         population_sample = sample_from_dict(population, minimum_sample)
 
         tab_sample = os.path.join(save_path, f"sample_ne_{minimum_sample}.tsv")
@@ -373,6 +367,7 @@ def extract_segments(tsv_file: str):
 
     import librosa
     import soundfile as sf
+
     for fname, segments in segments_by_file.items():
         audio_path = os.path.join(base_dir, f"{fname}.wav")
 
@@ -418,32 +413,33 @@ def create_update_dict_ne(table_info, ne_dict, ne_origin):
         The updated NE dictionary (mapping content strings to NE class names).
     """
     try:
-        neSet = parse_json(ne_dict)
-        neDict = neSet[1]
-        neSources = neSet[0]
-        if ne_origin not in neSources:
-            neSources.append(ne_origin)
+        ne_set = parse_json(ne_dict)
+        ne_dict_data = ne_set[1]
+        ne_sources = ne_set[0]
+        if ne_origin not in ne_sources:
+            ne_sources.append(ne_origin)
             print(f"\N{CARD FILE BOX} Updating existing NE dict {ne_dict}...")
     except FileNotFoundError:
-        neSources, neDict = [ne_origin], {}
+        ne_sources, ne_dict_data = [ne_origin], {}
         print(f"\N{CARD FILE BOX} Creating NE dict {ne_dict}...")
     # print(neDict) #DEBUG
-    tsv_input = open(table_info, "r", encoding="utf-8").read()
+    tsv_input = open(table_info, encoding="utf-8").read()  # noqa: SIM115
     tsv_list = tsv_input.split("\n")
     for i in tsv_list[1:-2]:
         # file_name timecode NE_rank NE_type NE_content
         ne_type, ne_content = i.split("\t")[3], i.split("\t")[4]
-        if ne_content in neDict.keys() and ne_type != neDict[ne_content]:
+        if ne_content in ne_dict_data and ne_type != ne_dict_data[ne_content]:
             print(
-                f"\N{WARNING SIGN} found new class '{ne_content}' : {neDict[ne_content]} vs. {ne_type}\n{i}"
+                f"\N{WARNING SIGN} found new class '{ne_content}' :"
+                f" {ne_dict_data[ne_content]} vs. {ne_type}\n{i}"
             )
         else:
-            neDict[ne_content] = ne_type
-    neSet = [neSources, neDict]
+            ne_dict_data[ne_content] = ne_type
+    ne_set = [ne_sources, ne_dict_data]
     with open(ne_dict, "w", encoding="utf-8") as f:
-        f.write(json.dumps(neSet))
+        f.write(json.dumps(ne_set))
 
-    return neDict
+    return ne_dict_data
 
 
 def trs_preannotation(input_trs: TRSParser):
@@ -456,26 +452,24 @@ def trs_preannotation(input_trs: TRSParser):
     Args:
         input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
-    dictNE = os.path.join(input_trs.filepath, f"{input_trs.corpus}_NE-reference.json")
-    tableInfo = os.path.join(
-        input_trs.filepath, f"{input_trs.corpus}_NE-extraction.tsv"
-    )
-    if os.path.isfile(tableInfo):
-        dictNE = create_update_dict_ne(
-            tableInfo, dictNE, os.path.basename(input_trs.filepath)
+    dict_ne_file = os.path.join(input_trs.filepath, f"{input_trs.corpus}_NE-reference.json")
+    table_info = os.path.join(input_trs.filepath, f"{input_trs.corpus}_NE-extraction.tsv")
+    if os.path.isfile(table_info):
+        dict_ne_file = create_update_dict_ne(
+            table_info, dict_ne_file, os.path.basename(input_trs.filepath)
         )
     else:
-        dictNE = parse_json(dictNE)
+        dict_ne_file = parse_json(dict_ne_file)
     # print(dictNE) #DEBUG
     # cpt = 0 #DEBUG
     list_ne_len1_plus = []
-    for k in dictNE[1].keys():
+    for k in dict_ne_file[1]:
         if len(k.split()) > 1:
             # cpt += 1 #DEBUG
             # print(cpt, k) #DEBUG
             list_ne_len1_plus.append(k)
-    new_d = pre_annotate_ne_len1(input_trs, dictNE[1])
-    pre_annotate_ne_len_plus(new_d, list_ne_len1_plus, dictNE[1])
+    new_d = pre_annotate_ne_len1(input_trs, dict_ne_file[1])
+    pre_annotate_ne_len_plus(new_d, list_ne_len1_plus, dict_ne_file[1])
 
     return
 
@@ -494,12 +488,11 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
         Path to the pre-annotated TRS file.
     """
     trs_preannotated = ""
-    trs_output = os.path.join(
-        input_trs.filepath, "preannotated", f"{input_trs.filename}.trs"
-    )
+    trs_output = os.path.join(input_trs.filepath, "preannotated", f"{input_trs.filename}.trs")
     os.makedirs(os.path.join(input_trs.filepath, "preannotated"), exist_ok=True)
     print(f"\N{CARD FILE BOX} Preannotating simple NE in {input_trs.filename}...")
-    trs_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
+    with open(input_trs.input_trs, encoding="utf-8") as f:
+        trs_input = f.read()
     trs_list = trs_input.split("\n")
     for line in trs_list:
         if re.search("<.*>", line) or line == "":
@@ -511,10 +504,15 @@ def pre_annotate_ne_len1(input_trs: TRSParser, dict_ne):
             # print("old line", l) #DEBUG
             for token_id in range(len(line_splitted)):
                 token = line_splitted[token_id]
-                if token in dict_ne.keys():
+                if token in dict_ne:
                     # print(f'FOUND {m} IN {l}') #DEBUG
                     ne_type = dict_ne[token]
-                    new_m = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{token}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
+                    new_m = (
+                        f'\n<Event desc="{ne_type}" type="entities"'
+                        f' extent="begin"/>\n{token}\n'
+                        f'<Event desc="{ne_type}" type="entities"'
+                        f' extent="end"/>\n'
+                    )
                     new_l.append(new_m)
                     # print("new line", new_l) #DEBUG
                 else:
@@ -541,7 +539,8 @@ def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
     """
     trs_preannotated = ""
     print("\N{CARD FILE BOX} Preannotating complex NE...")
-    trs_input = open(input_file, "r", encoding="utf-8").read()
+    with open(input_file, encoding="utf-8") as f:
+        trs_input = f.read()
     trs_list = trs_input.split("\n")
     for line in trs_list:
         has_ne = False
@@ -556,11 +555,14 @@ def pre_annotate_ne_len_plus(input_file, list_ne, dict_ne):
                     has_ne = True
                     matched_ne = re.search(ne, line)
                     ne_type = dict_ne[ne]
-                    new_annotation = f'\n<Event desc="{ne_type}" type="entities" extent="begin"/>\n{ne}\n<Event desc="{ne_type}" type="entities" extent="end"/>\n'
+                    new_annotation = (
+                        f'\n<Event desc="{ne_type}" type="entities"'
+                        f' extent="begin"/>\n{ne}\n'
+                        f'<Event desc="{ne_type}" type="entities"'
+                        f' extent="end"/>\n'
+                    )
                     new_line = (
-                        line[: matched_ne.start()]
-                        + new_annotation
-                        + line[matched_ne.end() + 1 :]
+                        line[: matched_ne.start()] + new_annotation + line[matched_ne.end() + 1 :]
                     )
                     # print("NEW LINE", new_l) #DEBUG
             if has_ne:
@@ -595,7 +597,8 @@ def add_lang_tag(
     except FileNotFoundError:
         dicolang = {}
     output_trs = ""
-    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
+    with open(input_trs.input_trs, encoding="utf-8") as f:
+        trs = f.read()
     trs_list = trs.split("\n")
     seen_sync = 0
     prev_nontrans = False
@@ -645,12 +648,11 @@ def turn_difference_trs(input_trs: TRSParser):
     Args:
         input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
-    twin_trs_path = os.path.join(
-        input_trs.filepath, "twins", f"{input_trs.filename}.trs"
-    )
+    twin_trs_path = os.path.join(input_trs.filepath, "twins", f"{input_trs.filename}.trs")
     twin_trs = TRSParser(twin_trs_path)
     print(
-        f"\N{ABACUS} Searching for segmentation differences between {input_trs.filename} and {twin_trs.filename}"
+        f"\N{ABACUS} Searching for segmentation differences between"
+        f" {input_trs.filename} and {twin_trs.filename}"
     )
     for s in input_trs.contents:
         if s in [0, "NE"]:
@@ -660,11 +662,13 @@ def turn_difference_trs(input_trs: TRSParser):
             twin_s = twin_trs.contents[s]
             if input_s["xmin"] != twin_s["xmin"]:
                 print(
-                    f"Difference found in starting of segment {s} -> {input_s['xmin']} vs. {twin_s['xmin']}"
+                    f"Difference found in starting of segment {s} ->"
+                    f" {input_s['xmin']} vs. {twin_s['xmin']}"
                 )
             if input_s["xmax"] != twin_s["xmax"]:
                 print(
-                    f"Difference found in ending of segment {s} -> {input_s['xmax']} vs. {twin_s['xmax']}"
+                    f"Difference found in ending of segment {s} ->"
+                    f" {input_s['xmax']} vs. {twin_s['xmax']}"
                 )
 
     return
@@ -681,7 +685,8 @@ def trs_empty_space_before_ne(input_trs: TRSParser):
         input_trs: A :class:`TRSParser` instance for the input TRS file.
     """
     output_trs = ""
-    trs = open(input_trs.input_trs, "r", encoding="utf-8").read()
+    with open(input_trs.input_trs, encoding="utf-8") as f:
+        trs = f.read()
     trs_list = trs.split("\n")
     print(f"\N{LINKED PAPERCLIPS} Correcting {input_trs.filename}")
     for line_id in range(len(trs_list)):
@@ -727,7 +732,8 @@ def correction_la(input_trs: TRSParser):
     target_path = os.path.join(input_trs.filepath, "corrections", "la")
     os.makedirs(target_path, exist_ok=True)
     txt_output = os.path.join(target_path, f"{input_trs.filename}.txt")
-    txt_input = open(txt_input, "r", encoding="utf-8").read()
+    with open(txt_input, encoding="utf-8") as f:
+        txt_input = f.read()
     txt_input = txt_input.split("\n")
     for line in txt_input:
         line_splitted = line.split(" ")
@@ -756,7 +762,8 @@ def correction_maj(input_trs: TRSParser):
     target_path = os.path.join(input_trs.filepath, "corrections", "maj")
     os.makedirs(target_path, exist_ok=True)
     trs_output = os.path.join(target_path, f"{input_trs.filename}.trs")
-    txt_input = open(input_trs.input_trs, "r", encoding="utf-8").read()
+    with open(input_trs.input_trs, encoding="utf-8") as f:
+        txt_input = f.read()
     txt_input = txt_input.split("\n")
     nb_l = len(txt_input)
     for line_id in range(nb_l):
@@ -764,9 +771,7 @@ def correction_maj(input_trs: TRSParser):
         if re.search("<.*>", line):
             pass
         else:
-            is_entity = re.search(
-                'extent="begin" type="entities"', txt_input[line_id - 1]
-            )
+            is_entity = re.search('extent="begin" type="entities"', txt_input[line_id - 1])
             if is_entity:
                 try:
                     line = line[0].upper() + line[1:]
@@ -784,8 +789,6 @@ def correction_maj(input_trs: TRSParser):
         txt_dump += f"{line}\n"
     with open(trs_output, "w", encoding="utf-8") as f_out:
         f_out.write(txt_dump)
-    print(
-        f"\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {input_trs.filename}"
-    )
+    print(f"\N{CHECK MARK} Corrected {nb_maj} misplaced CAPITAL in {input_trs.filename}")
 
     return

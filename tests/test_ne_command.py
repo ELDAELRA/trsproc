@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "ne"
 
@@ -55,9 +57,8 @@ def test_ne_command_output(
     assert result.exit_code == 0, result.stderr
     assert ne_command_output_file.exists()
     output_n_lines = len(ne_command_output_file.read_text().split("\n"))
-    expected_output_n_lines = len(
-        ne_command_expected_output_file.read_text().split("\n")
-    )
+    expected_output_n_lines = len(ne_command_expected_output_file.read_text().split("\n"))
     assert (
         output_n_lines == expected_output_n_lines
-    )  # We can't compare the content since they contain the folder path, so we only compare the line length
+    )  # We can't compare the content since they contain
+    # the folder path, so we only compare the line length
