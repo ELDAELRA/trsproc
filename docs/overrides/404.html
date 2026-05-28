@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>404 - Page not found</h1>
+  <p>
+    The page you're looking for doesn't exist or has been moved.
+  </p>
+  <p>
+    <a href="{{ config.site_url | default('/', true) }}">
+      ← Back to home
+    </a>
+  </p>
+  <p>
+    Or try searching:
+  </p>
+  <div class="md-search" data-md-component="search" role="search">
+    <label class="md-search__overlay" for="__search"></label>
+    <div class="md-search__inner" role="search">
+      <form class="md-search__form" name="search">
+        <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search the docs" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

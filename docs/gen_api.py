@@ -41,20 +41,30 @@ _NAV_PAGES: list[tuple[str, str]] = [
 ]
 
 _NAV_SECTIONS: list[tuple[str, list[tuple[str, str]]]] = [
-    ("Guide", [
-        ("Getting Started", "getting-started.md"),
-        ("CLI Reference", "cli-reference.md"),
-        ("Conversion Guide", "conversion-guide.md"),
-        ("Validation", "validation.md"),
-    ]),
-    ("Reference", [
-        ("TRS Format", "trs-format.md"),
-    ]),
-    ("Development", [
-        ("Architecture", "architecture.md"),
-        ("Architecture Suggestion", "architecture-suggestion.md"),
-        ("Deployment", "deployment.md"),
-    ]),
+    (
+        "Guide",
+        [
+            ("Getting Started", "getting-started.md"),
+            ("CLI Reference", "cli-reference.md"),
+            ("Conversion Guide", "conversion-guide.md"),
+            ("Validation", "validation.md"),
+        ],
+    ),
+    (
+        "Reference",
+        [
+            ("TRS Format", "trs-format.md"),
+        ],
+    ),
+    (
+        "Development",
+        [
+            ("Changelog", "changelog.md"),
+            ("Architecture", "architecture.md"),
+            ("Architecture Suggestion", "architecture-suggestion.md"),
+            ("Deployment", "deployment.md"),
+        ],
+    ),
 ]
 
 _API_NAV: list[tuple[str, str]] = [

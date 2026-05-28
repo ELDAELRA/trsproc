@@ -1,0 +1,81 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+      - 'v*-rc*'
+      - 'v*-beta*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (e.g., 2.1.0)'
+        required: true
+        type: string
+      alias:
+        description: 'Alias for this version (e.g., latest, stable, pre)'
+        required: false
+        type: string
+        default: 'latest'
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy docs to gh-pages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: MathRobin/timezone-action@v1.1
+        with:
+          timezoneLinux: "Europe/Paris"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install docs dependencies
+        run: pip install -e .[docs]
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Deploy docs (prerelease tag)
+        if: startsWith(github.ref, 'refs/tags/') && (contains(github.ref, '-rc') || contains(github.ref, '-beta'))
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mike deploy --push --update-aliases "$VERSION" pre
+
+      - name: Deploy docs (stable tag)
+        if: startsWith(github.ref, 'refs/tags/') && !contains(github.ref, '-rc') && !contains(github.ref, '-beta')
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          mike deploy --push --update-aliases "$VERSION" latest
+          mike set-default --push latest
+
+      - name: Deploy docs (main push)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          mike deploy --push --update-aliases "$VERSION" latest
+          mike set-default --push latest
+
+      - name: Deploy docs (manual)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ -n "${{ inputs.alias }}" ]; then
+            mike deploy --push --update-aliases "${{ inputs.version }}" "${{ inputs.alias }}"
+          else
+            mike deploy --push "${{ inputs.version }}"
+          fi

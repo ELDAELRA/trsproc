@@ -1,14 +1,17 @@
 site_name: trsproc
 site_description: A Python library to process Transcriber TRS files
+site_author: Gabriele Chingoli
 site_url: https://elda-elra.github.io/trsproc/
 repo_name: ELDAELRA/trsproc
 repo_url: https://github.com/ELDAELRA/trsproc
+copyright: Copyright &copy; 2026 ELDA
 
 watch:
   - src
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -39,6 +42,11 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
+extra:
+  version:
+    provider: mike
+    default: latest
+
 plugins:
   - search:
       lang: en
@@ -59,6 +67,20 @@ plugins:
             show_bases: false
             members_order: source
             heading_level: 3
+  - git-revision-date-localized:
+      type: date
+      fallback_to_build_date: true
+      enable_creation_date: true
+  - redirects:
+      redirect_maps: {}
+  - mike:
+      alias_type: redirect
+      redirect_template: null
+      deploy_prefix: ''
+      canonical_version: latest
+      version_selector: true
+      css_dir: css
+      javascript_dir: js
 
 markdown_extensions:
   - admonition
@@ -66,6 +88,7 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
+  - meta
   - toc:
       permalink: true
   - pymdownx.details
