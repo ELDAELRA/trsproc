@@ -17,11 +17,10 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install qt6-base-dev pulseaudio
-          pip install pytest pytest-md pytest-emoji
       - name: Install the app
         run: pip install -e .[dev]
       - uses: pavelzw/pytest-action@v2

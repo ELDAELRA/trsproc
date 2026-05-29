@@ -5,7 +5,7 @@ from pytest import fixture
 from typer.testing import CliRunner
 
 from trsproc.__main__ import app
-from trsproc.parser import trs_to_rttm, TRSParser
+from trsproc.parser import TRSParser, trs_to_rttm
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "rttm"
 runner = CliRunner()
