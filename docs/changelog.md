@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **RTTM export**: New `rttm` CLI command and `trs_to_rttm()` Python method to export TRS files to NIST-standard RTTM format for speaker diarization. Non-speech segments and segments without speaker attribution are excluded.
+
+### Fixed
+
+- Fix `reportPossiblyUnboundVariable` warnings for `spk_type` and `turn_spk` in `retrieve_contents()` by initializing default values at appropriate scopes.
+
 ## [2.1.0] - 2026-04-16
 
 ### Added
