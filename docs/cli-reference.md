@@ -88,6 +88,20 @@ trsproc tsv [folder] [--file path]
 
 See [Conversion Guide → TRS → TSV](conversion-guide.md#trs-tsv) for output column details.
 
+### `rttm` — Export to RTTM
+
+Produce a Rich Transcription Time Marked (RTTM) file for speaker diarization.
+
+```bash
+trsproc rttm [folder] [--file path]
+```
+
+**Output**: `<filename>.rttm` in the input folder, with one line per speech segment containing speaker ID, start time, and duration.
+
+RTTM files follow the NIST standard and are commonly used with diarization evaluation tools. Non-speech segments and segments without speaker attribution are excluded.
+
+See [Conversion Guide → TRS → RTTM](conversion-guide.md#trs-rttm) for output format details.
+
 ## Text Editing
 
 ### `txt` — Extract Text

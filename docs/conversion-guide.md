@@ -17,6 +17,7 @@ flowchart LR
     EDIT -->|"trs"| TRS
 
     TRS -->|"tsv"| TSV["Segment TSV"]
+    TRS -->|"rttm"| RTTM["RTTM"]
     TRS -->|"ne"| NE["NE TSV"]
     NE -->|"pne"| TRS2["Pre-annotated TRS"]
     TRS -->|"cne"| CLEAN["Cleaned TRS"]
@@ -206,6 +207,54 @@ trs.trs_to_tsv()
 | `speaker_sex` | Speaker gender |
 
 The output file is written to `<corpus>.tsv` in the same directory as the input file. When processing multiple TRS files in the same folder, all segments are appended to the same TSV.
+
+## TRS → RTTM
+
+Convert a TRS file to an RTTM (Rich Transcription Time Marked) file, the standard format used in NIST speaker diarization evaluations:
+
+```bash
+trsproc rttm
+```
+
+Or via Python:
+
+```python
+trs = TRSParser("interview.trs")
+trs.trs_to_rttm()
+```
+
+### RTTM Format
+
+Each line in the output file contains 10 space-separated fields:
+
+| Field | Value | Source |
+|-------|-------|--------|
+| Type | `SPEAKER` | Fixed |
+| Channel ID | `1` | Fixed (single channel) |
+| File ID | Recording identifier | TRS filename (without extension) |
+| Onset | Start time (seconds) | Segment `xmin` |
+| Duration | Duration (seconds) | Segment `duration` |
+| NA | `<NA>` | Not applicable |
+| Speaker Name | Speaker label | `<Speaker>` `name` attribute |
+| Confidence | `<NA>` | Not applicable for reference annotations |
+| Speaker Type | Speaker gender/type | `<Speaker>` `type` attribute, or `<NA>` |
+| Word List | `<NA>` | Not used for diarization |
+
+Example output line:
+
+```
+SPEAKER 1 interview 4.789 4.774 <NA> spk1 <NA> female <NA>
+```
+
+### Behavior
+
+- **Segments without a speaker** (e.g. background noise, `nontrans` segments) are **skipped** — they have no meaning in speaker diarization context
+- Each input `.trs` file produces a corresponding `.rttm` file in the same directory
+- Time values are formatted with 3 decimal places
+
+### Use Cases
+
+The RTTM output is compatible with standard diarization evaluation tools such as [dscore](https://github.com/nryant/dscore) and [pyannote.metrics](https://pyannote.github.io/pyannote-metrics/).
 
 ## Named Entity Workflow
 

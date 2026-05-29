@@ -136,6 +136,9 @@ trs.validate_trs()
 # Extract named entities to TSV
 trs.retrieve_ne_to_tsv()
 
+# Export to RTTM format
+trs.trs_to_rttm()
+
 # Create a temporary TRS with only "report" sections
 trs.trs_tmp(section_type="report")
 ```
@@ -165,6 +168,9 @@ trsproc tgrs
 
 # VAD TextGrid → TRS
 trsproc vad
+
+# TRS → RTTM (speaker diarization)
+trsproc rttm
 ```
 
 See the [Conversion Guide](conversion-guide.md) for detailed format conversion instructions.
