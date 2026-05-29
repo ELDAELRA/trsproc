@@ -444,6 +444,25 @@ def rsne(
 
 
 @app.command()
+def rttm(
+    folder: Annotated[
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
+    ] = None,
+    file: Annotated[
+        Path | None,
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """Converts .trs files to .rttm (Rich Transcription Time Marked) files."""
+    if folder is None:
+        folder = Path.cwd()
+    for filename in get_files(folder, file, "trs"):
+        trs_parser = TRSParser(filename)
+        trs_parser.trs_to_rttm()
+
+
+@app.command()
 def tg(
     folder: Annotated[
         Optional[Path],

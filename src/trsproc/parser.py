@@ -195,6 +195,22 @@ def vad_to_trs(input_tg):
     return
 
 
+def trs_to_rttm(input_trs):
+    """Convert a TRS file to an RTTM (Rich Transcription Time Marked) file.
+
+    This is the module-level convenience function that wraps
+    :meth:`TRSParser.trs_to_rttm`.
+
+    Args:
+        input_trs: Path to the input ``.trs`` file.
+
+    Returns:
+        None. Writes the resulting ``.rttm`` file alongside the input.
+    """
+    TRSParser(input_trs).trs_to_rttm()
+    return
+
+
 class TRSParser:
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
         self.tree = ElementTree.parse(trs_in)
@@ -247,7 +263,7 @@ class TRSParser:
         dur_trans, dur_nontrans, dur_other_lang = 0, 0, 0
         langs = []
         lang_dict = {}
-        turn_id, turn_end = 0, 0
+        turn_id, turn_end, turn_spk = 0, 0, "NA"
         ne_dict, ne_id = {}, 0
         trs = open(self.input_trs, encoding="utf-8").read()
         trs_list = trs.split("\n")
@@ -275,13 +291,10 @@ class TRSParser:
                 # Segment info retrieved starting here
                 seg_id += 1
                 seg_trans = ""
-                seg_line = ElementTree.fromstring(
-                    line
-                )  # Acces attributes of a line as in root
+                spk_type = "single"
+                seg_line = ElementTree.fromstring(line)  # Acces attributes of a line as in root
                 seg_dict[seg_id] = {}
-                if re.search("<Sync.*>", line):
-                    spk_type = "single"
-                    seg_start = float(seg_line.attrib["time"])
+                seg_start = float(seg_line.attrib["time"])
 
                 for s_id in range(i + 1, len(trs_list)):
                     s = trs_list[s_id]
@@ -575,10 +588,51 @@ class TRSParser:
 
         return
 
-    def trs_to_textgrid(self, tiers_list=["transcription", "speaker", "sex", "NE"]):
+    def trs_to_rttm(self):
+        """Convert the TRS file to an RTTM (Rich Transcription Time Marked) file.
+
+        Outputs speaker turn annotations in NIST RTTM format, suitable for
+        speaker diarization evaluation tools. Segments without a speaker
+        assignment are skipped.
+
+        The output file is written as ``<filename>.rttm`` alongside the input.
         """
-        >_ TRS file
-        >>> TextGrid file
+        rttm_out = os.path.join(self.filepath, f"{self.filename}.rttm")
+        print(f"\N{CARD FILE BOX} Creating RTTM from {self.filename}...")
+        with open(rttm_out, "w", encoding="utf-8") as f:
+            for s in self.contents:
+                if s in ["NE", 0]:
+                    continue
+                spk_id = self.contents[s]["speaker"]
+                if spk_id == "NA":
+                    continue
+                spk_info = self.speakers.get(spk_id)
+                if spk_info:
+                    spk_name = spk_info[0]
+                    spk_type = spk_info[1] or "<NA>"
+                else:
+                    spk_name = spk_id
+                    spk_type = "<NA>"
+                # Replace whitespace to keep RTTM field boundaries intact.
+                spk_name = spk_name.replace(" ", "_").replace("\t", "_")
+                onset = self.contents[s]["xmin"]
+                duration = self.contents[s]["duration"]
+                f.write(
+                    f"SPEAKER 1 {self.filename} {onset:.3f} {duration:.3f} "
+                    f"<NA> {spk_name} <NA> {spk_type} <NA>\n"
+                )
+
+        return
+
+    def trs_to_textgrid(self, tiers_list=None):
+        """Convert the TRS file to a Praat TextGrid file.
+
+        Args:
+            tiers_list: List of tier names to include in the output
+                TextGrid. Defaults to ``["transcription", "speaker", "sex", "NE"]``.
+
+        Returns:
+            None. Writes the TextGrid file alongside the input TRS.
         """
         tg_out = os.path.join(self.filepath, f"{self.filename}.TextGrid")
         nb_tiers = len(tiers_list)
