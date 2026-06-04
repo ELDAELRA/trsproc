@@ -56,14 +56,6 @@ _NAV_SECTIONS: list[tuple[str, list[tuple[str, str]]]] = [
             ("TRS Format", "trs-format.md"),
         ],
     ),
-    (
-        "Development",
-        [
-            ("Architecture", "architecture.md"),
-            ("Architecture Suggestion", "architecture-suggestion.md"),
-            ("Deployment", "deployment.md"),
-        ],
-    ),
 ]
 
 _API_NAV: list[tuple[str, str]] = [
