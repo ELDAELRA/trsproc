@@ -7,6 +7,8 @@ name = "trsproc"
 version = "2.1.0"
 description = "A Python library to process Transcriber TRS files"
 readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
 authors = [
     { name = "Gabriele Chingoli", email = "gabriele@elda.org" }
 ]
@@ -14,12 +16,17 @@ maintainers = [
     { name = "Alexandre Sicard", email = "alexandre@elda.org" },
     { name = "Marwa Hadj Salah", email = "marwa@elda.org" },
     { name = "Inae Song", email = "inae@elda.org" },
-    { name = "Florian Philippe", email = "florian@elda.org" }
+    { name = "Florian Philippe", email = "florian@elda.org" },
+    { name = "Shi Yu", email = "shi@elda.org" }
 ]
-license = { file = "LICENSE" }
+keywords = ['python', 'transcriber', 'trs', 'transcription', 'textgrid', 'nlp']
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
 ]
 dependencies = [
@@ -53,26 +60,17 @@ docs = [
     "mkdocstrings[python]>=0.24",
     "mkdocs-gen-files>=0.5",
     "mkdocs-literate-nav>=0.6",
+    "mkdocs-git-revision-date-localized-plugin>=1.2",
+    "mkdocs-redirects>=1.2",
     "pymdown-extensions>=10",
     "mike>=2",
 ]
-
-requires-python = ">=3.6"
-
-[project.optional-dependencies]
-dev = ["pytest"]
-
-[project.urls]
-Homepage = "https://github.com/ELDAELRA/trsproc"
-
-[project.scripts]
-trsproc = "trsproc.__main__:main"
 
 [tool.bumpver]
 current_version = "2.1.0"
 version_pattern = "MAJOR.MINOR.PATCH"
 commit_message = "Bump version {old_version} -> {new_version}"
-commit = true 
+commit = true
 tag = false
 push = false
 
@@ -82,3 +80,19 @@ push = false
     '^version = "{version}"$',
 ]
 "src/trsproc/__init__.py" = ['^__version__ = "{version}"$']
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "SIM", "C4"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+addopts = ["-ra", "--tb=short", "--strict-markers"]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
