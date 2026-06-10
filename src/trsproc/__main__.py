@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-"""
-trsproc ELDA-R&D-2023
-
-A Python library to process Transcriber TRS files.
-
-"""
-
-"""
-CLI entry point for the trsproc tool.
-
-Provides a Typer-based command-line interface for processing Transcriber TRS files.
-Allows users to convert, validate, sample, and annotate TRS files interactively.
-"""
 
 import re
 from pathlib import Path
@@ -22,6 +9,19 @@ import typer
 from trsproc import parser, utils
 from trsproc.parser import TRSParser
 from trsproc.validation.io import is_validation_complete, make_paths
+
+"""
+trsproc ELDA-R&D-2023
+
+A Python library to process Transcriber TRS files.
+"""
+
+"""
+CLI entry point for the trsproc tool.
+
+Provides a Typer-based command-line interface for processing Transcriber TRS files.
+Allows users to convert, validate, sample, and annotate TRS files interactively.
+"""
 
 app = typer.Typer()
 crt_app = typer.Typer(help="Apply corrections to .trs files")
