@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "txt"
 runner = CliRunner()
@@ -62,12 +64,8 @@ def test_txt_command_output(
 ):
     result = invoke("txt")
     assert result.exit_code == 0
-    for expected_placeholder_file in expected_placeholder_directory.glob(
-        "*placeholder.trs"
-    ):
-        generated_placeholder = (
-            test_directory / "placeholder" / expected_placeholder_file.name
-        )
+    for expected_placeholder_file in expected_placeholder_directory.glob("*placeholder.trs"):
+        generated_placeholder = test_directory / "placeholder" / expected_placeholder_file.name
         assert generated_placeholder.exists()
         assert (
             generated_placeholder.read_text().strip()
@@ -76,6 +74,4 @@ def test_txt_command_output(
     for expected_txt_file in expected_txt_directory.glob("*.txt"):
         generated_txt = test_directory / "txt" / expected_txt_file.name
         assert generated_txt.exists()
-        assert (
-            generated_txt.read_text().strip() == expected_txt_file.read_text().strip()
-        )
+        assert generated_txt.read_text().strip() == expected_txt_file.read_text().strip()
