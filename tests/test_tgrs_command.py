@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "tgrs"
 runner = CliRunner()
@@ -58,7 +60,5 @@ def test_tgrs_command_output(
     for output_file in test_directory.glob("*.trs"):
         expected_output_file = expected_output_dir / output_file.name
         output_file_n_lines = len(output_file.read_text().strip().split("\n"))
-        expected_output_file_n_lines = len(
-            expected_output_file.read_text().strip().split("\n")
-        )
+        expected_output_file_n_lines = len(expected_output_file.read_text().strip().split("\n"))
         assert output_file_n_lines == expected_output_file_n_lines

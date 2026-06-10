@@ -1,24 +1,29 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
-##
-### TRS parsing class
-#### trsproc direct dependency
-#####
+"""TRS file parsing and conversion module.
+
+Provides the :class:`TRSParser` class for parsing Transcriber TRS files
+and extracting transcription data, as well as standalone functions for
+converting between TRS, TextGrid, TXT, and VAD formats.
+"""
 
 import os
 import re
+from xml.etree import ElementTree as ElementTree
+from xml.etree.ElementTree import ParseError
+
 import parselmouth
 import textgrids
-from xml.etree import cElementTree as ElementTree
-from xml.etree.ElementTree import ParseError
 
 
 # ----------
 def replace_punctuations(sentence):
-    """
-    >_ sentence to delete punctuation from
-    >>> original sentence without punctuation
+    """Delete punctuation characters from the input sentence.
+
+    Args:
+        sentence: The sentence to strip punctuation from.
+
+    Returns:
+        The original sentence with all punctuation removed.
     """
     sentence = sentence.strip()
     punct_list = ["\ufeff", "\u00a0", "\u2019", ".", ",", ":", ";", "!", '"', "/", "\\"]
@@ -29,9 +34,15 @@ def replace_punctuations(sentence):
 
 
 def praat_snr_for_segment(audio, seg_start, seg_end):
-    """
-    >_audio file, timestaps for start and end of segment
-    >>> segment SNR from Praat HNR computation
+    """Compute the Signal-to-Noise Ratio (SNR) for an audio segment using Praat.
+
+    Args:
+        audio: Path to the audio file.
+        seg_start: Start time of the segment in seconds.
+        seg_end: End time of the segment in seconds.
+
+    Returns:
+        The mean harmonicity (SNR) value rounded to 2 decimal places.
     """
     sound = parselmouth.Sound(audio)
     sound_part = sound.extract_part(seg_start, seg_end)
@@ -44,10 +55,19 @@ def praat_snr_for_segment(audio, seg_start, seg_end):
 
 def txt_to_trs(input_txt, from_correction=0):
     # TODO: remove the need for placeholders
-    # TODO: add an option to choose where to save the new .trs (or perhaps overwrite the original one ?)
-    """
-    >_ txt file having the transcription to be rewritten in a TRS, one segment per line and line length = last placeholder
-    >>> rewritten TRS, from_correction parameter helps to identify the file name
+    # TODO: add an option to choose where to save the new .trs
+    # (or perhaps overwrite the original one ?)
+    """Rewrite a TRS file using an input TXT file and a placeholder TRS.
+
+    Args:
+        input_txt: Path to the TXT file containing the transcription text,
+            with one segment per line. The line count must match the
+            placeholder count.
+        from_correction: Correction level identifier (0=none, 1=csp, 2=sp,
+            3=gram, or combinations). Defaults to 0. Helps identify the file name.
+
+    Returns:
+        None. Writes the rewritten TRS file to disk.
     """
     output_trs_correct = ""
     txt_path, txt_name = os.path.split(input_txt)
@@ -82,12 +102,12 @@ def txt_to_trs(input_txt, from_correction=0):
         txt_input = os.path.join(txt_path, f"{txt_name}.txt")
         trs_output = os.path.join(txt_path, f"{txt_name}.trs")
     ## seach for the TRS placeholder
-    trs_placeholder = os.path.join(
-        origin_path, "placeholder", f"{txt_name}_placeholder.trs"
-    )
-    trs_input = open(trs_placeholder, encoding="utf-8").read()
+    trs_placeholder = os.path.join(origin_path, "placeholder", f"{txt_name}_placeholder.trs")
+    with open(trs_placeholder, encoding="utf-8") as f:
+        trs_input = f.read()
     trs_list = trs_input.split("\n")
-    txt_input = open(txt_input, encoding="utf-8").read()
+    with open(txt_input, encoding="utf-8") as f:
+        txt_input = f.read()
     txt_list = txt_input.split("\n")
     print(f"\N{PACKAGE} Re-writing {txt_name}...")
     for line in trs_list:
@@ -106,9 +126,14 @@ def txt_to_trs(input_txt, from_correction=0):
 
 
 def textgrid_to_trs(input_tg):
-    """
-    >_ TextGrid file
-    >>> TRS following textgrid segmentations
+    """Convert a TextGrid file to a TRS file following TextGrid segmentations.
+
+    Args:
+        input_tg: Path to the input TextGrid file. The TextGrid must contain
+            ``transcription``, ``speaker``, and optionally ``sex`` tiers.
+
+    Returns:
+        None. Writes the resulting TRS file alongside the input.
     """
     tg_path, tg_name = os.path.split(input_tg)
     tg_name = tg_name.split(".")[0]
@@ -117,7 +142,12 @@ def textgrid_to_trs(input_tg):
     ## Create textgrid object from input file
     print(f"\N{PACKAGE} Writing TRS from tg {tg_name}...")
     grid_xmax = grid["transcription"][-1].xmax
-    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="{trans}" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble = (
+        f'<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n'
+        f'<Trans scribe="{trans}" audio_filename="{tg_name}"'
+        f' version="4" version_date="">\n'
+    )
     trs_preamble_spk = "<Speakers>\n"
     trs_corps = ""
     trs_closure = "</Section>\n</Episode>\n</Trans>"
@@ -142,7 +172,9 @@ def textgrid_to_trs(input_tg):
                 f'<Speaker id="spk{spk_id}" name="{i[0]}" check="no" type="{i[1]}"/>\n'
             )
             spk_id += 1
-    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    trs_preamble_spk += (
+        f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    )
     for t in range(nb_int):
         ## Loop on transcription Tier to retrieve info and write in formatted TRS text
         transcription, t_min, t_max, t_spk = (
@@ -153,9 +185,18 @@ def textgrid_to_trs(input_tg):
         )
         t_spk = spk_sex_dict[t_spk]
         if transcription == "":
-            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+            trs_corps += (
+                f'<Turn startTime="{t_min}" endTime="{t_max}">\n'
+                f'<Sync time="{t_min}"/>\n\n'
+                f'<Event desc="nontrans" type="noise"'
+                f' extent="instantaneous"/>\n\n</Turn>\n'
+            )
         else:
-            trs_corps += f'<Turn speaker="{t_spk}" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
+            trs_corps += (
+                f'<Turn speaker="{t_spk}" startTime="{t_min}"'
+                f' endTime="{t_max}">\n'
+                f'<Sync time="{t_min}"/>\n{transcription}\n</Turn>\n'
+            )
     dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
     with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
         f.write(dump_trs)
@@ -164,9 +205,14 @@ def textgrid_to_trs(input_tg):
 
 
 def vad_to_trs(input_tg):
-    """
-    >_ TextGrid file with Tier named VAD
-    >>> TRS file
+    """Convert a VAD (Voice Activity Detection) TextGrid file to a TRS file.
+
+    Args:
+        input_tg: Path to the input TextGrid file. Must contain a tier named
+            ``VAD`` with intervals labeled ``"speech"`` or ``"non-speech"``.
+
+    Returns:
+        None. Writes the resulting TRS file alongside the input.
     """
     tg_path, tg_name = os.path.split(input_tg)
     tg_name = tg_name.split(".")[0]
@@ -175,19 +221,35 @@ def vad_to_trs(input_tg):
     ## Create textgrid object from input file
     grid_xmax = round(grid["VAD"][-1].xmax, 3)
     ## Retrieve total duration of file
-    trs_preamble = f'<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n<Trans scribe="" audio_filename="{tg_name}" version="4" version_date="">\n'
+    trs_preamble = (
+        f'<?xml version="1.0" encoding="UTF-8"?>\n'
+        f'<!DOCTYPE Trans SYSTEM "trans-14.dtd">\n'
+        f'<Trans scribe="" audio_filename="{tg_name}"'
+        f' version="4" version_date="">\n'
+    )
     trs_preamble_spk = '<Speakers>\n<Speaker id="spk1" name="a transcrire"/>\n'
     trs_corps = ""
     trs_closure = "</Section>\n</Episode>\n</Trans>"
     ## Create TRS preambule, body (starting empty) and conclusion texts
-    trs_preamble_spk += f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    trs_preamble_spk += (
+        f'</Speakers>\n<Episode>\n<Section type="report" startTime="0" endTime="{grid_xmax}">\n'
+    )
     for i in grid["VAD"]:
         ## Loop on transcription Tier to retrieve info and write in formatted TRS text
         transcription, t_min, t_max = i.text, round(i.xmin, 3), round(i.xmax, 3)
         if transcription == "speech":
-            trs_corps += f'<Turn speaker="spk1" startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n</Turn>\n'
+            trs_corps += (
+                f'<Turn speaker="spk1" startTime="{t_min}"'
+                f' endTime="{t_max}">\n'
+                f'<Sync time="{t_min}"/>\n\n</Turn>\n'
+            )
         else:
-            trs_corps += f'<Turn startTime="{t_min}" endTime="{t_max}">\n<Sync time="{t_min}"/>\n\n<Event desc="nontrans" type="noise" extent="instantaneous"/>\n\n</Turn>\n'
+            trs_corps += (
+                f'<Turn startTime="{t_min}" endTime="{t_max}">\n'
+                f'<Sync time="{t_min}"/>\n\n'
+                f'<Event desc="nontrans" type="noise"'
+                f' extent="instantaneous"/>\n\n</Turn>\n'
+            )
     dump_trs = trs_preamble + trs_preamble_spk + trs_corps + trs_closure
     with open(os.path.join(tg_path, f"{tg_name}.trs"), "w", encoding="utf-8") as f:
         f.write(dump_trs)
@@ -212,7 +274,42 @@ def trs_to_rttm(input_trs):
 
 
 class TRSParser:
+    """Parser for Transcriber TRS files.
+
+    Parses a TRS XML file and extracts transcription segments, speaker
+    information, language tags, named entities, and audio metadata.
+
+    Attributes:
+        tree: The parsed ElementTree object.
+        root: The root element of the TRS XML.
+        input_trs: Path to the input TRS file.
+        filepath: Directory containing the TRS file.
+        filename: Base name of the TRS file (without extension).
+        corpus: Name of the parent directory (corpus name).
+        lang: Language code for the transcription data.
+        section_duration: Total duration of all sections in seconds, or
+            ``"Section not found"`` if no sections exist.
+        audio_file: Path to the associated audio file.
+        file_duration: Duration of the audio file in seconds, or
+            ``"audio not found"`` if the file is missing.
+        speakers: Dictionary mapping speaker IDs to ``(name, sex)`` tuples.
+        contents: Dictionary of parsed segment data returned by
+            :meth:`retrieve_contents`.
+    """
+
     def __init__(self, trs_in, audio_format="wav", lang="eu"):
+        """Initialize the TRS parser.
+
+        Parses the TRS file, extracts speaker and duration metadata, and
+        populates the ``contents`` attribute.
+
+        Args:
+            trs_in: Path to the input TRS file.
+            audio_format: File extension of the accompanying audio file
+                (e.g., ``"wav"``). Defaults to ``"wav"``.
+            lang: Language code for tokenization. Use ``"jkz"`` for
+                character-level token counting. Defaults to ``"eu"``.
+        """
         self.tree = ElementTree.parse(trs_in)
         self.root = self.tree.getroot()
 
@@ -226,17 +323,13 @@ class TRSParser:
             self.section_duration = []
             for sec in self.root.iter("Section"):
                 self.section_duration.append(
-                    round(
-                        float(sec.attrib["endTime"]) - float(sec.attrib["startTime"]), 3
-                    )
+                    round(float(sec.attrib["endTime"]) - float(sec.attrib["startTime"]), 3)
                 )
             self.section_duration = sum(self.section_duration)
         except ValueError:
             self.section_duration = "Section not found"
         try:
-            self.audio_file = os.path.join(
-                self.filepath, f"{self.filename}.{audio_format}"
-            )
+            self.audio_file = os.path.join(self.filepath, f"{self.filename}.{audio_format}")
             self.file_duration = round(parselmouth.Sound(self.audio_file).duration, 3)
         except parselmouth.PraatError:
             self.file_duration = "audio not found"
@@ -245,18 +338,22 @@ class TRSParser:
         ## Retrieve speakers information when present in header of TRS
         for spks in self.root.iter("Speaker"):
             spk_id = spks.attrib["id"]
-            if "type" in spks.attrib:
-                spk_sex = spks.attrib["type"]
-            else:
-                spk_sex = ""
+            spk_sex = spks.attrib.get("type", "")
             self.speakers[spk_id] = (spks.attrib["name"], spk_sex)
 
         self.contents = self.retrieve_contents()
 
     def retrieve_contents(self):
-        """
-        >_ TRS file to be parsed for information retrieving
-        >>> Dictionary of all contents information
+        """Parse the TRS file and extract all segment-level information.
+
+        Reads the TRS file line-by-line, identifies segments via ``<Sync>``
+        tags, and collects metadata including timestamps, tokens, speaker
+        information, language tags, named entities, and SNR values.
+
+        Returns:
+            A dictionary where key ``0`` holds summary statistics and keys
+            ``1..N`` contain per-segment data. Key ``"NE"`` maps to the
+            named entity dictionary.
         """
         seg_dict, seg_id, seg_start, seg_end = {}, 0, 0, 0
         nb_nontrans, nb_pronpi, nb_lang, nb_words = 0, 0, 0, 0
@@ -265,7 +362,8 @@ class TRSParser:
         lang_dict = {}
         turn_id, turn_end, turn_spk = 0, 0, "NA"
         ne_dict, ne_id = {}, 0
-        trs = open(self.input_trs, encoding="utf-8").read()
+        with open(self.input_trs, encoding="utf-8") as f:
+            trs = f.read()
         trs_list = trs.split("\n")
         for i in range(len(trs_list)):
             line = trs_list[i]
@@ -370,9 +468,7 @@ class TRSParser:
                 seg_dict[seg_id]["xmax"] = seg_end
                 seg_dict[seg_id]["duration"] = seg_dur
                 seg_dict[seg_id]["tokens"] = seg_tokens
-                seg_dict[seg_id]["content"] = re.sub(
-                    r"\s*\n\s*", " ", seg_trans
-                ).strip()
+                seg_dict[seg_id]["content"] = re.sub(r"\s*\n\s*", " ", seg_trans).strip()
                 seg_dict[seg_id]["speaker_type"] = spk_type
                 seg_dict[seg_id]["speaker"] = turn_spk
                 seg_dict[seg_id]["langs"] = [
@@ -388,10 +484,11 @@ class TRSParser:
         for x in seg_dict:
             if x not in ["NE", 0]:
                 content = seg_dict[x]["content"].strip()
-                if not content or re.fullmatch(r"(\[[^\[\]]+\])+$", content):
-                    dur_nontrans += seg_dict[x]["duration"]
-                    nb_nontrans += 1
-                elif seg_dict[x]["speaker_type"].strip() == "multi":
+                if (
+                    not content
+                    or re.fullmatch(r"(\[[^\[\]]+\])+$", content)
+                    or seg_dict[x]["speaker_type"].strip() == "multi"
+                ):
                     dur_nontrans += seg_dict[x]["duration"]
                     nb_nontrans += 1
                 elif seg_dict[x]["langs"]:
@@ -415,28 +512,33 @@ class TRSParser:
         seg_dict[0]["durationTrans"] = round(dur_trans, 3)
         seg_dict[0]["durationNonTrans"] = round(dur_nontrans, 3)
         try:
-            seg_dict[0]["meanSNR"] = praat_snr_for_segment(
-                self.audio_file, 0, self.file_duration
-            )
+            seg_dict[0]["meanSNR"] = praat_snr_for_segment(self.audio_file, 0, self.file_duration)
         except parselmouth.PraatError:
             seg_dict[0]["meanSNR"] = "NA"
 
         return seg_dict
 
     def print(self):
-        """
-        >>> print TRS contents in the console
+        """Print the parsed TRS contents to the console.
+
+        Displays the file name, section/audio duration, file path, speaker
+        information, and parsed contents.
         """
         print(
-            f"{self.filename} with section duration {self.section_duration} and audio duration {self.file_duration} in\n{self.filepath}\nSPEAKERS ====================\n{self.speakers}\nCONTENTS ====================\n{self.contents}"
+            f"{self.filename} with section duration {self.section_duration}"
+            f" and audio duration {self.file_duration} in\n"
+            f"{self.filepath}\nSPEAKERS ====================\n"
+            f"{self.speakers}\nCONTENTS ====================\n{self.contents}"
         )
 
         return
 
     def summary_lang_trs(self):
-        """
-        >_ TRS file
-        >>> tsv with information about the languages spoken in the TRS
+        """Generate a TSV summary of language tags found in the TRS file.
+
+        Extracts language annotation information from each segment and
+        writes it to a tab-separated file named
+        ``summary_languages-<corpus>.tsv``.
         """
         tab_out = os.path.join(self.filepath, f"summary_languages-{self.corpus}.tsv")
         print(f"\N{CARD FILE BOX} Retriveving languages from {self.filename}")
@@ -451,20 +553,36 @@ class TRSParser:
             for s in self.contents:
                 if s not in ["NE", 0] and self.contents[s]["langs"]:
                     f.write(
-                        f"\n{self.filename}\t{self.filepath}\t{self.file_duration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalLang']}\t{' '.join(self.contents[s]['langs'])}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}"
+                        f"\n{self.filename}\t{self.filepath}\t"
+                        f"{self.file_duration}\t"
+                        f"{self.contents[0]['durationTrans']}\t"
+                        f"{self.contents[0]['totalSegments']}\t"
+                        f"{self.contents[0]['totalLang']}\t"
+                        f"{' '.join(self.contents[s]['langs'])}\t"
+                        f"{s}\t{self.contents[s]['xmin']}\t"
+                        f"{self.contents[s]['xmax']}\t"
+                        f"{self.contents[s]['duration']}"
                     )
 
         return
 
     def trs_to_txt(self, need_placeholder=True, delete_punct=False):
-        """
-        >_ TRS file
-        >>> txt file having transcribed text
-        >>> if need_placeholder=True, trs with [placeholder x] where x = index from the txt list for TRS rewriting
+        """Extract transcription text from the TRS and write it to TXT files.
+
+        Outputs the plain text transcription to a ``txt/`` subdirectory and,
+        if requested, creates a placeholder TRS with ``[placeholder N]``
+        markers for later rewriting.
+
+        Args:
+            need_placeholder: If ``True``, create a placeholder TRS file
+                alongside the txt output. Defaults to ``True``.
+            delete_punct: If ``True``, strip punctuation from the output
+                text. Defaults to ``False``.
         """
         print(f"\N{LINKED PAPERCLIPS} Processing {self.filename}...")
         output_txt, output_trs_plh, placeholder = "", "", 0
-        trs = open(self.input_trs, encoding="utf-8").read()
+        with open(self.input_trs, encoding="utf-8") as f:
+            trs = f.read()
         trs_list = trs.split("\n")
         for line in trs_list:
             if len(line) == 0 or re.search("<.*>", line):
@@ -481,9 +599,7 @@ class TRSParser:
                 placeholder += 1
         if need_placeholder:
             path_placeholders = os.path.join(self.filepath, "placeholder")
-            file_placeholder = os.path.join(
-                path_placeholders, f"{self.filename}_placeholder.trs"
-            )
+            file_placeholder = os.path.join(path_placeholders, f"{self.filename}_placeholder.trs")
             os.makedirs(path_placeholders, exist_ok=True)
             with open(file_placeholder, "w", encoding="utf-8") as f_plh_trs:
                 f_plh_trs.write("".join(output_trs_plh))
@@ -496,16 +612,18 @@ class TRSParser:
         return
 
     def clean_ne_from_trs(self):
-        """
-        >_ TRS file transcribed and annotated to NE
-        >>> TRS file without NE annotations
+        """Remove Named Entity annotations from the TRS file.
+
+        Strips ``<Event>`` tags with ``type="entities"`` and cleans up
+        residual whitespace and punctuation artifacts. Writes the cleaned
+        TRS file to a ``clean/`` subdirectory.
         """
         txt_path, file_name = self.filepath, self.filename
         cleaned_folder = os.path.join(txt_path, "clean")
         os.makedirs(cleaned_folder, exist_ok=True)
         file_name = file_name.replace("_EN", "")
         trs_output = os.path.join(cleaned_folder, f"{file_name}.trs")
-        trs_input = open(self.input_trs, encoding="utf-8").read()
+        trs_input = open(self.input_trs, encoding="utf-8").read()  # noqa: SIM115
         trs_list = trs_input.split("\n")
         output_trs_cleaned = trs_list[0]
         print(f"\N{PACKAGE} Cleaning {file_name}...")
@@ -535,9 +653,11 @@ class TRSParser:
         return
 
     def validate_trs(self):
-        """
-        >_ TRS for infrmation extraction
-        >>> validation table with technical info about TRS
+        """Produce a validation summary TSV from the parsed TRS contents.
+
+        Extracts technical statistics (segment counts, durations,
+        speaker/language counts, SNR) and appends a row to
+        ``summary_validation-<corpus>.tsv``.
         """
         # assert False, self.contents
         tab_out = os.path.join(self.filepath, f"summary_validation-{self.corpus}.tsv")
@@ -553,15 +673,28 @@ class TRSParser:
                 )
         with open(tab_out, "a", encoding="utf-8") as f_tsv:
             f_tsv.write(
-                f"\n{self.filename}\t{self.filepath}\t{len(self.speakers)}\t{len(self.contents[0]['otherLang']) + 1}\t{self.file_duration}\t{self.contents[0]['durationTrans']}\t{self.contents[0]['durationNonTrans']}\t{self.contents[0]['totalSegments']}\t{self.contents[0]['totalTrans']}\t{self.contents[0]['totalNonTrans']}\t{self.contents[0]['totalPronPi']}\t{self.contents[0]['totalWords']}\t{self.contents[0]['totalNE']}\t{self.contents[0]['meanSNR']}"
+                f"\n{self.filename}\t{self.filepath}\t"
+                f"{len(self.speakers)}\t"
+                f"{len(self.contents[0]['otherLang']) + 1}\t"
+                f"{self.file_duration}\t"
+                f"{self.contents[0]['durationTrans']}\t"
+                f"{self.contents[0]['durationNonTrans']}\t"
+                f"{self.contents[0]['totalSegments']}\t"
+                f"{self.contents[0]['totalTrans']}\t"
+                f"{self.contents[0]['totalNonTrans']}\t"
+                f"{self.contents[0]['totalPronPi']}\t"
+                f"{self.contents[0]['totalWords']}\t"
+                f"{self.contents[0]['totalNE']}\t"
+                f"{self.contents[0]['meanSNR']}"
             )
 
         return
 
     def trs_to_tsv(self):
-        """
-        >_ TRS file
-        >>> tsv file representing the origin TRS
+        """Convert the TRS file into a tab-separated values (TSV) file.
+
+        Writes each segment's metadata (timestamps, content, speaker info)
+        to ``<corpus>.tsv`` in the same directory as the input file.
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}.tsv")
         print(f"\N{CARD FILE BOX} Creating tsv from {self.filename}...")
@@ -580,9 +713,7 @@ class TRSParser:
                         f"\n{self.filename}\t{self.filepath}\t{s}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}\t{self.contents[s]['content']}\t"
                     )
                     try:
-                        f_tsv.write(
-                            "\t".join(self.speakers[self.contents[s]["speaker"]])
-                        )
+                        f_tsv.write("\t".join(self.speakers[self.contents[s]["speaker"]]))
                     except KeyError:
                         f_tsv.write("NA\tNA")
 
@@ -634,17 +765,25 @@ class TRSParser:
         Returns:
             None. Writes the TextGrid file alongside the input TRS.
         """
+        if tiers_list is None:
+            tiers_list = ["transcription", "speaker", "sex", "NE"]
         tg_out = os.path.join(self.filepath, f"{self.filename}.TextGrid")
         nb_tiers = len(tiers_list)
         nb_intervals = self.contents[0]["totalSegments"]
         with open(tg_out, "w", encoding="utf-8") as tg:
             tg.write(
-                f'File type = "ooTextFile"\nObject class = "TextGrid"\n\nxmin = 0\nxmax = {self.file_duration}\ntiers? <exists>\nsize = {nb_tiers}\nitem []:'
+                f'File type = "ooTextFile"\nObject class = "TextGrid"\n\n'
+                f"xmin = 0\nxmax = {self.file_duration}\n"
+                f"tiers? <exists>\nsize = {nb_tiers}\nitem []:"
             )
             for tier_name in tiers_list:
                 tier_index = tiers_list.index(tier_name) + 1
                 tg.write(
-                    f'\n\titem [{tier_index}]:\n\t\tclass = "IntervalTier"\n\t\tname = "{tier_name}"\n\t\txmin = 0\n\t\txmax = {self.file_duration}\n\t\tintervals: size = {nb_intervals}'
+                    f"\n\titem [{tier_index}]:\n\t\t"
+                    f'class = "IntervalTier"\n\t\t'
+                    f'name = "{tier_name}"\n\t\t'
+                    f"xmin = 0\n\t\txmax = {self.file_duration}\n\t\t"
+                    f"intervals: size = {nb_intervals}"
                 )
                 for i in self.contents:
                     if i not in ["NE", 0]:
@@ -653,7 +792,10 @@ class TRSParser:
                             self.contents[i]["xmax"],
                         )
                         tg.write(
-                            f'\n\t\tintervals [{i}]:\n\t\t\txmin = {seg_st}\n\t\t\txmax = {seg_en}\n\t\t\ttext = "'
+                            f"\n\t\tintervals [{i}]:\n\t\t\t"
+                            f"xmin = {seg_st}\n\t\t\t"
+                            f"xmax = {seg_en}\n\t\t\t"
+                            f'text = "'
                         )
                         if tier_name == "transcription":
                             tg.write(f'{self.contents[i]["content"]}"')
@@ -673,7 +815,10 @@ class TRSParser:
                             ne_content = ""
                             for ne in self.contents["NE"]:
                                 if self.contents["NE"][ne]["segmentID"] == i:
-                                    ne_content += f"{self.contents['NE'][ne]['class']}:{self.contents['NE'][ne]['content']}_"
+                                    ne_content += (
+                                        f"{self.contents['NE'][ne]['class']}:"
+                                        f"{self.contents['NE'][ne]['content']}_"
+                                    )
                             tg.write(f'{ne_content.strip()}"')
                         else:
                             tg.write("")
@@ -681,9 +826,11 @@ class TRSParser:
         return
 
     def retrieve_ne_to_tsv(self):
-        """
-        >_ TRS file with NE annotation
-        >>> tsv with NE annotation information
+        """Extract Named Entity annotations into a TSV file.
+
+        Reads NE data from the parsed contents and writes each entity's
+        class, content, segment context, and timing to
+        ``<corpus>_NE_extraction.tsv``.
         """
         tab_out = os.path.join(self.filepath, f"{self.corpus}_NE_extraction.tsv")
         print(f"\N{CARD FILE BOX} Retrieving NE from {self.filename}...")
@@ -705,23 +852,32 @@ class TRSParser:
                     ne_spk = "NA\tNA"
 
                 f_tsv.write(
-                    f"\n{self.filename}\t{self.filepath}\t{ne}\t{ne_info['class']}\t{ne_info['content']}\t{s}\t{self.contents[s]['content']}\t{self.contents[s]['xmin']}\t{self.contents[s]['xmax']}\t{self.contents[s]['duration']}\t{ne_spk}"
+                    f"\n{self.filename}\t{self.filepath}\t{ne}\t"
+                    f"{ne_info['class']}\t{ne_info['content']}\t{s}\t"
+                    f"{self.contents[s]['content']}\t"
+                    f"{self.contents[s]['xmin']}\t"
+                    f"{self.contents[s]['xmax']}\t"
+                    f"{self.contents[s]['duration']}\t{ne_spk}"
                 )
 
         return
 
     def trs_tmp(self, section_type="report"):
+        """Extract specific section types from the TRS into temporary files.
+
+        Args:
+            section_type: The section ``type`` attribute to extract (e.g.,
+                ``"report"``). Defaults to ``"report"``.
+
+        Returns:
+            List of paths to the extracted temporary TRS files.
         """
-        >_ TRS file with specific section to be extracted
-        >>> temporary TRS only retaining the target section
-        """
-        print(
-            f"\N{BULLSEYE} Extracting '{section_type}' Section from {self.filename}..."
-        )
+        print(f"\N{BULLSEYE} Extracting '{section_type}' Section from {self.filename}...")
         file_tmp_list, nb_target = [], 0
         path_tmp = os.path.join(self.filepath, "tmp")
         os.makedirs(path_tmp, exist_ok=True)
-        trs = open(self.input_trs, encoding="utf-8").read()
+        with open(self.input_trs, encoding="utf-8") as f:
+            trs = f.read()
         trs_list = trs.split("\n")
         # Initialiser le variable section_txt avec l'entete du trs
         trs_header = ""
@@ -746,8 +902,8 @@ class TRSParser:
                 et_section = ElementTree.fromstring(section_txt)
 
                 try:
-                    sectionType = et_section.attrib["type"]
-                    if sectionType == section_type:
+                    section_type_val = et_section.attrib["type"]
+                    if section_type_val == section_type:
                         nb_target += 1
                         file_tmp = os.path.join(
                             path_tmp, f"{self.filename}.{section_type}_{nb_target}.trs"
@@ -759,7 +915,8 @@ class TRSParser:
                             f_tmp_trs.write("".join(section_txt))
                 except Exception as e:
                     print(
-                        f"\N{WARNING SIGN} XML parsing error in {self.input_trs} line\n{line}\n\n{e}"
+                        f"\N{WARNING SIGN} XML parsing error in "
+                        f"{self.input_trs} line\n{line}\n\n{e}"
                     )
                     pass
 
