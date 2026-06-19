@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "tsv"
 
@@ -55,6 +57,5 @@ def test_tsv_command_output(
     assert tsv_command_output_file.exists()
     output_n_lines = len(tsv_command_output_file.read_text().split("\n"))
     expected_n_lines = len(expected_tsv_output_file.read_text().split("\n"))
-    assert (
-        output_n_lines == expected_n_lines
-    )  # We can't compare the content since they contain the folder path, so we only compare the line length
+    assert output_n_lines == expected_n_lines  # We can't compare the content since they contain
+    # the folder path, so we only compare the line length

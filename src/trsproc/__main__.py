@@ -1,22 +1,27 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python3
-#
-##
-### trsproc ELDA-R&D-2023
-#### A Python library to process Transcriber TRS files
-#####
 
 import re
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
-from PyQt6.QtWidgets import QApplication
 
 from trsproc import parser, utils
 from trsproc.parser import TRSParser
-from trsproc.validation.gui import TranscriptionValidatorGUI
-from trsproc.validation.io import make_paths, is_validation_complete
+from trsproc.validation.io import is_validation_complete, make_paths
+
+"""
+trsproc ELDA-R&D-2023
+
+A Python library to process Transcriber TRS files.
+"""
+
+"""
+CLI entry point for the trsproc tool.
+
+Provides a Typer-based command-line interface for processing Transcriber TRS files.
+Allows users to convert, validate, sample, and annotate TRS files interactively.
+"""
 
 app = typer.Typer()
 crt_app = typer.Typer(help="Apply corrections to .trs files")
@@ -24,11 +29,26 @@ app.add_typer(crt_app, name="crt")
 
 
 def get_files(
-    folder: Optional[Path],
-    file: Optional[Path],
+    folder: Path | None,
+    file: Path | None,
     extension: str,
 ) -> list[Path]:
-    # TODO : handle cases where user gives both folder and file (without breaking the default folder behaviour)
+    """Collect files of a given extension from a folder or a single file.
+
+    Args:
+        folder: Directory to search for files (defaults to current working
+            directory when neither folder nor file is given).
+        file: A single file path. If provided, ``folder`` is ignored.
+        extension: File extension to match (without the dot).
+
+    Returns:
+        A list of matching file paths.
+
+    Raises:
+        typer.BadParameter: If the file is not found or the folder is not a directory.
+    """
+    # TODO : handle cases where user gives both folder and file
+    # (without breaking the default folder behaviour)
     if file:
         if not file.exists():
             raise typer.BadParameter(f"File not found : {file}")
@@ -45,14 +65,10 @@ def get_files(
 @crt_app.command("turn-differences")
 def crt_turn_differences(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
-    file: Annotated[
-        Optional[Path], typer.Option(help="A single file to process")
-    ] = None,
+    file: Annotated[Path | None, typer.Option(help="A single file to process")] = None,
 ) -> None:
     """Search for differences in segmentation with twin files"""
     if folder is None:
@@ -64,14 +80,10 @@ def crt_turn_differences(
 @crt_app.command("empty-space")
 def crt_empty_space(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
-    file: Annotated[
-        Optional[Path], typer.Option(help="A single file to process")
-    ] = None,
+    file: Annotated[Path | None, typer.Option(help="A single file to process")] = None,
 ) -> None:
     """Add empty space before each NE annotation"""
     if folder is None:
@@ -83,14 +95,10 @@ def crt_empty_space(
 @crt_app.command("la")
 def crt_la(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
-    file: Annotated[
-        Optional[Path], typer.Option(help="A single file to process")
-    ] = None,
+    file: Annotated[Path | None, typer.Option(help="A single file to process")] = None,
 ) -> None:
     """Correct sentences ending with 'là' to 'la'. Requires prior txt command"""
     if folder is None:
@@ -102,14 +110,10 @@ def crt_la(
 @crt_app.command("maj")
 def crt_maj(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
-    file: Annotated[
-        Optional[Path], typer.Option(help="A single file to process")
-    ] = None,
+    file: Annotated[Path | None, typer.Option(help="A single file to process")] = None,
 ) -> None:
     """Correct misplaced capital letters."""
     if folder is None:
@@ -123,18 +127,20 @@ def crt_maj(
 )
 def txt(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Extracts the text from .trs files into .txt files, and creates placeholder .trs files, to merge text back in.
-    This is intended to be used for easily modifying the text from .trs files (e.g for fixing typos)"""
+    """Extracts the text from .trs files into .txt files,
+    and creates placeholder .trs files, to merge text back in.
+
+    This is intended to be used for easily modifying the text
+    from .trs files (e.g for fixing typos).
+    """
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -147,20 +153,25 @@ def txt(
 )
 def trs(
     folder: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Argument(
             help="The folder containing the .txt files",
             show_default=str(Path.cwd() / "txt"),
         ),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ):
-    """\brewrites a TRS file using the input txt file and a TRS-placeholder placed in a subfolder of the parent input folder.
-    \bThe command NEEDS to be called from a folder that has a txt and a placeholder subfolder (presumably created by a previous txt command).
-    \bThe rewritten TRS will have the content of the txt and the structure of the TRS-placeholder and will be written in the txt folder.
+    """\brewrites a TRS file using the input txt file and a TRS-placeholder
+    placed in a subfolder of the parent input folder.
+
+    \bThe command NEEDS to be called from a folder that has a txt and
+    a placeholder subfolder (presumably created by a previous txt command).
+
+    \bThe rewritten TRS will have the content of the txt and the structure
+    of the TRS-placeholder and will be written in the txt folder.
     """
     if folder is None:
         folder = Path.cwd() / "txt"
@@ -173,13 +184,11 @@ def trs(
 )
 def tsv(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ):  # TODO : output filename as argument. When launched with --file, the file has no name (.tsv)
@@ -197,13 +206,11 @@ def tsv(
 )
 def cne(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ):
@@ -221,13 +228,11 @@ def cne(
 )
 def ne(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ):  # TODO : output filename as argument. When launched with --file, the file has no name (.tsv)
@@ -245,30 +250,33 @@ def ne(
 )
 def lang(
     language: Annotated[
-        Optional[str],
+        str | None,
         typer.Option(help="The language to use for the tags."),
     ] = None,
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
     json_dict: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(
             help="The json file containing the language tags to add.",
             show_default=str(Path.cwd() / "lang-tag.json"),
         ),  # TODO: describe the expected format
     ] = None,
-):  # TODO: refactor utils.add_lang_tag. Right now, the language tag is required even if a json file is provided.
+):  # TODO: describe the expected format
     """Adds a language tag to each transcription segment not having one in the input TRS files.
-    The language can either be specified with the `--language` option, or within a json file, which can be specified with the --json-dict option (which defaults to [folder]/lang-tag.json)
-    The resulting .trs files will be written in [folder]/lang"""
+
+    The language can either be specified with the `--language` option,
+    or within a json file, which can be specified with the --json-dict
+    option (which defaults to [folder]/lang-tag.json).
+
+    The resulting .trs files will be written in [folder]/lang
+    """
     if folder is None:
         folder = Path.cwd()
     if json_dict is None:
@@ -287,13 +295,11 @@ def lang(
 @app.command()
 def prt(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
@@ -310,17 +316,18 @@ def prt(
 )
 def pne(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-) -> None:  # TODO: Get a pre-annotation json file to understand and test the utils.pre_annotate function, and add the required tsv and json files as arguments.
-    """Pre-annotates the input TRS using the table created in the `-ne` flag as a custom annotation dictionnary"""
+) -> None:  # TODO: Get a pre-annotation json file to understand and test
+    # the utils.pre_annotate function, and add the required tsv and json
+    # files as arguments.
+    """Pre-annotates the input TRS using the table created with the
+    `ne` command as a custom annotation dictionary."""
     if folder is None:
         folder = Path.cwd()
     files: list[Path] = get_files(folder, file, "trs")
@@ -334,16 +341,17 @@ def pne(
 )
 def tmp(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
-) -> None:  # FIXME: The tmp command was broken in commit 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the retrieve_contents method. This method will have to be carefuly refactored, too.
+) -> None:  # FIXME: The tmp command was broken in commit
+    # 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the
+    # retrieve_contents method. This method will have to be carefuly
+    # refactored, too.
     """Extracts report sections from .trs files.
     Saves the extractions in a folder [folder]/tmp"""
     if folder is None:
@@ -358,31 +366,32 @@ def tmp(
 )
 def rs(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Calculates the minimum sample needed for the validation of the input TRS transcription
-    and extracts random segments (audio and text, the latter in a tabular file) according to a given quantity.
+    """Calculates the minimum sample needed for the validation of the
+    input TRS transcription and extracts random segments (audio and text,
+    the latter in a tabular file) according to a given quantity.
+
     Launches the validation GUI after extraction.
 
     If a validated TSV already exists:
+
     - resumes validation if incomplete
     - prompts for re-running the sampling if complete
+
     If not:
-    - runs sampling and extraction before launching the GUI"""
+
+    - runs sampling and extraction before launching the GUI
+    """
     if folder is None:
         folder = Path.cwd()
-    if file:
-        save_folder = file.parent.absolute()
-    else:
-        save_folder = folder.absolute()
+    save_folder = file.parent.absolute() if file else folder.absolute()
     files: list[Path] = get_files(folder, file, "trs")
 
     sample_tsv = next(save_folder.glob("sample_segments_*.tsv"), None)
@@ -410,6 +419,10 @@ def rs(
                 utils.extract_segments(sample_tsv)
 
     if sample_tsv:
+        from PyQt6.QtWidgets import QApplication
+
+        from trsproc.validation.gui import TranscriptionValidatorGUI
+
         app = QApplication([])
         w = TranscriptionValidatorGUI(paths=make_paths(str(sample_tsv)))
         w.show()
@@ -421,24 +434,20 @@ def rs(
 )
 def rsne(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """calculates the minimum sample needed for the validation of Named Entities of the input TRS
-    and extracts them (audio segments and text, the latter in a tabular file) randomly by a given amount."""
+    """Calculates the minimum sample needed for the validation of Named
+    Entities of the input TRS and extracts them (audio segments and text,
+    the latter in a tabular file) randomly by a given amount."""
     if folder is None:
         folder = Path.cwd()
-    if file:
-        save_folder = file.parent.absolute()
-    else:
-        save_folder = folder.absolute()
+    save_folder = file.parent.absolute() if file else folder.absolute()
     files: list[Path] = get_files(folder, file, "trs")
     utils.random_sampling_ne(files, save_folder)
 
@@ -446,18 +455,17 @@ def rsne(
 @app.command()
 def tg(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
     # TODO : pass the audio file as an argument
-    # TODO : make sure the audio file exists, as the TextGrid cannot be turned back to .trs without audio
+    # TODO : make sure the audio file exists, as the TextGrid cannot
+    # be turned back to .trs without audio
     """Converts .trs files to .TextGrid files."""
     if folder is None:
         folder = Path.cwd()
@@ -469,19 +477,20 @@ def tg(
 @app.command()
 def tgrs(
     folder: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Argument(
             help="The folder containing the TextGrid files",
             show_default=str(Path.cwd()),
         ),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
     # TODO : pass the audio file as an argument
-    # TODO : make sure the audio file exists, as the TextGrid cannot be turned back to .trs without audio
+    # TODO : make sure the audio file exists, as the TextGrid cannot
+    # be turned back to .trs without audio
     """Converts .TextGrid files to .trs files."""
     if folder is None:
         folder = Path.cwd()
@@ -494,19 +503,20 @@ def tgrs(
 )
 def vad(
     folder: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Argument(
             help="The folder containing the TextGrid files",
             show_default=str(Path.cwd()),
         ),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
     # TODO: Get one of those TextGrid file for testing.
-    """converts TextGrid files resulting from the use of a voice activity detection algorithm (VAD) into TRS files."""
+    """Converts TextGrid files resulting from the use of a voice activity
+    detection algorithm (VAD) into TRS files."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "TextGrid"):
@@ -518,17 +528,16 @@ def vad(
 )
 def vsi(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Produces a tabular file containing basic lexical information and statistics concerning the input TRS"""
+    """Produces a tabular file containing basic lexical information and
+    statistics concerning the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -537,22 +546,21 @@ def vsi(
 
 
 @app.command(
-    short_help="Extracts language informations from .trs files",
+    short_help="Extracts language information from .trs files",
 )
 def vsi_lang(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
     # FIXME: command seems to be broken, don't know since when
-    """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
+    """Produces a tabular file containing basic information about the
+    language tags present in the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -561,21 +569,20 @@ def vsi_lang(
 
 
 @app.command(
-    short_help="Extracts language informations from .trs files in a temporary folder",
+    short_help="Extracts validation information from .trs files in a temporary folder",
 )
 def rpt(
     folder: Annotated[
-        Optional[Path],
-        typer.Argument(
-            help="The folder containing the .trs files", show_default=str(Path.cwd())
-        ),
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
     ] = None,
     file: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Produces a tabular file containing basic information abouth the language tags present in the input TRS"""
+    """Produces a tabular file containing validation information about
+    segments and pauses in the report sections of the input TRS."""
     if folder is None:
         folder = Path.cwd()
     for filename in get_files(folder, file, "trs"):
@@ -584,6 +591,7 @@ def rpt(
 
 
 def main():
+    """Run the trsproc CLI application."""
     app()
 
 

@@ -1,8 +1,10 @@
-from typer.testing import CliRunner
-from trsproc.__main__ import app
-from pytest import fixture
-from pathlib import Path
 import shutil
+from pathlib import Path
+
+from pytest import fixture
+from typer.testing import CliRunner
+
+from trsproc.__main__ import app
 
 DATA_DIRECTORY = Path(__file__).parent / "data" / "tg"
 runner = CliRunner()
@@ -57,6 +59,4 @@ def test_tg_command_output(
     assert result.exit_code == 0, result.stderr
     for output_file in test_directory.glob("*.TextGrid"):
         expected_output_file = expected_output_dir / output_file.name
-        assert (
-            output_file.read_text().strip() == expected_output_file.read_text().strip()
-        )
+        assert output_file.read_text().strip() == expected_output_file.read_text().strip()
