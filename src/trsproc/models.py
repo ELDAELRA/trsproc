@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
+from types import NoneType
+from typing import Any, Literal, get_args
 
-from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, ValidationInfo, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    SerializeAsAny,
+    ValidationError,
+    ValidationInfo,
+    ValidatorFunctionWrapHandler,
+    field_validator,
+)
 
 SectionType = Literal["report", "nontrans", "filler"]
-SpeakerType = Literal[
-    "male", "female", "child", "unknown"
-]  # unknown is not in dtd, but still parseable by Transcriber
+SpeakerType = Literal["male", "female", "child", "unknown"]
 SpeakerDialect = Literal["native", "nonnative"]
 SpeakerScope = Literal["local", "global"]
 SpeakerCheck = Literal["yes", "no"]
@@ -19,18 +27,43 @@ TurnFidelity = Literal["high", "medium", "low"]
 TurnChannel = Literal["telephone", "studio"]
 
 
-class StrictModel(BaseModel):
+class TrsprocModel(BaseModel):
     """A BaseModel that also runs validation when overwritting a property"""
 
     model_config = ConfigDict(validate_assignment=True)
 
+    @field_validator("*", mode="wrap")
+    @classmethod
+    def _drop_invalid_if_optional(
+        cls,
+        value: Any,
+        handler: ValidatorFunctionWrapHandler,
+        info: ValidationInfo,
+    ) -> Any:
+        """Tries to validate the field.
+        If validation fails but the field is optional, fallback to None."""
 
-class TRSEpisode(StrictModel):
+        field_annotation = cls.model_fields[info.field_name].annotation  # type: ignore (field_name is always set in field_validators)
+        is_optional = any(t is NoneType for t in get_args(field_annotation))
+        try:
+            return handler(value)
+        except ValidationError as e:
+            if not is_optional:
+                raise
+            error_details = e.errors()[0]
+            error_message = error_details["msg"]
+            print(
+                f"Invalid value for optional field {info.field_name} in class {cls.__name__}. {error_message}, but is {type(value)} : {value}. Falling back to None"
+            )
+            return None
+
+
+class TRSEpisode(TrsprocModel):
     program: str | None = None
     air_date: str | None = None
 
 
-class TRSSection(StrictModel):
+class TRSSection(TrsprocModel):
     """Only used to write trs back, we don't care about sections in the internal representation,
     we only focus on minimal SpeechTurns"""
 
@@ -51,7 +84,7 @@ class TRSSection(StrictModel):
             raise ValueError(f"Undefined topic id: {value!r}") from None
 
 
-class TRSTurn(StrictModel):
+class TRSTurn(TrsprocModel):
     """Same as TRSSection"""
 
     speakers: list[Speaker] = Field(validation_alias="speaker", default=[])
@@ -75,7 +108,7 @@ class TRSTurn(StrictModel):
             ) from None
 
 
-class Speaker(StrictModel):
+class Speaker(TrsprocModel):
     id: str
     name: str
     type: SpeakerType | None = None
@@ -85,12 +118,12 @@ class Speaker(StrictModel):
     scope: SpeakerScope | None = None
 
 
-class Topic(StrictModel):
+class Topic(TrsprocModel):
     id: str
     desc: str = ""
 
 
-class SpeechTurnElement(StrictModel):
+class SpeechTurnElement(TrsprocModel):
     pass
 
 
@@ -119,7 +152,7 @@ class Vocal(SpeechTurnElement):
     desc: str
 
 
-class SpeechTurn(StrictModel):
+class SpeechTurn(TrsprocModel):
     start: float
     end: float
     speakers: list[Speaker]
@@ -149,7 +182,7 @@ class SpeechTurn(StrictModel):
         raise ValueError(f"Unknown speaker ID {id}, can't determine who is speaking in the overlap")
 
 
-class TRSTrans(StrictModel):
+class TRSTrans(TrsprocModel):
     audio_filename: str | None = None
     scribe: str | None = None
     xml_lang: str | None = Field(alias="xml:lang", default=None)
@@ -158,16 +191,16 @@ class TRSTrans(StrictModel):
     elapsed_time: str | None = None
 
 
-class Transcription(StrictModel):
+class Transcription(TrsprocModel):
     trs_file_path: Path
     speakers: list[Speaker]
     topics: list[Topic]
     turns: list[SpeechTurn]
-    trs_episode: TRSEpisode
-    trs_trans: TRSTrans
+    trs_episode: TRSEpisode  # TODO: make optional when converting to TRS from other formats
+    trs_trans: TRSTrans  # TODO: make optional when converting to TRS from other formats
 
 
-class NamedEntity(StrictModel):
+class NamedEntity(TrsprocModel):
     file_name: str
     file_path: str
     ne_rank: int

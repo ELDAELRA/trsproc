@@ -1,4 +1,6 @@
 import csv
+from functools import lru_cache
+from importlib.resources import files
 from pathlib import Path
 
 from lxml import etree
@@ -12,15 +14,34 @@ from trsproc.models import (
     Speaker,
     SpeechTurn,
     SpeechTurnElement,
-    StrictModel,
     Topic,
     Transcription,
     TRSEpisode,
+    TrsprocModel,
     TRSSection,
     TRSTrans,
     TRSTurn,
     Utterance,
 )
+
+
+@lru_cache
+def _load_dtd() -> etree.DTD:
+    dtd_path = files("trsproc").joinpath("trans-14.dtd")
+    with dtd_path.open() as f:
+        return etree.DTD(f)
+
+
+@lru_cache
+def _load_lenient_dtd() -> etree.DTD:
+    """This is a more lenient version of the dtd, that only cares about the order of the elements.
+    All closed value sets for attribs are turned into plain CDATA,
+    because optional invalid attribs fallback to None
+    (see [`TrsprocModel._drop_invalid_if_optional`][trsproc.models.TrsprocModel._drop_invalid_if_optional])
+    """
+    dtd_path = files("trsproc").joinpath("lenient.dtd")
+    with dtd_path.open() as f:
+        return etree.DTD(f)
 
 
 def format_text(text: str) -> str:
@@ -208,7 +229,7 @@ def write_nes_to_csv(entities: list, file_path: Path) -> None:
             writer.writerow(ent.model_dump().values())
 
 
-def to_xml_attribs(model: StrictModel, exclude: set[str] | None = None) -> dict[str, str]:
+def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict[str, str]:
     """Helper function to convert supported types to str for xml serialization"""
     dump = model.model_dump(exclude_none=True, exclude=exclude, by_alias=True)
     attribs = {}
@@ -293,15 +314,17 @@ def write_xml(transcription: Transcription, file_name: str) -> None:
         out_stream.write(xml)
 
 
-def parse_trs_file(file_path: str) -> Transcription:
+def parse_trs_file(file_path: str | Path) -> Transcription:
+    dtd = _load_lenient_dtd()
     tree = etree.parse(file_path)
+    dtd.assertValid(tree)
     root = tree.getroot()
     speakers_dict = parse_speakers(tree)
     speakers = list(speakers_dict.values())
     topics_dict = parse_topics(tree)
     topics = list(topics_dict.values())
     episode = root.find("Episode")
-    trs_episode = TRSEpisode.model_validate(clean_attrib(episode.attrib))
+    trs_episode = TRSEpisode.model_validate(clean_attrib(episode.attrib))  # type: ignore (if there were no episode, lxml would have thrown an error)
     trs_trans = TRSTrans.model_validate(clean_attrib(root.attrib))
 
     transcription = Transcription(
