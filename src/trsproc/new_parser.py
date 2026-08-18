@@ -209,7 +209,7 @@ def extract_nes_from_transcription(transcription: Transcription) -> list[NamedEn
                     segment_content=segment_text,
                     segment_start=speechturn.start,
                     segment_end=speechturn.end,
-                    segment_duration=speechturn.end - speechturn.start,
+                    segment_duration=round(speechturn.end - speechturn.start, 2),
                     speaker=speaker,
                     speaker_sex=speaker_sex,
                 )
@@ -220,12 +220,13 @@ def extract_nes_from_transcription(transcription: Transcription) -> list[NamedEn
     return entities
 
 
-def write_nes_to_csv(entities: list, file_path: Path) -> None:
+def write_nes_to_tsv(entities: list, file_path: Path) -> None:
     with open(file_path, "w") as file:
-        writer = csv.writer(file)
+        writer = csv.writer(file, delimiter="\t")
         if entities:
             writer.writerow(entities[0].model_dump().keys())
-        for ent in entities:
+        for i, ent in enumerate(entities):
+            ent.ne_rank = i + 1
             writer.writerow(ent.model_dump().values())
 
 

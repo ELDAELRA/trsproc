@@ -7,6 +7,8 @@ from typing import Annotated
 import typer
 
 from trsproc import parser, utils
+from trsproc.models import NamedEntity
+from trsproc.new_parser import extract_nes_from_transcription, parse_trs_file, write_nes_to_tsv
 from trsproc.parser import TRSParser
 from trsproc.validation.io import is_validation_complete, make_paths
 
@@ -238,11 +240,15 @@ def ne(
 ):  # TODO : output filename as argument. When launched with --file, the file has no name (.tsv)
     """Extracts the Named Entity annotations if any are present in the input TRS.
     Saves them in a tabular file located in [folder]/folder_NE_extraction.tsv"""
+    ents: list[NamedEntity] = []
     if folder is None:
-        folder = Path.cwd()
+        folder = Path.cwd() if file is None else file.parent
+    folder = folder.absolute()
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.retrieve_ne_to_tsv()
+        trs_parser = parse_trs_file(filename)
+        ents.extend(extract_nes_from_transcription(trs_parser))
+    out_name = folder / f"{folder.name}_NE_extraction.tsv"
+    write_nes_to_tsv(ents, out_name)
 
 
 @app.command(
