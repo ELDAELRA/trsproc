@@ -53,7 +53,8 @@ class TrsprocModel(BaseModel):
             error_details = e.errors()[0]
             error_message = error_details["msg"]
             print(
-                f"Invalid value for optional field {info.field_name} in class {cls.__name__}. {error_message}, but is {type(value)} : {value}. Falling back to None"
+                f"Invalid value for optional field {info.field_name} in class {cls.__name__}. \
+                {error_message}, but is {type(value)} : {value}. Falling back to None"
             )
             return None
 
@@ -158,7 +159,8 @@ class SpeechTurn(TrsprocModel):
     speakers: list[Speaker]
     content: SerializeAsAny[
         list[SpeechTurnElement]
-    ]  # Without SerializeAsAny, moodel_dump prints an empty object (because that's what SpeechTurnElement declares, but at runtime it can be any child instance)
+    ]  # Without SerializeAsAny, moodel_dump prints an empty object
+    # (because that's what SpeechTurnElement declares, but at runtime it can be any child instance)
     trs_turn: TRSTurn
     trs_section: TRSSection
 

@@ -244,7 +244,8 @@ def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict
     return attribs
 
 
-def write_xml(transcription: Transcription, file_name: str) -> None:
+def write_trs(transcription: Transcription, file_name: str) -> None:
+    dtd = _load_dtd()
     root = etree.Element("Trans", to_xml_attribs(transcription.trs_trans))
     if transcription.speakers:
         speakers_elem = etree.SubElement(root, "Speakers")
@@ -258,6 +259,7 @@ def write_xml(transcription: Transcription, file_name: str) -> None:
     episode_elem = etree.SubElement(root, "Episode", to_xml_attribs(transcription.trs_episode))
 
     if not transcription.turns:
+        dtd.assertValid(root)
         xml = etree.tostring(
             root,
             pretty_print=True,
@@ -304,6 +306,7 @@ def write_xml(transcription: Transcription, file_name: str) -> None:
             else:
                 last_tag = etree.SubElement(turn_elem, tag.__class__.__name__, to_xml_attribs(tag))
 
+    dtd.assertValid(root)
     xml = etree.tostring(
         root,
         pretty_print=True,
