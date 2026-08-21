@@ -26,4 +26,3 @@ def test_write_trs(tmp_path):
     write_trs(parser, out_path)
     parser.trs_file_path = out_path  # otherwise the objects will obviously be different
     assert parser == parse_trs_file(out_path)
-
