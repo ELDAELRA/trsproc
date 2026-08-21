@@ -7,8 +7,13 @@ from typing import Annotated
 import typer
 
 from trsproc import parser, utils
-from trsproc.models import NamedEntity
-from trsproc.new_parser import extract_nes_from_transcription, parse_trs_file, write_nes_to_tsv
+from trsproc.models import NamedEntity, Transcription
+from trsproc.new_parser import (
+    extract_nes_from_transcription,
+    parse_trs_file,
+    write_nes_to_tsv,
+    write_trs,
+)
 from trsproc.parser import TRSParser
 from trsproc.validation.io import is_validation_complete, make_paths
 
@@ -137,17 +142,24 @@ def txt(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:
-    """Extracts the text from .trs files into .txt files,
-    and creates placeholder .trs files, to merge text back in.
+    """Extracts the text from .trs files into .txt files, in a txt subfolder
 
     This is intended to be used for easily modifying the text
     from .trs files (e.g for fixing typos).
     """
     if folder is None:
-        folder = Path.cwd()
+        folder = Path.cwd() if file is None else file.parent
+
+    folder = folder.absolute()
+    txt_folder = folder / "txt"
+    txt_folder.mkdir(exist_ok=True)
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.trs_to_txt()
+        trs_parser: Transcription = parse_trs_file(filename)
+        utterances = [utterance.text for utterance in trs_parser.utterances]
+        print(trs_parser.trs_file_path)
+        print(utterances)
+        with open(txt_folder / filename.with_suffix(".txt").name, "w") as f:
+            f.write("\n".join(utterances))
 
 
 @app.command(
@@ -161,24 +173,35 @@ def trs(
             show_default=str(Path.cwd() / "txt"),
         ),
     ] = None,
-    file: Annotated[
-        Path | None,
-        typer.Option(help="A single file to process instead of a whole folder"),
-    ] = None,
+    # TODO: : add single file arg
 ):
-    """\brewrites a TRS file using the input txt file and a TRS-placeholder
-    placed in a subfolder of the parent input folder.
-
-    \bThe command NEEDS to be called from a folder that has a txt and
-    a placeholder subfolder (presumably created by a previous txt command).
+    """\brewrites a TRS file using the input txt file created with the `txt` command, and the trs file that was used to create it.
+    \bThe command NEEDS to be called from a folder that has a txt subfolder (presumably created by a previous `txt` command).
 
     \bThe rewritten TRS will have the content of the txt and the structure
-    of the TRS-placeholder and will be written in the txt folder.
-    """
+    of the trs and will be written in the txt folder.
+    """  # noqa : E501
     if folder is None:
-        folder = Path.cwd() / "txt"
-    for filename in get_files(folder, file, "txt"):
-        parser.txt_to_trs(filename)
+        folder = Path.cwd()
+
+    txt_folder = folder / "txt"
+    if not txt_folder.exists():
+        raise ValueError(f"No txt folder found in {folder.absolute()}")
+
+    for file_path in folder.glob("*.trs"):
+        parser = parse_trs_file(file_path)
+        txt_file = txt_folder / file_path.with_suffix(".txt").name
+        if not txt_file.exists():
+            continue
+        edited_utterances = txt_file.read_text().strip().split("\n")
+        if len(edited_utterances) != len(parser.utterances):
+            raise ValueError(
+                f"txt file {txt_file.absolute()} incompatible with trs file {file_path.absolute()}.\
+                Expected to find {len(parser.utterances)} lines, but found {len(edited_utterances)}"
+            )
+        for new_text, utterance in zip(edited_utterances, parser.utterances, strict=True):
+            utterance.text = new_text
+        write_trs(parser, txt_file.absolute().with_suffix(".trs"))
 
 
 @app.command(

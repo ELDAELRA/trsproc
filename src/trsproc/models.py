@@ -201,6 +201,15 @@ class Transcription(TrsprocModel):
     trs_episode: TRSEpisode  # TODO: make optional when converting to TRS from other formats
     trs_trans: TRSTrans  # TODO: make optional when converting to TRS from other formats
 
+    @property
+    def utterances(self) -> list[Utterance]:
+        return [
+            utterance
+            for turn in self.turns
+            for utterance in turn.content
+            if isinstance(utterance, Utterance)
+        ]
+
 
 class NamedEntity(TrsprocModel):
     file_name: str

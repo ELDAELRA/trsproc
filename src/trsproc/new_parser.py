@@ -37,7 +37,8 @@ def _load_lenient_dtd() -> etree.DTD:
     """This is a more lenient version of the dtd, that only cares about the order of the elements.
     All closed value sets for attribs are turned into plain CDATA,
     because optional invalid attribs fallback to None
-    (see [`TrsprocModel._drop_invalid_if_optional`][trsproc.models.TrsprocModel._drop_invalid_if_optional])
+    (see [`TrsprocModel._drop_invalid_if_optional`]
+    [trsproc.models.TrsprocModel._drop_invalid_if_optional])
     """
     dtd_path = files("trsproc").joinpath("lenient.dtd")
     with dtd_path.open() as f:
@@ -76,8 +77,8 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
         case "Who":
             idx = element.get("nb")
             try:
-                speaker = speakers[int(idx) - 1]  # Speakers are 1-indexed
-            except (ValueError, IndexError):
+                speaker = None if idx is None else speakers[int(idx) - 1]  # speakers are 1-indexed
+            except IndexError:
                 speaker = None
 
         case _:
@@ -121,7 +122,7 @@ def parse_turn(
             continue
 
         # Once we find a sync tag, we create a new SpeechTurn object
-        sync_time = float(child.get("time"))
+        sync_time = float(child.get("time"))  # type: ignore (if sync had no time tag, validation would have failed before here)
         rolling_speech_turn.end = sync_time
         if rolling_speech_turn.content:  # ignore empty turns (most Turns start with a Sync)
             speech_turns.append(rolling_speech_turn)
@@ -149,7 +150,7 @@ def parse_turn(
 
 def parse_speakers(tree: _ElementTree) -> dict[str, Speaker]:
     speakers = tree.findall(".//Speaker")
-    return {
+    return {  # type: ignore (if speaker had no id, validation would have failed before here)
         speaker.get("id"): Speaker.model_validate(clean_attrib(speaker.attrib))
         for speaker in speakers
     }
@@ -157,7 +158,9 @@ def parse_speakers(tree: _ElementTree) -> dict[str, Speaker]:
 
 def parse_topics(tree: _ElementTree) -> dict[str, Topic]:
     topics = tree.findall(".//Topic")
-    return {topic.get("id"): Topic.model_validate(clean_attrib(topic.attrib)) for topic in topics}
+    return {  # type: ignore (if topic had no id, validation would have failed before here)
+        topic.get("id"): Topic.model_validate(clean_attrib(topic.attrib)) for topic in topics
+    }
 
 
 def extract_nes_from_transcription(transcription: Transcription) -> list[NamedEntity]:
@@ -244,7 +247,7 @@ def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict
     return attribs
 
 
-def write_trs(transcription: Transcription, file_name: str) -> None:
+def write_trs(transcription: Transcription, file_name: str | Path) -> None:
     dtd = _load_dtd()
     root = etree.Element("Trans", to_xml_attribs(transcription.trs_trans))
     if transcription.speakers:
