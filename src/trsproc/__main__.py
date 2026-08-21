@@ -7,7 +7,7 @@ from typing import Annotated
 import typer
 
 from trsproc import parser, utils
-from trsproc.models import NamedEntity, Transcription
+from trsproc.models import NamedEntity
 from trsproc.new_parser import (
     extract_nes_from_transcription,
     parse_trs_file,
@@ -154,11 +154,10 @@ def txt(
     txt_folder = folder / "txt"
     txt_folder.mkdir(exist_ok=True)
     for filename in get_files(folder, file, "trs"):
-        trs_parser: Transcription = parse_trs_file(filename)
+        trs_parser = parse_trs_file(filename)
         utterances = [utterance.text for utterance in trs_parser.utterances]
-        print(trs_parser.trs_file_path)
-        print(utterances)
-        with open(txt_folder / filename.with_suffix(".txt").name, "w") as f:
+        txt_file_path = txt_folder / filename.with_suffix(".txt").name
+        with open(txt_file_path, "w") as f:
             f.write("\n".join(utterances))
 
 
