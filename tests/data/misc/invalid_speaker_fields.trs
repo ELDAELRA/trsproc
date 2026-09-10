@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Trans SYSTEM "trans-14.dtd">
+<Trans audio_filename="en_test" version="4" version_date="231218">
+  <Speakers>
+    <Speaker id="spk1" name="fs1" check="invalid" type="invalid" dialect="invalid" accent=""
+      scope="invalid" />
+  </Speakers>
+  <Episode>
+  </Episode>
+</Trans>
