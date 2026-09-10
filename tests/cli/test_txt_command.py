@@ -2,17 +2,11 @@ import shutil
 from pathlib import Path
 
 from pytest import fixture
-from typer.testing import CliRunner
 
-from trsproc.__main__ import app
+from tests.helpers import invoke
+from trsproc.new_parser import parse_trs_file
 
-DATA_DIRECTORY = Path(__file__).parent / "data" / "txt"
-runner = CliRunner()
-
-
-def invoke(*args):
-    """Small helper to reduce boilerplate (path objects need to be converted to strings)"""
-    return runner.invoke(app, [str(arg) for arg in args])
+DATA_DIRECTORY = Path(__file__).parent.parent / "data" / "txt"
 
 
 @fixture(autouse=True)
@@ -30,11 +24,6 @@ def test_directory(tmp_path, monkeypatch) -> Path:
 @fixture
 def simple_test_file(test_directory) -> Path:
     return test_directory / "en_test.trs"
-
-
-@fixture
-def expected_placeholder_directory() -> Path:
-    return DATA_DIRECTORY / "output" / "placeholder"
 
 
 @fixture
@@ -59,19 +48,13 @@ def test_txt_command_with_file_arg(simple_test_file):
 
 def test_txt_command_output(
     test_directory,
-    expected_placeholder_directory,
     expected_txt_directory,
 ):
     result = invoke("txt")
     assert result.exit_code == 0
-    for expected_placeholder_file in expected_placeholder_directory.glob("*placeholder.trs"):
-        generated_placeholder = test_directory / "placeholder" / expected_placeholder_file.name
-        assert generated_placeholder.exists()
-        assert (
-            generated_placeholder.read_text().strip()
-            == expected_placeholder_file.read_text().strip()
-        )
-    for expected_txt_file in expected_txt_directory.glob("*.txt"):
-        generated_txt = test_directory / "txt" / expected_txt_file.name
-        assert generated_txt.exists()
-        assert generated_txt.read_text().strip() == expected_txt_file.read_text().strip()
+    for trs in expected_txt_directory.glob("*.trs"):
+        gold = parse_trs_file(trs)
+        pred_path = test_directory / "txt" / trs.name
+        assert pred_path.exists()
+        pred = parse_trs_file(pred_path)
+        assert pred == gold
