@@ -28,7 +28,7 @@ TurnChannel = Literal["telephone", "studio"]
 
 
 class TrsprocModel(BaseModel):
-    """A BaseModel that also runs validation when overwritting a property"""
+    """A BaseModel that also runs validation when overwriting a property"""
 
     model_config = ConfigDict(validate_assignment=True)
 
