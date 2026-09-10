@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <!DOCTYPE Trans SYSTEM "trans-14.dtd">
-<Trans version="2" version_date="260701" audio_filename="frint980428" scribe="YM" xml:lang="fr">
+<Trans version="2" version_date="260701" audio_filename="frint980428" scribe="trsproc_test"
+  xml:lang="fr">
   <Topics>
     <Topic id="to1" desc="les titres" />
   </Topics>
@@ -24,9 +25,9 @@
     <Section type="nontrans" startTime="4.736" endTime="9.609">
       <Turn startTime="4.736" endTime="9.609">
         <Sync time="4.736" />
-<Background time="4.736" type="music" level="high" />
+        <Background time="4.736" type="music" level="high" />
 
-<Background
+        <Background
           time="9.609" type="other" level="off" />
       </Turn>
     </Section>
