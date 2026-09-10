@@ -2,10 +2,20 @@ import shutil
 from pathlib import Path
 
 from pytest import fixture
+from typer.testing import CliRunner
 
-from tests.helpers import invoke
+from trsproc.__main__ import app
 
-DATA_DIRECTORY = Path(__file__).parent.parent / "data" / "tsv"
+DATA_DIRECTORY = Path(__file__).parent / "data" / "tsv"
+
+
+def invoke(*args):
+    runner = CliRunner()
+    """Small helper to reduce boilerplate (path objects need to be converted to strings)"""
+    return runner.invoke(
+        app,
+        [str(arg) for arg in args],
+    )
 
 
 @fixture(autouse=True)

@@ -9,7 +9,11 @@
 <Section type="report" startTime="0" endTime="120.491">
 <Turn speaker="spk1" startTime="0.0" endTime="4.789">
 <Sync time="0.0"/>
-The town of Lyon is served by the Coahoma County School District.
+The town of 
+<Event desc="loc" type="entities" extent="begin"/>
+Lyon 
+<Event desc="loc" type="entities" extent="end"/>
+is served by the Coahoma County School District.
 </Turn>
 <Turn speaker="spk1" startTime="4.789" endTime="9.563">
 <Sync time="4.789"/>

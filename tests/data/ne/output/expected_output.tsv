@@ -1,4 +1,2 @@
-file_name,file_path,ne_rank,ne_class,ne_content,segment_rank,segment_content,segment_start,segment_end,segment_duration,speaker,speaker_sex
-ne_input_2.trs,/home/florian.philippe/Documents/trsproc_test/ne/ne_input_2.trs,1,loc,Lyon,1,The town of Lyon is served by the Coahoma County School District.,0.0,4.789,4.79,fs2,female
-ne_input_2.trs,/home/florian.philippe/Documents/trsproc_test/ne/ne_input_2.trs,2,loc,South River,4,Arundel High School's rival school is South River High School.,16.031,20.966,4.94,fs2,female
-ne_input_1.trs,/home/florian.philippe/Documents/trsproc_test/ne/ne_input_1.trs,3,loc,Lyon,1,The town of Lyon is served by the Coahoma County School District.,0.0,4.789,4.79,fs2,female
+file_name	file_path	NE_rank	NE_class	NE_content	segment_rank	segment_content	segment_start	segment_end	segment_duration	speaker	speaker_sex
+en_test	/home/florian.philippe/Documents/trsproc_test/en_only	1	loc	Lyon 	1	The town of Lyon is served by the Coahoma County School District.	0.0	4.789	4.789	fs1	female
