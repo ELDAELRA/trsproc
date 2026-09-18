@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
+import typer.rich_utils
 
 from trsproc import parser, utils
 from trsproc.models import NamedEntity
@@ -31,6 +32,7 @@ Allows users to convert, validate, sample, and annotate TRS files interactively.
 """
 
 app = typer.Typer()
+typer.rich_utils.STYLE_HELPTEXT = ""
 crt_app = typer.Typer(help="Apply corrections to .trs files")
 app.add_typer(crt_app, name="crt")
 
