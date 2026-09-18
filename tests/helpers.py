@@ -1,6 +1,6 @@
 from typer.testing import CliRunner
 
-from trsproc.__main__ import app
+from trsproc.cli import app
 
 
 def invoke(*args):
