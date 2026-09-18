@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from trsproc.models import Speaker
-from trsproc.new_parser import parse_trs_file, write_trs
+from trsproc.new_parser import parse_trs_file
+from trsproc.writing import write_trs
 
 directory = Path(__file__).parent / "data" / "misc"
 trs_test_file = directory / "transcriber_test.trs"
