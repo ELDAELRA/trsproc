@@ -1,0 +1,2 @@
+file_name	file_path	nb_spk	nb_lang	dur_tot	dur_trans	dur_nontrans	nb_seg	nb_trans	nb_nontrans	nb_pronpi	nb_tokens	nb_ne	mean_snr
+en_test.trs	/home/vsi/en_test.trs	3	1	120.49125	20.0	10.440999999999999	22	20	2	3	1481	1	13.17
