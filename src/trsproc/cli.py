@@ -556,7 +556,36 @@ def vsi(
     ] = None,
 ) -> None:
     """Produces a tabular file containing basic lexical information and
-    statistics concerning the input TRS."""
+    statistics concerning the input TRS. The header row contains the following :
+
+    \b
+    - file_name: str
+    - file_path: str
+    - nb_spk: int
+      number of speakers defined in the file
+    - nb_lang: int
+      number of Event tags with type=language. If none found, defaults to 1
+    - dur_tot: float | None
+      waf file duration in seconds, if any
+    - dur_trans: float
+      duration in seconds of segments that contain text
+    - dur_nontrans: float
+      duration in seconds of segments that don't contain text
+    - nb_seg: int
+      number of segments
+    - nb_trans: int
+      number of segments that contain text
+    - nb_nontrans: int
+      number of segments that don't contain text
+    - nb_pronpi: int
+      number of 'pi' events, that is of not understandable speech
+    - nb_tokens: int
+      number of tokens. For latin alphabet, number of space-delimited sequences of characters
+    - nb_ne: int
+      number of named entity annotations.
+    - mean_snr: float | None
+      mean signal-to-noise ratio
+    """
     if folder is None:
         folder = Path.cwd()
     stats: list[TranscriptionStats] = []
