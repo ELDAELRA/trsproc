@@ -8,7 +8,6 @@ converting between TRS, TextGrid, TXT, and VAD formats.
 
 import os
 import re
-from pathlib import Path
 from xml.etree import ElementTree as ElementTree
 from xml.etree.ElementTree import ParseError
 
@@ -47,8 +46,6 @@ def praat_snr_for_segment(
     Returns:
         The mean harmonicity (SNR) value rounded to 2 decimal places.
     """
-    if not Path(audio).exists():
-        raise FileNotFoundError(audio)
     sound = parselmouth.Sound(audio)
     sound_part = sound.extract_part(seg_start, seg_end) if seg_start and seg_end else sound
     # superimposed speech 20 < SNR > 45
