@@ -6,6 +6,7 @@ from pydantic import SerializeAsAny
 
 from trsproc.models.base import TrsprocModel
 from trsproc.models.trs import (
+    Event,
     Speaker,
     SpeechTurnElement,
     Topic,
@@ -35,6 +36,10 @@ class SpeechTurn(TrsprocModel):
         )
 
     @property
+    def duration(self) -> float:
+        return self.end - self.start
+
+    @property
     def has_overlap(self) -> bool:
         return len(self.speakers) > 1
 
@@ -57,6 +62,21 @@ class Transcription(TrsprocModel):
     trs_trans: TRSTrans  # TODO: make optional when converting to TRS from other formats
 
     @property
+    def audio_file_path(self) -> Path | None:
+        file_path = self.trs_file_path.with_suffix(".wav")
+        if not file_path.exists():
+            return
+        return file_path.absolute()
+
+    @property
+    def all_text(self) -> str:
+        return " ".join([turn.text for turn in self.turns])
+
+    @property
+    def nb_tokens(self) -> int:
+        return len(self.all_text)  # TODO : adapt for jkz alphabets
+
+    @property
     def utterances(self) -> list[Utterance]:
         return [
             utterance
@@ -64,3 +84,54 @@ class Transcription(TrsprocModel):
             for utterance in turn.content
             if isinstance(utterance, Utterance)
         ]
+
+    @property
+    def nb_turns(self) -> int:
+        return len(self.turns)
+
+    @property
+    def nb_speakers(self) -> int:
+        return len(self.speakers)
+
+    @property
+    def languages(self) -> list[str]:
+        return [
+            event.desc
+            for turn in self.turns
+            for event in turn.content
+            if isinstance(event, Event)
+            if event.type == "language" and event.extent != "end"
+        ]
+
+    @property
+    def nb_languages(self) -> int:
+        if not self.languages:
+            return 1
+        return len(self.languages)
+
+    @property
+    def duration_transcribed_turns(self) -> float:
+        return sum(turn.duration for turn in self.turns if turn.text)
+
+    @property
+    def nb_transcribed_turns(self) -> int:
+        return len([turn for turn in self.turns if turn.text])
+
+    @property
+    def duration_non_transcribed_turns(self) -> float:
+        return sum(turn.duration for turn in self.turns if not turn.text)
+
+    @property
+    def nb_non_transcribed_turns(self) -> int:
+        return len([turn for turn in self.turns if not turn.text])
+
+    @property
+    def nb_pronpi(self) -> int:
+        return len(
+            [
+                event
+                for turn in self.turns
+                for event in turn.content
+                if isinstance(event, Event) and event.desc == "pi"
+            ]
+        )
