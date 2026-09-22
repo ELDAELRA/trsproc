@@ -5,6 +5,8 @@ from lxml import etree
 
 from trsproc.dtd import _load_dtd
 from trsproc.models import Transcription, TrsprocModel, Utterance
+from trsproc.named_entities import NamedEntity
+from trsproc.stats import TranscriptionStats
 
 
 def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict[str, str]:
@@ -95,11 +97,20 @@ def write_trs(transcription: Transcription, file_name: str | Path) -> None:
         out_stream.write(xml)
 
 
-def write_nes_to_tsv(entities: list, file_path: Path) -> None:
+def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
     with open(file_path, "w") as file:
         writer = csv.writer(file, delimiter="\t")
         if entities:
             writer.writerow(entities[0].model_dump().keys())
-        for i, ent in enumerate(entities):
-            ent.ne_rank = i + 1
-            writer.writerow(ent.model_dump().values())
+            for i, ent in enumerate(entities):
+                ent.ne_rank = i + 1
+                writer.writerow(ent.model_dump().values())
+
+
+def write_stats_to_tsv(stats: list[TranscriptionStats], file_path: Path) -> None:
+    with open(file_path, "w") as file:
+        writer = csv.writer(file, delimiter="\t")
+        if stats:
+            writer.writerow(stats[0].model_dump().keys())
+            for stat in stats:
+                writer.writerow(stat.model_dump().values())

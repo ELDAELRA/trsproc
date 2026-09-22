@@ -9,8 +9,9 @@ from trsproc import parser, utils
 from trsproc.named_entities import NamedEntity, extract_nes_from_transcription
 from trsproc.new_parser import parse_trs_file
 from trsproc.parser import TRSParser
+from trsproc.stats import TranscriptionStats, get_transcription_stats
 from trsproc.validation.io import is_validation_complete, make_paths
-from trsproc.writing import write_nes_to_tsv, write_trs
+from trsproc.writing import write_nes_to_tsv, write_stats_to_tsv, write_trs
 
 """
 CLI entry point for the trsproc tool.
@@ -20,7 +21,7 @@ Allows users to convert, validate, sample, and annotate TRS files interactively.
 """
 
 app = typer.Typer()
-typer.rich_utils.STYLE_HELPTEXT = ""
+typer.rich_utils.STYLE_HELPTEXT = ""  # type: ignore
 crt_app = typer.Typer(help="Apply corrections to .trs files")
 app.add_typer(crt_app, name="crt")
 
@@ -555,12 +556,44 @@ def vsi(
     ] = None,
 ) -> None:
     """Produces a tabular file containing basic lexical information and
-    statistics concerning the input TRS."""
+    statistics concerning the input TRS. The header row contains the following :
+
+    \b
+    - file_name: str
+    - file_path: str
+    - nb_spk: int
+      number of speakers defined in the file
+    - nb_lang: int
+      number of Event tags with type=language. If none found, defaults to 1
+    - dur_tot: float | None
+      waf file duration in seconds, if any
+    - dur_trans: float
+      duration in seconds of segments that contain text
+    - dur_nontrans: float
+      duration in seconds of segments that don't contain text
+    - nb_seg: int
+      number of segments
+    - nb_trans: int
+      number of segments that contain text
+    - nb_nontrans: int
+      number of segments that don't contain text
+    - nb_pronpi: int
+      number of 'pi' events, that is of not understandable speech
+    - nb_tokens: int
+      number of tokens. For latin alphabet, number of space-delimited sequences of characters
+    - nb_ne: int
+      number of named entity annotations.
+    - mean_snr: float | None
+      mean signal-to-noise ratio
+    """
     if folder is None:
         folder = Path.cwd()
+    stats: list[TranscriptionStats] = []
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.validate_trs()
+        transcription = parse_trs_file(filename)
+        stats.append(get_transcription_stats(transcription))
+    file_path = folder / "summary_validation-vsi.tsv"
+    write_stats_to_tsv(stats, file_path)
 
 
 @app.command(
