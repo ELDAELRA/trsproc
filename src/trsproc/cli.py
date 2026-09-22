@@ -9,8 +9,9 @@ from trsproc import parser, utils
 from trsproc.named_entities import NamedEntity, extract_nes_from_transcription
 from trsproc.new_parser import parse_trs_file
 from trsproc.parser import TRSParser
+from trsproc.stats import TranscriptionStats, get_transcription_stats
 from trsproc.validation.io import is_validation_complete, make_paths
-from trsproc.writing import write_nes_to_tsv, write_trs
+from trsproc.writing import write_nes_to_tsv, write_stats_to_tsv, write_trs
 
 """
 CLI entry point for the trsproc tool.
@@ -558,9 +559,12 @@ def vsi(
     statistics concerning the input TRS."""
     if folder is None:
         folder = Path.cwd()
+    stats: list[TranscriptionStats] = []
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.validate_trs()
+        transcription = parse_trs_file(filename)
+        stats.append(get_transcription_stats(transcription))
+    file_path = folder / "summary_validation-vsi.tsv"
+    write_stats_to_tsv(stats, file_path)
 
 
 @app.command(
