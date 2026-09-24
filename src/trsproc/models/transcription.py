@@ -69,12 +69,12 @@ class Transcription(TrsprocModel):
         return file_path.absolute()
 
     @property
-    def all_text(self) -> str:
+    def text(self) -> str:
         return " ".join([turn.text for turn in self.turns])
 
     @property
     def nb_tokens(self) -> int:
-        return len(self.all_text)  # TODO : adapt for jkz alphabets
+        return len(self.text)  # TODO : adapt for jkz alphabets
 
     @property
     def utterances(self) -> list[Utterance]:
