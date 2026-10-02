@@ -568,13 +568,13 @@ def vsi(
       number of speakers defined in the file
     - nb_lang: int
       number of Event tags with type=language. If none found, defaults to 1
-    - dur_audio: float | None
+    - dur_audio: str | None
       waf file duration in seconds, if any
     - dur_trs: str
       duration according to the trs file (elapsed time - last segment time)
-    - dur_trans: float
+    - dur_trans: str
       duration in seconds of segments that contain text
-    - dur_nontrans: float
+    - dur_nontrans: str
       duration in seconds of segments that don't contain text
     - nb_seg: int
       number of segments
