@@ -47,7 +47,7 @@ def get_transcription_stats(transcription: Transcription) -> TranscriptionStats:
     return TranscriptionStats(
         file_name=str(transcription.trs_file_path.name),
         file_path=str(transcription.trs_file_path.absolute()),
-        audio_file_path=str(af.absolute()) if af else None,
+        audio_file_path=str(af) if af else None,
         nb_spk=transcription.nb_speakers,
         nb_lang=transcription.nb_languages,
         dur_audio=duration,
