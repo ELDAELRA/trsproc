@@ -554,8 +554,11 @@ def vsi(
         Path | None,
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
+    delimiter: Annotated[
+        str, typer.Option(help="The delimiter to use in the columnar file", show_default="tab")
+    ] = "\t",
 ) -> None:
-    """Produces a tabular file containing basic lexical information and
+    """Produces a columnar file containing basic lexical information and
     statistics concerning the input TRS. The header row contains the following :
 
     \b
@@ -592,8 +595,9 @@ def vsi(
     for filename in get_files(folder, file, "trs"):
         transcription = parse_trs_file(filename)
         stats.append(get_transcription_stats(transcription))
-    file_path = folder / "summary_validation-vsi.tsv"
-    write_stats_to_tsv(stats, file_path)
+    extension = "tsv" if delimiter == "\t" else "csv"
+    file_path = folder / f"summary_validation-vsi.{extension}"
+    write_stats_to_tsv(stats, file_path, delimiter)
 
 
 @app.command(

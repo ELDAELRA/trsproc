@@ -107,9 +107,9 @@ def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
                 writer.writerow(ent.model_dump().values())
 
 
-def write_stats_to_tsv(stats: list[TranscriptionStats], file_path: Path) -> None:
+def write_stats_to_tsv(stats: list[TranscriptionStats], file_path: Path, delimiter: str) -> None:
     with open(file_path, "w") as file:
-        writer = csv.writer(file, delimiter="\t")
+        writer = csv.writer(file, delimiter=delimiter)
         if stats:
             writer.writerow(stats[0].model_dump().keys())
             for stat in stats:
