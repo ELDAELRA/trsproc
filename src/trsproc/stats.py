@@ -9,15 +9,18 @@ from trsproc.parser import praat_snr_for_segment
 class TranscriptionStats(TrsprocModel):
     file_name: str
     file_path: str
+    audio_file_path: str | None
     nb_spk: int
     """number of speakers defined in the file"""
     nb_lang: int
     """number of Event tags with type=language. If none found, defaults to 1"""
-    dur_tot: float | None
+    dur_audio: str | None
     """waf file duration in seconds, if any"""
-    dur_trans: float
+    dur_trs: str
+    """Duration according to the trs file (elapsed time - last segment time)"""
+    dur_trans: str
     """duration in seconds of segments that contain text"""
-    dur_nontrans: float
+    dur_nontrans: str
     """duration in seconds of segments that don't contain text"""
     nb_seg: int
     """number of segments"""
@@ -37,18 +40,20 @@ class TranscriptionStats(TrsprocModel):
 
 def get_transcription_stats(transcription: Transcription) -> TranscriptionStats:
     af = transcription.audio_file_path
-    duration = get_duration(path=af) if af is not None else None
+    duration = f"{get_duration(path=af):.2f}" if af is not None else None
     nb_ne = len(extract_nes_from_transcription(transcription))
     mean_snr = praat_snr_for_segment(str(af)) if af is not None else None
 
     return TranscriptionStats(
         file_name=str(transcription.trs_file_path.name),
         file_path=str(transcription.trs_file_path.absolute()),
+        audio_file_path=str(af.absolute()) if af else None,
         nb_spk=transcription.nb_speakers,
         nb_lang=transcription.nb_languages,
-        dur_tot=duration,
-        dur_trans=transcription.duration_transcribed_turns,
-        dur_nontrans=transcription.duration_non_transcribed_turns,
+        dur_audio=duration,
+        dur_trs=f"{transcription.duration:.2f}",
+        dur_trans=f"{transcription.duration_transcribed_turns:.2f}",
+        dur_nontrans=f"{transcription.duration_non_transcribed_turns:.2f}",
         nb_seg=transcription.nb_turns,
         nb_trans=transcription.nb_transcribed_turns,
         nb_nontrans=transcription.nb_non_transcribed_turns,

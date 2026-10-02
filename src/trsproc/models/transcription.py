@@ -63,10 +63,18 @@ class Transcription(TrsprocModel):
 
     @property
     def audio_file_path(self) -> Path | None:
-        file_path = self.trs_file_path.with_suffix(".wav")
-        if not file_path.exists():
-            return
-        return file_path.absolute()
+        """Returns the audio file path as defined in the trs file, as an absolute path.
+        If that path doesn't exist, tries to guess the audio path based on the trs path.
+        If none exist, returns None
+        """
+        candidates = (
+            self.trs_trans.audio_filename,
+            self.trs_file_path,
+        )
+        for candidate in candidates:
+            if candidate and (path := Path(candidate).with_suffix(".wav")).exists():
+                return path.absolute()
+        return None
 
     @property
     def text(self) -> str:
@@ -139,3 +147,13 @@ class Transcription(TrsprocModel):
                 )
             ]
         )
+
+    @property
+    def duration(self) -> float:
+        """Duration according to the trs file (elapsed time - last segment time)"""
+        try:
+            elapsed_time = float(self.trs_trans.elapsed_time)  # type: ignore
+        except (ValueError, TypeError):
+            elapsed_time = 0.0
+        end = self.turns[-1].end if self.turns else 0.0
+        return end - elapsed_time
