@@ -33,11 +33,13 @@ def replace_punctuations(sentence):
     return sentence
 
 
-def praat_snr_for_segment(audio, seg_start, seg_end):
+def praat_snr_for_segment(
+    audio: str, seg_start: float | None = None, seg_end: float | None = None
+) -> float:
     """Compute the Signal-to-Noise Ratio (SNR) for an audio segment using Praat.
 
     Args:
-        audio: Path to the audio file.
+        audio: path to the audio file.
         seg_start: Start time of the segment in seconds.
         seg_end: End time of the segment in seconds.
 
@@ -45,7 +47,7 @@ def praat_snr_for_segment(audio, seg_start, seg_end):
         The mean harmonicity (SNR) value rounded to 2 decimal places.
     """
     sound = parselmouth.Sound(audio)
-    sound_part = sound.extract_part(seg_start, seg_end)
+    sound_part = sound.extract_part(seg_start, seg_end) if seg_start and seg_end else sound
     # superimposed speech 20 < SNR > 45
     hnr = sound_part.to_harmonicity()
     mean_snr = parselmouth.praat.call(hnr, "Get mean", 0, 0)
