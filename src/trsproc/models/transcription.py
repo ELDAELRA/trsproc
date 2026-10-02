@@ -132,6 +132,10 @@ class Transcription(TrsprocModel):
                 event
                 for turn in self.turns
                 for event in turn.content
-                if isinstance(event, Event) and event.desc == "pi"
+                if isinstance(event, Event)
+                and (
+                    event.desc == "pi"
+                    or (event.type == "pronounce" and event.extent == "instantaneous")
+                )
             ]
         )
