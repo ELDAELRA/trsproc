@@ -94,14 +94,14 @@ class Transcription(TrsprocModel):
         return len(self.speakers)
 
     @property
-    def languages(self) -> list[str]:
-        return [
+    def languages(self) -> set[str]:
+        return {
             event.desc
             for turn in self.turns
             for event in turn.content
             if isinstance(event, Event)
             if event.type == "language" and event.extent != "end"
-        ]
+        }
 
     @property
     def nb_languages(self) -> int:
