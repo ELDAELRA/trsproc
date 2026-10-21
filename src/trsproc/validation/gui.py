@@ -437,6 +437,14 @@ class TranscriptionValidatorGUI(QWidget):
 
         return
 
+    def _make_spin(self) -> QSpinBox:
+        spin = QSpinBox()
+        spin.setRange(0, 100)
+        spin.setFixedSize(90, 50)
+        spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        spin.valueChanged.connect(self._mark_dirty)
+        return spin
+
     def _build_counters(self):
         """Create the segment and transcript error counters.
 
@@ -445,24 +453,18 @@ class TranscriptionValidatorGUI(QWidget):
             segment errors and transcript errors.
         """
         layout = QHBoxLayout()
+        self.seg_spin = self._make_spin()  # direct assignment: checker sees it
+        self.trans_spin = self._make_spin()  # and infers the type QSpinBox
 
-        for attr, label_text in (
-            ("seg_spin", "Segment Errors (← / →)"),
-            ("trans_spin", "Transcript Errors (↓ / ↑)"),
+        for spin, label_text in (
+            (self.seg_spin, "Segment Errors (← / →)"),
+            (self.trans_spin, "Transcript Errors (↓ / ↑)"),
         ):
             box = QVBoxLayout()
             lbl = QLabel(label_text)
             lbl.setStyleSheet("font-weight: 500; color: #333333;")
             box.addWidget(lbl, alignment=Qt.AlignmentFlag.AlignHCenter)
-
-            spin = QSpinBox()
-            spin.setRange(0, 100)
-            spin.setFixedSize(90, 50)
-            spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            spin.valueChanged.connect(self._mark_dirty)
             box.addWidget(spin, alignment=Qt.AlignmentFlag.AlignHCenter)
-            setattr(self, attr, spin)
-
             layout.addLayout(box, 1)
 
         return layout
