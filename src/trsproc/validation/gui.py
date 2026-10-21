@@ -500,14 +500,14 @@ class TranscriptionValidatorGUI(QWidget):
             - ``Left/Right``: decrease/increase segment errors
             - ``Down/Up``: decrease/increase transcript errors
         """
-        QShortcut(QKeySequence("Space"), self, activated=self.toggle_play_pause)
-        QShortcut(QKeySequence("R"), self, activated=self.replay_audio)
-        QShortcut(QKeySequence("Return"), self, activated=self.save_and_next)
-        QShortcut(QKeySequence("Enter"), self, activated=self.save_and_next)
-        QShortcut(QKeySequence("Left"), self, activated=lambda: self._adjust_seg(-1))
-        QShortcut(QKeySequence("Right"), self, activated=lambda: self._adjust_seg(+1))
-        QShortcut(QKeySequence("Down"), self, activated=lambda: self._adjust_trans(-1))
-        QShortcut(QKeySequence("Up"), self, activated=lambda: self._adjust_trans(+1))
+        QShortcut(QKeySequence("Space"), self).activated.connect(self.toggle_play_pause)
+        QShortcut(QKeySequence("R"), self).activated.connect(self.replay_audio)
+        QShortcut(QKeySequence("Return"), self).activated.connect(self.save_and_next)
+        QShortcut(QKeySequence("Enter"), self).activated.connect(self.save_and_next)
+        QShortcut(QKeySequence("Left"), self).activated.connect(lambda: self._adjust_seg(-1))
+        QShortcut(QKeySequence("Right"), self).activated.connect(lambda: self._adjust_seg(+1))
+        QShortcut(QKeySequence("Down"), self).activated.connect(lambda: self._adjust_trans(-1))
+        QShortcut(QKeySequence("Up"), self).activated.connect(lambda: self._adjust_trans(+1))
 
         return
 
