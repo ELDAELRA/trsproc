@@ -12,7 +12,7 @@ import shutil
 
 import pandas as pd
 from PyQt6.QtCore import QSignalBlocker, Qt, QUrl
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtGui import QCloseEvent, QKeySequence, QMouseEvent, QShortcut
 from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from typing_extensions import override
 
 from trsproc.validation.io import (
     COL_ERR_SEG,
@@ -180,25 +181,31 @@ def format_ms(ms):
 class ClickableSlider(QSlider):
     """A QSlider that responds to mouse clicks to jump to a position."""
 
-    def mousePressEvent(self, event):  # noqa: N802
+    @override
+    def mousePressEvent(self, ev: QMouseEvent | None) -> None:  # ty: ignore[invalid-method-override]
         """Handle mouse press events to allow click-to-seek behavior.
 
         Computes the slider ratio from the click position and sets the value
         accordingly.
         """
-        if event.button() == Qt.MouseButton.LeftButton:
+        # ev is never None,
+        # the stubs are typed generated this way from cpp because a pointer can be null
+        if ev is None:
+            return
+
+        if ev.button() == Qt.MouseButton.LeftButton:
             if self.orientation() == Qt.Orientation.Horizontal:
-                ratio = event.position().x() / max(1, self.width())
+                ratio = ev.position().x() / max(1, self.width())
             else:
-                ratio = 1.0 - (event.position().y() / max(1, self.height()))
+                ratio = 1.0 - (ev.position().y() / max(1, self.height()))
 
             ratio = max(0.0, min(1.0, ratio))
             new_value = int(self.minimum() + ratio * (self.maximum() - self.minimum()))
             self.setValue(new_value)
             self.sliderMoved.emit(new_value)
-            event.accept()
+            ev.accept()
             return
-        super().mousePressEvent(event)
+        super().mousePressEvent(ev)
 
 
 class TranscriptionValidatorGUI(QWidget):
@@ -973,15 +980,22 @@ class TranscriptionValidatorGUI(QWidget):
 
         return
 
-    def closeEvent(self, event):  # noqa: N802
+    @override
+    def closeEvent(self, a0: QCloseEvent | None) -> None:
         """Handle window close event: resolve unsaved changes before closing.
 
         If the user cancels, the close event is ignored.
         """
+
+        # a0 is never None,
+        # the stubs are typed generated this way from cpp because a pointer can be null
+        if a0 is None:
+            return
+
         result = self._handle_dirty()
         if result == DirtyAction.CANCELLED:
-            event.ignore()
+            a0.ignore()
             return
         if result == DirtyAction.SAVED:
             pass  # already saved inside _handle_dirty
-        event.accept()
+        a0.accept()
