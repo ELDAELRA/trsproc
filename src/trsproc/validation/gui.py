@@ -12,7 +12,7 @@ import shutil
 
 import pandas as pd
 from PyQt6.QtCore import QSignalBlocker, Qt, QUrl
-from PyQt6.QtGui import QKeySequence, QShortcut
+from PyQt6.QtGui import QCloseEvent, QKeySequence, QMouseEvent, QShortcut
 from PyQt6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PyQt6.QtWidgets import (
     QHBoxLayout,
@@ -28,6 +28,7 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from typing_extensions import override
 
 from trsproc.validation.io import (
     COL_ERR_SEG,
@@ -180,25 +181,31 @@ def format_ms(ms):
 class ClickableSlider(QSlider):
     """A QSlider that responds to mouse clicks to jump to a position."""
 
-    def mousePressEvent(self, event):  # noqa: N802
+    @override
+    def mousePressEvent(self, ev: QMouseEvent | None) -> None:  # ty: ignore[invalid-method-override]
         """Handle mouse press events to allow click-to-seek behavior.
 
         Computes the slider ratio from the click position and sets the value
         accordingly.
         """
-        if event.button() == Qt.MouseButton.LeftButton:
+        # ev is never None,
+        # the stubs are typed generated this way from cpp because a pointer can be null
+        if ev is None:
+            return
+
+        if ev.button() == Qt.MouseButton.LeftButton:
             if self.orientation() == Qt.Orientation.Horizontal:
-                ratio = event.position().x() / max(1, self.width())
+                ratio = ev.position().x() / max(1, self.width())
             else:
-                ratio = 1.0 - (event.position().y() / max(1, self.height()))
+                ratio = 1.0 - (ev.position().y() / max(1, self.height()))
 
             ratio = max(0.0, min(1.0, ratio))
             new_value = int(self.minimum() + ratio * (self.maximum() - self.minimum()))
             self.setValue(new_value)
             self.sliderMoved.emit(new_value)
-            event.accept()
+            ev.accept()
             return
-        super().mousePressEvent(event)
+        super().mousePressEvent(ev)
 
 
 class TranscriptionValidatorGUI(QWidget):
@@ -430,6 +437,14 @@ class TranscriptionValidatorGUI(QWidget):
 
         return
 
+    def _make_spin(self) -> QSpinBox:
+        spin = QSpinBox()
+        spin.setRange(0, 100)
+        spin.setFixedSize(90, 50)
+        spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        spin.valueChanged.connect(self._mark_dirty)
+        return spin
+
     def _build_counters(self):
         """Create the segment and transcript error counters.
 
@@ -438,24 +453,18 @@ class TranscriptionValidatorGUI(QWidget):
             segment errors and transcript errors.
         """
         layout = QHBoxLayout()
+        self.seg_spin = self._make_spin()  # direct assignment: checker sees it
+        self.trans_spin = self._make_spin()  # and infers the type QSpinBox
 
-        for attr, label_text in (
-            ("seg_spin", "Segment Errors (← / →)"),
-            ("trans_spin", "Transcript Errors (↓ / ↑)"),
+        for spin, label_text in (
+            (self.seg_spin, "Segment Errors (← / →)"),
+            (self.trans_spin, "Transcript Errors (↓ / ↑)"),
         ):
             box = QVBoxLayout()
             lbl = QLabel(label_text)
             lbl.setStyleSheet("font-weight: 500; color: #333333;")
             box.addWidget(lbl, alignment=Qt.AlignmentFlag.AlignHCenter)
-
-            spin = QSpinBox()
-            spin.setRange(0, 100)
-            spin.setFixedSize(90, 50)
-            spin.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            spin.valueChanged.connect(self._mark_dirty)
             box.addWidget(spin, alignment=Qt.AlignmentFlag.AlignHCenter)
-            setattr(self, attr, spin)
-
             layout.addLayout(box, 1)
 
         return layout
@@ -493,14 +502,14 @@ class TranscriptionValidatorGUI(QWidget):
             - ``Left/Right``: decrease/increase segment errors
             - ``Down/Up``: decrease/increase transcript errors
         """
-        QShortcut(QKeySequence("Space"), self, activated=self.toggle_play_pause)
-        QShortcut(QKeySequence("R"), self, activated=self.replay_audio)
-        QShortcut(QKeySequence("Return"), self, activated=self.save_and_next)
-        QShortcut(QKeySequence("Enter"), self, activated=self.save_and_next)
-        QShortcut(QKeySequence("Left"), self, activated=lambda: self._adjust_seg(-1))
-        QShortcut(QKeySequence("Right"), self, activated=lambda: self._adjust_seg(+1))
-        QShortcut(QKeySequence("Down"), self, activated=lambda: self._adjust_trans(-1))
-        QShortcut(QKeySequence("Up"), self, activated=lambda: self._adjust_trans(+1))
+        QShortcut(QKeySequence("Space"), self).activated.connect(self.toggle_play_pause)
+        QShortcut(QKeySequence("R"), self).activated.connect(self.replay_audio)
+        QShortcut(QKeySequence("Return"), self).activated.connect(self.save_and_next)
+        QShortcut(QKeySequence("Enter"), self).activated.connect(self.save_and_next)
+        QShortcut(QKeySequence("Left"), self).activated.connect(lambda: self._adjust_seg(-1))
+        QShortcut(QKeySequence("Right"), self).activated.connect(lambda: self._adjust_seg(+1))
+        QShortcut(QKeySequence("Down"), self).activated.connect(lambda: self._adjust_trans(-1))
+        QShortcut(QKeySequence("Up"), self).activated.connect(lambda: self._adjust_trans(+1))
 
         return
 
@@ -973,15 +982,22 @@ class TranscriptionValidatorGUI(QWidget):
 
         return
 
-    def closeEvent(self, event):  # noqa: N802
+    @override
+    def closeEvent(self, a0: QCloseEvent | None) -> None:
         """Handle window close event: resolve unsaved changes before closing.
 
         If the user cancels, the close event is ignored.
         """
+
+        # a0 is never None,
+        # the stubs are typed generated this way from cpp because a pointer can be null
+        if a0 is None:
+            return
+
         result = self._handle_dirty()
         if result == DirtyAction.CANCELLED:
-            event.ignore()
+            a0.ignore()
             return
         if result == DirtyAction.SAVED:
             pass  # already saved inside _handle_dirty
-        event.accept()
+        a0.accept()
