@@ -16,7 +16,7 @@ from trsproc.models.trs import (
     TRSTurn,
     Utterance,
 )
-
+from trsproc.signal import wada_snr
 
 class SpeechTurn(TrsprocModel):
     start: float
