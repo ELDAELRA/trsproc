@@ -102,7 +102,10 @@ def write_trs(transcription: Transcription, file_name: str | Path) -> None:
 
 
 def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
-    with open(file_path, "w") as file:
+    # The encoding and the newline are explicit : open() otherwise uses the locale encoding,
+    # which corrupts non ascii transcriptions, and csv needs newline="" to avoid writing an
+    # extra blank line between rows on windows.
+    with open(file_path, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file, delimiter="\t")
         if entities:
             writer.writerow(entities[0].model_dump().keys())
@@ -112,7 +115,10 @@ def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
 
 
 def write_stats_to_tsv(stats: list[TranscriptionStats], file_path: Path, delimiter: str) -> None:
-    with open(file_path, "w") as file:
+    # The encoding and the newline are explicit : open() otherwise uses the locale encoding,
+    # which corrupts non ascii transcriptions, and csv needs newline="" to avoid writing an
+    # extra blank line between rows on windows.
+    with open(file_path, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file, delimiter=delimiter)
         if stats:
             writer.writerow(stats[0].model_dump().keys())
