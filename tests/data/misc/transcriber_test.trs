@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Trans SYSTEM "trans-14.dtd">
 <Trans version="2" version_date="260701" audio_filename="frint980428" scribe="trsproc_test"
   xml:lang="fr">
@@ -13,7 +13,7 @@
     <Section type="filler" startTime="0.000" endTime="4.736">
       <Turn speaker="sp1 sp2" startTime="0.000" endTime="0.387">
         <Sync time="0.000" />
-<Who nb="1" /> ouais . <Who nb="2" /> s�r ? </Turn>
+<Who nb="1" /> ouais . <Who nb="2" /> sûr ? </Turn>
       <Turn speaker="sp1" startTime="0.387" endTime="4.736">
         <Sync time="0.387" /> ah bon ? <Event desc="rire" type="noise" extent="previous" /> non .
         blague , blague de Patricia . <Sync time="3.008" />
@@ -46,10 +46,10 @@
 <Vocal desc="laughs" />
 
 <Sync time="12.237" /> mardi 28 avril . <Sync
-          time="13.344" /> la consultation nationale sur les programmes des lyc�es : <Sync
+          time="13.344" /> la consultation nationale sur les programmes des lycées : <Sync
           time="16.236" />
 
-<Event desc="i" /> grand d�bat aujourd'hui et demain � Lyon <Sync
+<Event desc="i" /> grand débat aujourd'hui et demain à Lyon <Sync
           time="18.521" /> pour tirer les enseignements du </Turn>
     </Section>
   </Episode>
