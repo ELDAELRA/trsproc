@@ -3,7 +3,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from trsproc.dtd import _load_dtd
+from trsproc.dtd import XML_LANG_ATTRIB, _load_dtd
 from trsproc.models import Transcription, TrsprocModel, Utterance
 from trsproc.named_entities import NamedEntity
 from trsproc.stats import TranscriptionStats
@@ -14,10 +14,14 @@ def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict
     dump = model.model_dump(exclude_none=True, exclude=exclude, by_alias=True)
     attribs = {}
     for key, value in dump.items():
+        # lxml rejects the "xml:lang" prefixed name with ValueError: Invalid attribute name,
+        # so the namespace qualified name has to be passed instead. lxml serializes it back
+        # as xml:lang, which is what the dtd expects.
+        attrib_key = XML_LANG_ATTRIB if key == "xml:lang" else key
         if isinstance(value, float):
-            attribs[key] = str(value)
+            attribs[attrib_key] = str(value)
         elif isinstance(value, str):
-            attribs[key] = value
+            attribs[attrib_key] = value
         else:
             raise TypeError(f"Unknow type for xml attribute : {key} : {type(value)} : {dump}")
     return attribs
