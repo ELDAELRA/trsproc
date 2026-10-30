@@ -56,13 +56,22 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
             elems.append(Vocal.model_validate(clean_attrib(element.attrib)))
         case "Who":
             idx = element.get("nb")
-            try:
-                speaker = None if idx is None else speakers[int(idx) - 1]  # speakers are 1-indexed
-            except (ValueError, IndexError):
-                # nb is a NMTOKEN in the dtd, so it is not guaranteed to hold a number :
-                # int() raises ValueError on a dirty value, which used to abort the parse of
-                # the whole file. An unreadable or out of range nb just leaves the speaker
-                # unknown instead.
+            speaker_idx = None
+            if idx is not None:
+                try:
+                    # speakers are 1-indexed in the trs
+                    speaker_idx = int(idx)
+                except ValueError:
+                    # nb is a NMTOKEN in the dtd, so it is not guaranteed to hold a number :
+                    # int() raises ValueError on a dirty value, which used to abort the
+                    # parse of the whole file.
+                    speaker_idx = None
+            # nb is 1-indexed, so 0 and negative values are out of range too. Without this
+            # explicit check python resolves speakers[-1] to the last speaker, which silently
+            # attributes the text to the wrong person instead of leaving it unknown.
+            if speaker_idx is not None and 1 <= speaker_idx <= len(speakers):
+                speaker = speakers[speaker_idx - 1]
+            else:
                 speaker = None
 
         case _:
