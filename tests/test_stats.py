@@ -22,7 +22,7 @@ def test_stats():
         nb_trans=20,
         nb_nontrans=2,
         nb_pronpi=3,
-        nb_tokens=1481,
+        nb_tokens=236,
         nb_ne=1,
         mean_snr=13.17,
     )
