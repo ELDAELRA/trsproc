@@ -3,6 +3,13 @@ from io import StringIO
 
 from lxml import etree
 
+XML_LANG_ATTRIB = "{http://www.w3.org/XML/1998/namespace}lang"
+# lxml resolves the reserved "xml" prefix to its namespace uri, so the xml:lang attribute
+# is exposed under XML_LANG_ATTRIB rather than the "xml:lang" name used in the dtd.
+# Both the parser (new_parser.clean_attrib) and the writer (writing.to_xml_attribs) have to
+# translate between the two : without it, the language is silently dropped when reading a trs
+# and writing it back raises ValueError: Invalid attribute name.
+
 dtd_string = """<?xml encoding="UTF-8"?>
 
 <!ELEMENT Trans ((Speakers|Topics)*,Episode)>

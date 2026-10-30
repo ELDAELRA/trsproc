@@ -3,7 +3,7 @@ from pathlib import Path
 from lxml import etree
 from lxml.etree import _Attrib, _Element, _ElementTree
 
-from trsproc.dtd import _load_lenient_dtd
+from trsproc.dtd import XML_LANG_ATTRIB, _load_lenient_dtd
 from trsproc.models import (
     Background,
     Comment,
@@ -27,7 +27,14 @@ def format_text(text: str) -> str:
 
 def clean_attrib(attribs: _Attrib) -> dict[str, str]:
     """Ommit empty xml attributes"""
-    return {k: v for k, v in attribs.items() if v != ""}
+    # lxml exposes xml:lang as XML_LANG_ATTRIB, but the models declare the plain "xml:lang"
+    # alias (see TRSTrans). Renaming it here means the language used to be silently dropped
+    # on every read. Translating it back makes all model_validate calls see the alias.
+    return {
+        "xml:lang" if key == XML_LANG_ATTRIB else key: value
+        for key, value in attribs.items()
+        if value != ""
+    }
 
 
 def extract_turn_speakers(turn_elem: _Element, speakers_dict: dict[str, Speaker]) -> list[Speaker]:
