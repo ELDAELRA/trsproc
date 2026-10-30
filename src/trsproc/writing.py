@@ -79,11 +79,17 @@ def write_trs(transcription: Transcription, file_name: str | Path) -> None:
         last_tag = etree.SubElement(turn_elem, "Sync", time=str(speech_turn.start))
         for tag in speech_turn.content:
             if isinstance(tag, Utterance):
-                if speech_turn.has_overlap:
+                # In an overlap turn the speaker of an utterance is only known when the
+                # source had an explicit <Who> tag (or when the turn has a single speaker) :
+                # parse_inline_element leaves it as None otherwise. Reading tag.speaker.id
+                # used to raise AttributeError, so an overlap turn without <Who> could not
+                # be written at all. Skip the tag rather than inventing an attribution :
+                # the text is kept and the speaker stays unknown on the next read.
+                if speech_turn.has_overlap and tag.speaker is not None:
                     last_tag = etree.SubElement(
                         turn_elem,
                         "Who",
-                        nb=speech_turn.get_speaker_idx(tag.speaker.id),  # type: ignore
+                        nb=speech_turn.get_speaker_idx(tag.speaker.id),
                     )
                 last_tag.tail = tag.text
             else:
