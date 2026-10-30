@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from trsproc.models import Speaker
+from trsproc.models import Speaker, Vocal
 from trsproc.new_parser import parse_trs_file
 from trsproc.writing import write_trs
 
@@ -19,6 +19,17 @@ def test_xml_lang_is_parsed():
     # alias declared on TRSTrans, so the language was always parsed as None.
     parser = parse_trs_file(trs_test_file)
     assert parser.trs_trans.xml_lang == "fr"
+
+
+def test_vocal_is_parsed():
+    # Vocal was missing from the match in parse_inline_element and fell through to "case _",
+    # so the annotation was silently dropped on every parse -> write round trip.
+    parser = parse_trs_file(trs_test_file)
+    vocals = [
+        element for turn in parser.turns for element in turn.content if isinstance(element, Vocal)
+    ]
+    assert len(vocals) == 1
+    assert vocals[0].desc == "laughs"
 
 
 def test_invalid_optional_fields_fallback_to_none():
