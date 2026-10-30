@@ -3,7 +3,7 @@ from pathlib import Path
 from lxml import etree
 from lxml.etree import _Attrib, _Element, _ElementTree
 
-from trsproc.dtd import _load_lenient_dtd
+from trsproc.dtd import XML_LANG_ATTRIB, _load_lenient_dtd
 from trsproc.models import (
     Background,
     Comment,
@@ -18,6 +18,7 @@ from trsproc.models import (
     TRSTrans,
     TRSTurn,
     Utterance,
+    Vocal,
 )
 
 
@@ -27,16 +28,14 @@ def format_text(text: str) -> str:
 
 def clean_attrib(attribs: _Attrib) -> dict[str, str]:
     """Ommit empty xml attributes"""
-    return {k: v for k, v in attribs.items() if v != ""}
-
-
-def extract_turn_speakers(turn_elem: _Element, speakers_dict: dict[str, Speaker]) -> list[Speaker]:
-    speakers_str = turn_elem.get("speaker")
-    if speakers_str is None:
-        return []
-
-    speakers_ids = speakers_str.split()
-    return [speakers_dict[speaker_id] for speaker_id in speakers_ids]
+    # lxml exposes xml:lang as XML_LANG_ATTRIB, but the models declare the plain "xml:lang"
+    # alias (see TRSTrans). Renaming it here means the language used to be silently dropped
+    # on every read. Translating it back makes all model_validate calls see the alias.
+    return {
+        "xml:lang" if key == XML_LANG_ATTRIB else key: value
+        for key, value in attribs.items()
+        if value != ""
+    }
 
 
 def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[SpeechTurnElement]:
@@ -50,11 +49,29 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
             elems.append(Comment.model_validate(clean_attrib(element.attrib)))
         case "Background":
             elems.append(Background.model_validate(clean_attrib(element.attrib)))
+        case "Vocal":
+            # Vocal was missing from this match and fell through to "case _", so the element
+            # was silently dropped and the annotation was lost on every parse -> write round
+            # trip. Handle it like the other SpeechTurnElement types.
+            elems.append(Vocal.model_validate(clean_attrib(element.attrib)))
         case "Who":
             idx = element.get("nb")
-            try:
-                speaker = None if idx is None else speakers[int(idx) - 1]  # speakers are 1-indexed
-            except IndexError:
+            speaker_idx = None
+            if idx is not None:
+                try:
+                    # speakers are 1-indexed in the trs
+                    speaker_idx = int(idx)
+                except ValueError:
+                    # nb is a NMTOKEN in the dtd, so it is not guaranteed to hold a number :
+                    # int() raises ValueError on a dirty value, which used to abort the
+                    # parse of the whole file.
+                    speaker_idx = None
+            # nb is 1-indexed, so 0 and negative values are out of range too. Without this
+            # explicit check python resolves speakers[-1] to the last speaker, which silently
+            # attributes the text to the wrong person instead of leaving it unknown.
+            if speaker_idx is not None and 1 <= speaker_idx <= len(speakers):
+                speaker = speakers[speaker_idx - 1]
+            else:
                 speaker = None
 
         case _:

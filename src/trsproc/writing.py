@@ -3,7 +3,7 @@ from pathlib import Path
 
 from lxml import etree
 
-from trsproc.dtd import _load_dtd
+from trsproc.dtd import XML_LANG_ATTRIB, _load_dtd
 from trsproc.models import Transcription, TrsprocModel, Utterance
 from trsproc.named_entities import NamedEntity
 from trsproc.stats import TranscriptionStats
@@ -14,10 +14,14 @@ def to_xml_attribs(model: TrsprocModel, exclude: set[str] | None = None) -> dict
     dump = model.model_dump(exclude_none=True, exclude=exclude, by_alias=True)
     attribs = {}
     for key, value in dump.items():
+        # lxml rejects the "xml:lang" prefixed name with ValueError: Invalid attribute name,
+        # so the namespace qualified name has to be passed instead. lxml serializes it back
+        # as xml:lang, which is what the dtd expects.
+        attrib_key = XML_LANG_ATTRIB if key == "xml:lang" else key
         if isinstance(value, float):
-            attribs[key] = str(value)
+            attribs[attrib_key] = str(value)
         elif isinstance(value, str):
-            attribs[key] = value
+            attribs[attrib_key] = value
         else:
             raise TypeError(f"Unknow type for xml attribute : {key} : {type(value)} : {dump}")
     return attribs
@@ -75,11 +79,17 @@ def write_trs(transcription: Transcription, file_name: str | Path) -> None:
         last_tag = etree.SubElement(turn_elem, "Sync", time=str(speech_turn.start))
         for tag in speech_turn.content:
             if isinstance(tag, Utterance):
-                if speech_turn.has_overlap:
+                # In an overlap turn the speaker of an utterance is only known when the
+                # source had an explicit <Who> tag (or when the turn has a single speaker) :
+                # parse_inline_element leaves it as None otherwise. Reading tag.speaker.id
+                # used to raise AttributeError, so an overlap turn without <Who> could not
+                # be written at all. Skip the tag rather than inventing an attribution :
+                # the text is kept and the speaker stays unknown on the next read.
+                if speech_turn.has_overlap and tag.speaker is not None:
                     last_tag = etree.SubElement(
                         turn_elem,
                         "Who",
-                        nb=speech_turn.get_speaker_idx(tag.speaker.id),  # type: ignore
+                        nb=speech_turn.get_speaker_idx(tag.speaker.id),
                     )
                 last_tag.tail = tag.text
             else:
@@ -98,7 +108,10 @@ def write_trs(transcription: Transcription, file_name: str | Path) -> None:
 
 
 def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
-    with open(file_path, "w") as file:
+    # The encoding and the newline are explicit : open() otherwise uses the locale encoding,
+    # which corrupts non ascii transcriptions, and csv needs newline="" to avoid writing an
+    # extra blank line between rows on windows.
+    with open(file_path, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file, delimiter="\t")
         if entities:
             writer.writerow(entities[0].model_dump().keys())
@@ -108,7 +121,10 @@ def write_nes_to_tsv(entities: list[NamedEntity], file_path: Path) -> None:
 
 
 def write_stats_to_tsv(stats: list[TranscriptionStats], file_path: Path, delimiter: str) -> None:
-    with open(file_path, "w") as file:
+    # The encoding and the newline are explicit : open() otherwise uses the locale encoding,
+    # which corrupts non ascii transcriptions, and csv needs newline="" to avoid writing an
+    # extra blank line between rows on windows.
+    with open(file_path, "w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file, delimiter=delimiter)
         if stats:
             writer.writerow(stats[0].model_dump().keys())
