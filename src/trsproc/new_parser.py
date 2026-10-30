@@ -67,7 +67,11 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
             idx = element.get("nb")
             try:
                 speaker = None if idx is None else speakers[int(idx) - 1]  # speakers are 1-indexed
-            except IndexError:
+            except (ValueError, IndexError):
+                # nb is a NMTOKEN in the dtd, so it is not guaranteed to hold a number :
+                # int() raises ValueError on a dirty value, which used to abort the parse of
+                # the whole file. An unreadable or out of range nb just leaves the speaker
+                # unknown instead.
                 speaker = None
 
         case _:
