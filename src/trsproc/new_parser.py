@@ -18,6 +18,7 @@ from trsproc.models import (
     TRSTrans,
     TRSTurn,
     Utterance,
+    Vocal,
 )
 
 
@@ -57,6 +58,11 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
             elems.append(Comment.model_validate(clean_attrib(element.attrib)))
         case "Background":
             elems.append(Background.model_validate(clean_attrib(element.attrib)))
+        case "Vocal":
+            # Vocal was missing from this match and fell through to "case _", so the element
+            # was silently dropped and the annotation was lost on every parse -> write round
+            # trip. Handle it like the other SpeechTurnElement types.
+            elems.append(Vocal.model_validate(clean_attrib(element.attrib)))
         case "Who":
             idx = element.get("nb")
             try:
