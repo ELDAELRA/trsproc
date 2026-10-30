@@ -38,15 +38,6 @@ def clean_attrib(attribs: _Attrib) -> dict[str, str]:
     }
 
 
-def extract_turn_speakers(turn_elem: _Element, speakers_dict: dict[str, Speaker]) -> list[Speaker]:
-    speakers_str = turn_elem.get("speaker")
-    if speakers_str is None:
-        return []
-
-    speakers_ids = speakers_str.split()
-    return [speakers_dict[speaker_id] for speaker_id in speakers_ids]
-
-
 def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[SpeechTurnElement]:
     elems = []
     speaker = speakers[0] if len(speakers) == 1 else None
