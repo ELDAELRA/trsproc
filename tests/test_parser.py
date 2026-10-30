@@ -14,6 +14,13 @@ def test_parser_simple():
     assert len(parser.turns) == 11
 
 
+def test_xml_lang_is_parsed():
+    # lxml exposes xml:lang under its namespace uri, which used to never match the "xml:lang"
+    # alias declared on TRSTrans, so the language was always parsed as None.
+    parser = parse_trs_file(trs_test_file)
+    assert parser.trs_trans.xml_lang == "fr"
+
+
 def test_invalid_optional_fields_fallback_to_none():
     parser = parse_trs_file(invalid_fields_file)
     assert parser.speakers[0] == Speaker(
