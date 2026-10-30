@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from trsproc.models import Speaker, Utterance, Vocal
 from trsproc.new_parser import parse_trs_file
 from trsproc.writing import write_trs
@@ -32,21 +34,34 @@ def test_vocal_is_parsed():
     assert vocals[0].desc == "laughs"
 
 
-def test_who_with_non_numeric_nb_falls_back_to_unknown_speaker(tmp_path):
-    # nb is a NMTOKEN in the dtd, so it is not guaranteed to hold a number. int() used to
-    # raise an uncaught ValueError, which aborted the parse of the whole file.
+@pytest.mark.parametrize(
+    ("nb", "expected_speaker"),
+    [
+        ("1", "spk1"),
+        ("2", "spk2"),
+        ("3", None),  # out of range
+        ("0", None),  # used to resolve to speakers[-1], i.e. the last speaker
+        ("abc", None),  # nb is a NMTOKEN, int() raises ValueError
+    ],
+)
+def test_who_nb_attribution(tmp_path, nb, expected_speaker):
+    # nb is 1-indexed and declared as a NMTOKEN in the dtd, so it is neither guaranteed to
+    # hold a number nor to be in range. A dirty value used to raise an uncaught ValueError
+    # and abort the parse, while nb="0" silently resolved to speakers[-1] and attributed
+    # the text to the wrong speaker.
     trs_path = tmp_path / "who_nb.trs"
     trs_path.write_text(
-        """<?xml version="1.0" encoding="UTF-8"?>
+        f"""<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Trans SYSTEM "trans-14.dtd">
 <Trans>
   <Speakers>
     <Speaker id="spk1" name="spk1" />
+    <Speaker id="spk2" name="spk2" />
   </Speakers>
   <Episode>
     <Section type="report" startTime="0" endTime="1">
-      <Turn speaker="spk1" startTime="0" endTime="1">
-        <Sync time="0" /> hello <Who nb="abc" /> world
+      <Turn speaker="spk1 spk2" startTime="0" endTime="1">
+        <Sync time="0" /> hello <Who nb="{nb}" /> world
       </Turn>
     </Section>
   </Episode>
@@ -57,8 +72,8 @@ def test_who_with_non_numeric_nb_falls_back_to_unknown_speaker(tmp_path):
     parser = parse_trs_file(trs_path)
     utterances = [element for element in parser.turns[0].content if isinstance(element, Utterance)]
     assert [utterance.text for utterance in utterances] == ["hello", "world"]
-    assert utterances[0].speaker is not None
-    assert utterances[1].speaker is None
+    speaker_id = utterances[1].speaker.id if utterances[1].speaker else None
+    assert speaker_id == expected_speaker
 
 
 def test_invalid_optional_fields_fallback_to_none():
