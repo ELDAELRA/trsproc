@@ -89,3 +89,48 @@ def test_write_trs(tmp_path):
     write_trs(parser, out_path)
     parser.trs_file_path = out_path  # otherwise the objects will obviously be different
     assert parser == parse_trs_file(out_path)
+
+
+OVERLAP_TRS_TEMPLATE = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Trans SYSTEM "trans-14.dtd">
+<Trans>
+  <Speakers>
+    <Speaker id="spk1" name="spk1" />
+    <Speaker id="spk2" name="spk2" />
+  </Speakers>
+  <Episode>
+    <Section type="report" startTime="0" endTime="2">
+      <Turn speaker="spk1 spk2" startTime="0" endTime="2">
+        <Sync time="0" />{turn_content}
+      </Turn>
+    </Section>
+  </Episode>
+</Trans>
+"""
+
+
+def _write_and_reread_overlap_turn(tmp_path, turn_content):
+    src = tmp_path / "overlap.trs"
+    src.write_text(OVERLAP_TRS_TEMPLATE.format(turn_content=turn_content), encoding="utf-8")
+    out_path = tmp_path / "written.trs"
+    write_trs(parse_trs_file(src), out_path)
+    return parse_trs_file(out_path)
+
+
+def test_write_overlap_turn_without_who(tmp_path):
+    # An overlap turn without <Who> leaves the speaker of its utterances unknown. Writing it
+    # used to raise AttributeError on tag.speaker.id : the text is now written as is and the
+    # speaker stays unknown, instead of making the whole file unwritable.
+    reread = _write_and_reread_overlap_turn(tmp_path, " hello world")
+    assert [turn.text for turn in reread.turns] == ["hello world"]
+    assert reread.turns[0].content[0].speaker is None
+
+
+def test_write_overlap_turn_keeps_who_when_speaker_is_known(tmp_path):
+    # Guards the other branch : an explicit <Who> still has to be written back, otherwise
+    # the attribution of every overlap turn would be lost on the next read.
+    reread = _write_and_reread_overlap_turn(tmp_path, ' hello <Who nb="2" /> world')
+    utterances = reread.turns[0].content
+    assert [utterance.text for utterance in utterances] == ["hello", "world"]
+    assert utterances[0].speaker is None
+    assert utterances[1].speaker.id == "spk2"
