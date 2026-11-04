@@ -192,4 +192,4 @@ class Transcription(TrsprocModel):
         """Mean Signal-to-Noise ratio of the SNRs computed from each segment"""
         if self.audio_file_path is None:
             return None
-        return mean([t.snr for t in self.turns])
+        return round(mean([t.snr for t in self.turns]), 3)
