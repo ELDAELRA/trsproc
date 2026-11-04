@@ -196,4 +196,4 @@ def wada_snr(wav_file: str, start_s: float = None, end_s: float = None) -> float
         signal_energy, noise_energy = wada_snr_block(block)
         acc_signal_energy += signal_energy
         acc_noise_energy += noise_energy
-    return round(10 * np.log10(acc_signal_energy / acc_noise_energy), 3)
+    return round(np.log10(acc_signal_energy / acc_noise_energy), 3)
