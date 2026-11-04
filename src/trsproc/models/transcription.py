@@ -88,7 +88,6 @@ class Transcription(TrsprocModel):
                 if t.audio_file_path is None else t
                 for t in self.turns
             ])
-        print("resolved:", self.audio_file_path, "| turns:", len(self.turns))
         return self
 
     def _resolve_audio_path(self) -> Optional[Path]:
