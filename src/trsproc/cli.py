@@ -620,3 +620,26 @@ def rpt(
     for filename in get_files(folder, file, "trs"):
         trs_parser = TRSParser(filename)
         utils.tmp_report(trs_parser)
+
+
+@app.command(
+    short_help="Computes SNR of the .trs file",
+)
+def snr(
+    folder: Annotated[
+        Path | None,
+        typer.Argument(help="The folder containing the .trs files", show_default=str(Path.cwd())),
+    ] = None,
+    file: Annotated[
+        Path | None,
+        typer.Option(help="A single file to process instead of a whole folder"),
+    ] = None,
+) -> None:
+    """Computes and prints the Signal-to-Noise ratio of the input .trs file or files if multiple files are present in the input folder"""
+    if folder is None:
+        folder = Path.cwd()
+    print("--- Mean Signal-to-Noise ratio ---")
+    for filename in get_files(folder, file, "trs"):
+        transcription = parse_trs_file(filename)
+        print(transcription.audio_file_path, transcription.mean_snr)
+
