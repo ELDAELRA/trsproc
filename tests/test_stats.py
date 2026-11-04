@@ -24,7 +24,7 @@ def test_stats():
         nb_pronpi=3,
         nb_tokens=1481,
         nb_ne=1,
-        mean_snr=13.17,
+        mean_snr=2.617,
     )
     transcription = parse_trs_file(test_file)
     stats = get_transcription_stats(transcription)

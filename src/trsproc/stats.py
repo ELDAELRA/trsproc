@@ -1,9 +1,7 @@
-from librosa import get_duration
-
 from trsproc.models import TrsprocModel
 from trsproc.models.transcription import Transcription
 from trsproc.named_entities import extract_nes_from_transcription
-from trsproc.parser import praat_snr_for_segment
+from trsproc.signal import get_duration, wada_snr
 
 
 class TranscriptionStats(TrsprocModel):
@@ -40,9 +38,10 @@ class TranscriptionStats(TrsprocModel):
 
 def get_transcription_stats(transcription: Transcription) -> TranscriptionStats:
     af = transcription.audio_file_path
-    duration = f"{get_duration(path=af):.2f}" if af is not None else None
+    duration = f"{get_duration(af):.2f}" if af is not None else None
     nb_ne = len(extract_nes_from_transcription(transcription))
-    mean_snr = praat_snr_for_segment(str(af)) if af is not None else None
+    ### Wada snr on each segment then mean of the list
+    mean_snr = wada_snr(str(af)) if af is not None else None
 
     return TranscriptionStats(
         file_name=str(transcription.trs_file_path.name),
