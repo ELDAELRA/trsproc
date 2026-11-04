@@ -151,7 +151,7 @@ def parse_trs_file(file_path: str | Path) -> Transcription:
     episode = root.find("Episode")
     trs_episode = TRSEpisode.model_validate(clean_attrib(episode.attrib))  # type: ignore (if there were no episode, lxml would have thrown an error)
     trs_trans = TRSTrans.model_validate(clean_attrib(root.attrib))
-    turns=[]
+    turns = []
 
     for section in root.findall(".//Section"):
         trs_section = TRSSection.model_validate(
