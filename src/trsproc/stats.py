@@ -38,7 +38,7 @@ class TranscriptionStats(TrsprocModel):
 
 def get_transcription_stats(transcription: Transcription) -> TranscriptionStats:
     af = transcription.audio_file_path
-    duration = f"{get_duration(path=af):.2f}" if af is not None else None
+    duration = f"{get_duration(af):.2f}" if af is not None else None
     nb_ne = len(extract_nes_from_transcription(transcription))
     ### Wada snr on each segment then mean of the list
     mean_snr = wada_snr(str(af)) if af is not None else None

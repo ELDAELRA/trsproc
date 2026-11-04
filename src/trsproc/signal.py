@@ -56,10 +56,15 @@ def wada_snr_block(wav: np.ndarray, epsilon=1e-10) -> float:
     signal_energy = energy * factor / (1 + factor)
     return signal_energy, noise_energy
 
-def wada_snr(wav_file: str) -> float:
+def wada_snr(wav_file: str, start_s: float = None, end_s: float = None) -> float:
+    with sf.SoundFile(wav_file) as f:
+        sr = f.samplerate
+        frames = f.frames
+    start = 0 if start_s is None else int(start_s * sr)
+    stop = frames if end_s is None else int(end_s * sr)
     acc_signal_energy = 0
     acc_noise_energy = 0
-    for block in sf.blocks(wav_file, blocksize=100000):
+    for block in sf.blocks(wav_file, start=start, stop=stop, blocksize=100000):
         signal_energy, noise_energy = wada_snr_block(block)
         acc_signal_energy += signal_energy
         acc_noise_energy += noise_energy
