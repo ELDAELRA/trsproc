@@ -151,21 +151,22 @@ def parse_trs_file(file_path: str | Path) -> Transcription:
     episode = root.find("Episode")
     trs_episode = TRSEpisode.model_validate(clean_attrib(episode.attrib))  # type: ignore (if there were no episode, lxml would have thrown an error)
     trs_trans = TRSTrans.model_validate(clean_attrib(root.attrib))
-
-    transcription = Transcription(
-        trs_file_path=Path(file_path),
-        speakers=speakers,
-        topics=topics,
-        turns=[],
-        trs_episode=trs_episode,
-        trs_trans=trs_trans,
-    )
+    turns=[]
 
     for section in root.findall(".//Section"):
         trs_section = TRSSection.model_validate(
             clean_attrib(section.attrib), context={"topics_dict": topics_dict}
         )
         for turn in section.findall(".//Turn"):
-            transcription.turns.extend(parse_turn(turn, speakers_dict, trs_section))
+            turns.extend(parse_turn(turn, speakers_dict, trs_section))
+
+    transcription = Transcription(
+        trs_file_path=Path(file_path),
+        speakers=speakers,
+        topics=topics,
+        turns=turns,
+        trs_episode=trs_episode,
+        trs_trans=trs_trans,
+    )
 
     return transcription
