@@ -3,13 +3,17 @@
 <Trans scribe="trsproc_test" audio_filename="en_test" version="4" version_date="">
 <Speakers>
 <Speaker id="spk1" name="fs2" check="no" type="female"/>
-<Speaker id="spk1" name="fs1" check="no" type="female"/>
+<Speaker id="spk2" name="fs1" check="no" type="female"/>
 </Speakers>
 <Episode>
 <Section type="report" startTime="0" endTime="120.491">
 <Turn speaker="spk1" startTime="0.0" endTime="4.789">
 <Sync time="0.0"/>
-The town of Lyon is served by the Coahoma County School District.
+The town of 
+<Event desc="loc" type="entities" extent="begin"/>
+Lyon 
+<Event desc="loc" type="entities" extent="end"/>
+is served by the Coahoma County School District.
 </Turn>
 <Turn speaker="spk1" startTime="4.789" endTime="9.563">
 <Sync time="4.789"/>

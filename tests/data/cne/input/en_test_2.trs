@@ -3,17 +3,20 @@
 <Trans scribe="trsproc_test" audio_filename="en_test" version="4" version_date="">
 <Speakers>
 <Speaker id="spk1" name="fs2" check="no" type="female"/>
-<Speaker id="spk1" name="fs1" check="no" type="female"/>
+<Speaker id="spk2" name="fs1" check="no" type="female"/>
 </Speakers>
 <Episode>
 <Section type="report" startTime="0" endTime="120.491">
 <Turn speaker="spk1" startTime="0.0" endTime="4.789">
 <Sync time="0.0"/>
-The town of 
+After effecting electrical repairs, the plane safely took off and continued to
 <Event desc="loc" type="entities" extent="begin"/>
-Lyon 
+Oshkosh
 <Event desc="loc" type="entities" extent="end"/>
-is served by the Coahoma County School District.
+and then to
+<Event desc="loc" type="entities" extent="begin"/>
+Chicago.
+<Event desc="loc" type="entities" extent="end"/>
 </Turn>
 <Turn speaker="spk1" startTime="4.789" endTime="9.563">
 <Sync time="4.789"/>
@@ -21,7 +24,10 @@ is served by the Coahoma County School District.
 </Turn>
 <Turn speaker="spk1" startTime="9.563" endTime="16.031">
 <Sync time="9.563"/>
-After effecting electrical repairs, the plane safely took off and continued to Oshkosh.
+After effecting electrical repairs, the plane safely took off and continued to
+<Event desc="loc" type="entities" extent="begin"/>
+Chicago.
+<Event desc="loc" type="entities" extent="end"/>
 </Turn>
 <Turn speaker="spk1" startTime="16.031" endTime="20.966">
 <Sync time="16.031"/>
