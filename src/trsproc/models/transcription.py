@@ -82,9 +82,6 @@ class Transcription(TrsprocModel):
 
     @property
     def nb_tokens(self) -> int:
-        # len(self.text) counted characters, not tokens, which contradicts the
-        # "number of space-delimited sequences of characters" documented for the vsi
-        # command : on vsi_test.trs it reported 1481 instead of 236.
         # TODO : adapt for jkz alphabets, where a token is a character rather than a word
         return len(self.text.split())
 
