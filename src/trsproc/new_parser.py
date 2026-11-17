@@ -28,9 +28,6 @@ def format_text(text: str) -> str:
 
 def clean_attrib(attribs: _Attrib) -> dict[str, str]:
     """Ommit empty xml attributes"""
-    # lxml exposes xml:lang as XML_LANG_ATTRIB, but the models declare the plain "xml:lang"
-    # alias (see TRSTrans). Renaming it here means the language used to be silently dropped
-    # on every read. Translating it back makes all model_validate calls see the alias.
     return {
         "xml:lang" if key == XML_LANG_ATTRIB else key: value
         for key, value in attribs.items()
