@@ -6,7 +6,12 @@ import typer
 import typer.rich_utils
 
 from trsproc import parser, utils
-from trsproc.named_entities import NamedEntity, extract_nes_from_transcription
+from trsproc.named_entities import (
+    NamedEntity,
+    clean_ne_from_trs,
+    create_trs_from_ne_table,
+    extract_nes_from_transcription,
+)
 from trsproc.new_parser import parse_trs_file
 from trsproc.parser import TRSParser
 from trsproc.stats import TranscriptionStats, get_transcription_stats
@@ -230,16 +235,20 @@ def cne(
     ] = None,
 ):
     """Deletes the Named Entity annotations if any are present in the input TRS.
-    Writes the resulting .trs files in [folder]/clean"""
+    Writes the resulting .trs files in [folder]/clean with the same filename."""
     if folder is None:
-        folder = Path.cwd()
+        folder = Path.cwd() if file is None else file.parent
+    folder = folder.absolute()
+    folder_out = folder / "clean"
+    folder_out.mkdir(parents=True, exist_ok=True)
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.clean_ne_from_trs()
+        trs_parser = parse_trs_file(filename)
+        clean_transcriptions = clean_ne_from_trs(trs_parser)
+        write_trs(clean_transcriptions, folder_out / filename.name)
 
 
 @app.command(
-    short_help="Extracts named entites from .trs files",
+    short_help="Extracts named entities from .trs files",
 )
 def ne(
     folder: Annotated[
@@ -349,10 +358,20 @@ def pne(
     `ne` command as a custom annotation dictionary."""
     if folder is None:
         folder = Path.cwd()
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
-        trs_parser = TRSParser(filename)
-        utils.trs_preannotation(trs_parser)
+    tsv_files: list[Path] = get_files(folder, file, "tsv")
+    if not tsv_files:
+        print("\N{WARNING SIGN} File not found. Run `ne` command to create the table.")
+        return
+    tsv_tables = [
+        table for tsv_file in tsv_files if (table := utils.read_tsv_ne_and_check_format(tsv_file))
+    ]
+    folder_out = folder / "pne"
+    folder_out.mkdir(parents=True, exist_ok=True)
+    for filename in get_files(folder, file, "trs"):
+        trs_parser = parse_trs_file(filename)
+        for table in tsv_tables:
+            trs_built_from_table = create_trs_from_ne_table(filename.name, trs_parser, table)
+            write_trs(trs_built_from_table, folder_out / filename.name)
 
 
 @app.command(

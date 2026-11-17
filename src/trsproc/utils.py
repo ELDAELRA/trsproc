@@ -34,6 +34,41 @@ def parse_json(json_input):
         return json.load(f)
 
 
+def read_tsv_ne_and_check_format(tsv_input: Path | str) -> list[dict[str, str]]:
+    """Parse a TSV file into a Python list of dictionaries,
+    only if the format is correct.
+
+    Args:
+        tsv_input: Path to the TSV file.
+
+    Returns:
+        The parsed TSV data as a Python list of dictionaries.
+    """
+    columns = {
+        "file_name",
+        "file_path",
+        "ne_rank",
+        "ne_class",
+        "ne_content",
+        "segment_rank",
+        "segment_content",
+        "segment_start",
+        "segment_end",
+        "segment_duration",
+        "speaker",
+        "speaker_sex",
+    }
+    with open(tsv_input, encoding="utf-8", newline="") as f:
+        table_info = csv.DictReader(f, delimiter=",")
+        fieldnames = table_info.fieldnames
+        if not fieldnames:
+            raise ValueError("Empty table or missing header")
+        missing = columns - set(fieldnames)
+        if missing:
+            raise ValueError(f"Missing columns: {sorted(missing)}")
+        return list(table_info)
+
+
 def tmp_report(trs_input, section_type="report"):
     """Generate a validation report for sections of the given type.
 
