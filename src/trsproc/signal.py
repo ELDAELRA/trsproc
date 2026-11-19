@@ -1,7 +1,9 @@
+from pathlib import Path
+
 import numpy as np
 import soundfile as sf
 
-# next 2 lines define a fancy curve derived from a gamma distribution, see WADA SNR paper
+# next 2 lines define a fancy curve derived from a gamma distribution, see WADA SNR paper (https://www.cs.cmu.edu/~robust/Papers/KimSternIS08.pdf)
 db_vals = np.arange(-20, 101)
 g_vals = np.array(
     [
@@ -184,7 +186,11 @@ def wada_snr_block(wav: np.ndarray, epsilon=1e-10) -> float:
     return signal_energy, noise_energy
 
 
-def wada_snr(wav_file: str, start_s: float = None, end_s: float = None) -> float:
+def wada_snr(
+    wav_file: Path,
+    start_s: float | None = None,
+    end_s: float | None = None,
+) -> float:
     with sf.SoundFile(wav_file) as f:
         sr = f.samplerate
         frames = f.frames
