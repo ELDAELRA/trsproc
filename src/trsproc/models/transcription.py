@@ -1,9 +1,10 @@
 """Contains the high level models that represent the parsed TRS file in memory."""
 
+from functools import cached_property
 from pathlib import Path
 from statistics import mean
 
-from pydantic import PrivateAttr, SerializeAsAny, model_validator
+from pydantic import SerializeAsAny, model_validator
 
 from trsproc.models.base import TrsprocModel
 from trsproc.models.trs import (
@@ -31,8 +32,6 @@ class SpeechTurn(TrsprocModel):
     trs_turn: TRSTurn
     trs_section: TRSSection
     audio_file_path: Path | None = None
-    _snr_cache: float | None = PrivateAttr(default=None)
-    _cached_key: tuple | None = PrivateAttr(default=None)
 
     @property
     def text(self) -> str:
@@ -57,17 +56,11 @@ class SpeechTurn(TrsprocModel):
 
         raise ValueError(f"Unknown speaker ID {id}, can't determine who is speaking in the overlap")
 
-    @property
+    @cached_property
     def snr(self) -> float | None:
         if self.audio_file_path is None:
             return None
-        key = (self.audio_file_path, self.start, self.end)
-        if self._cached_key != key:
-            object.__setattr__(
-                self, "_snr_cache", wada_snr(self.audio_file_path, self.start, self.end)
-            )
-            object.__setattr__(self, "_cached_key", key)
-        return self._snr_cache
+        return wada_snr(self.audio_file_path, self.start, self.end)
 
 
 class Transcription(TrsprocModel):
@@ -193,7 +186,7 @@ class Transcription(TrsprocModel):
         end = self.turns[-1].end if self.turns else 0.0
         return end - elapsed_time
 
-    @property
+    @cached_property
     def mean_snr(self) -> float:
         """Mean Signal-to-Noise ratio of the SNRs computed from each segment"""
         if self.audio_file_path is None:
