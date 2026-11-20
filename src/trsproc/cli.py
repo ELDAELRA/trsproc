@@ -639,7 +639,6 @@ def snr(
     if multiple files are present in the input folder"""
     if folder is None:
         folder = Path.cwd()
-    print("--- Mean Signal-to-Noise ratio ---")
     for filename in get_files(folder, file, "trs"):
         transcription = parse_trs_file(filename)
-        print(transcription.audio_file_path, transcription.mean_snr)
+        print(transcription.mean_snr, transcription.audio_file_path)
