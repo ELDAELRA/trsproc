@@ -138,10 +138,10 @@ def get_duration(wav_file: str) -> float:
     data, samplerate = sf.read(wav_file)
     frames = len(data)
     duration = frames / samplerate
-    return duration
+    return round(duration, 2)
 
 
-def wada_snr_block(wav: np.ndarray, epsilon=1e-10) -> float:
+def wada_snr_block(wav: np.ndarray, epsilon=1e-10) -> tuple[float, float]:
     """
     Direct blind estimation of the SNR of a speech signal.
 
@@ -191,6 +191,8 @@ def wada_snr(
     start_s: float | None = None,
     end_s: float | None = None,
 ) -> float:
+    """Wrapper function to combine signal and noise estimation from the WADA algorithm into SNR.
+    The audio file is opened as blocks from soundfile to limit memory usage."""
     with sf.SoundFile(wav_file) as f:
         sr = f.samplerate
         frames = f.frames
@@ -202,4 +204,4 @@ def wada_snr(
         signal_energy, noise_energy = wada_snr_block(block)
         acc_signal_energy += signal_energy
         acc_noise_energy += noise_energy
-    return round(np.log10(acc_signal_energy / acc_noise_energy), 3)
+    return round(10 * np.log10(acc_signal_energy / acc_noise_energy), 3)
