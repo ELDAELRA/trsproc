@@ -58,6 +58,25 @@ class SpeechTurn(TrsprocModel):
 
     @cached_property
     def snr(self) -> float | None:
+        """Compute the mean Signal-to-Noise Ratio (SNR) which tells how much stronger
+        the desired signal (speech) is compared to the background noise.
+
+        SNR is a decibel value on a logarithmic scale, higher is always better.
+        Each +3 dB doubles the SNR; +10 dB means 10× more signal relative to noise;
+        +20 dB means 100×.
+
+        Context defines "acceptable" SNR levels: analog voice needs ~30 dB,
+        digital communications can work down to ~10 dB or lower with error correction,
+        audio engineering aims for 60-96 dB.
+
+        In summary when SNR equals:
+        0 dB - signal equals noise, essentially undetectable;
+        < 10 dB - poor, signal barely distinguishable from noise;
+        10-20 dB - usable but noisy, errors likely;
+        20-40 dB - good quality, reliable for most applications;
+        > 40 dB - excellent, noise is negligible;
+        > 60 dB - near-perfect, often limited by instrumentation.
+        """
         if self.audio_file_path is None:
             return None
         return wada_snr(self.audio_file_path, self.start, self.end)
@@ -187,8 +206,17 @@ class Transcription(TrsprocModel):
         return end - elapsed_time
 
     @cached_property
-    def mean_snr(self) -> float:
-        """Mean Signal-to-Noise ratio of the SNRs computed from each segment"""
+    def mean_snr(self) -> float | None:
+        """Mean Signal-to-Noise ratio of the SNRs computed from the SNR of each segment.
+
+        In summary when SNR equals:
+        0 dB - signal equals noise, essentially undetectable;
+        < 10 dB - poor, signal barely distinguishable from noise;
+        10-20 dB - usable but noisy, errors likely;
+        20-40 dB - good quality, reliable for most applications;
+        > 40 dB - excellent, noise is negligible;
+        > 60 dB - near-perfect, often limited by instrumentation.
+        """
         if self.audio_file_path is None:
             return None
-        return round(mean([t.snr for t in self.turns]), 3)
+        return round(mean(t.snr for t in self.turns if t.snr is not None), 3)
