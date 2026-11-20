@@ -1,7 +1,7 @@
 from trsproc.models import TrsprocModel
 from trsproc.models.transcription import Transcription
 from trsproc.named_entities import extract_nes_from_transcription
-from trsproc.signal import get_duration, wada_snr
+from trsproc.signal import get_duration
 
 
 class TranscriptionStats(TrsprocModel):
@@ -41,7 +41,7 @@ def get_transcription_stats(transcription: Transcription) -> TranscriptionStats:
     duration = f"{get_duration(af):.2f}" if af is not None else None
     nb_ne = len(extract_nes_from_transcription(transcription))
     ### Wada snr on each segment then mean of the list
-    mean_snr = wada_snr(str(af)) if af is not None else None
+    mean_snr = transcription.mean_snr if af is not None else None
 
     return TranscriptionStats(
         file_name=str(transcription.trs_file_path.name),
