@@ -4,7 +4,7 @@ from functools import cached_property
 from pathlib import Path
 from statistics import mean
 
-from pydantic import SerializeAsAny, model_validator
+from pydantic import SerializeAsAny
 
 from trsproc.models.base import TrsprocModel
 from trsproc.models.trs import (
@@ -90,38 +90,6 @@ class Transcription(TrsprocModel):
     trs_episode: TRSEpisode  # TODO: make optional when converting to TRS from other formats
     trs_trans: TRSTrans  # TODO: make optional when converting to TRS from other formats
     audio_file_path: Path | None = None
-
-    @model_validator(mode="after")
-    def _init_audio_file_path(self) -> "Transcription":
-        """Resolve the path when the model is initiated
-        And then inject it into any turn that doesn't have one yet"""
-        object.__setattr__(self, "audio_file_path", self._resolve_audio_path())
-        if self.audio_file_path is not None:
-            object.__setattr__(
-                self,
-                "turns",
-                [
-                    t.model_copy(update={"audio_file_path": self.audio_file_path})
-                    if t.audio_file_path is None
-                    else t
-                    for t in self.turns
-                ],
-            )
-        return self
-
-    def _resolve_audio_path(self) -> Path | None:
-        """Returns the audio file path as defined in the trs file, as an absolute path.
-        If that path doesn't exist, tries to guess the audio path based on the trs path.
-        If none exist, returns None
-        """
-        candidates = (
-            self.trs_trans.audio_filename,
-            self.trs_file_path,
-        )
-        for candidate in candidates:
-            if candidate and (path := Path(candidate).with_suffix(".wav")).exists():
-                return path.absolute()
-        return None
 
     @property
     def text(self) -> str:

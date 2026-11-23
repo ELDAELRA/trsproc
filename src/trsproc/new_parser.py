@@ -30,6 +30,17 @@ def clean_attrib(attribs: _Attrib) -> dict[str, str]:
     return {k: v for k, v in attribs.items() if v != ""}
 
 
+def resolve_audio_path(candidates: list[str | Path | None]) -> Path | None:
+    """Returns the audio file path as defined in the trs file, as an absolute path.
+    If that path doesn't exist, tries to guess the audio path based on the trs path.
+    If none exist, returns None
+    """
+    for candidate in candidates:
+        if candidate and (path := Path(candidate).with_suffix(".wav")).exists():
+            return path.absolute()
+    return None
+
+
 def extract_turn_speakers(turn_elem: _Element, speakers_dict: dict[str, Speaker]) -> list[Speaker]:
     speakers_str = turn_elem.get("speaker")
     if speakers_str is None:
@@ -67,7 +78,10 @@ def parse_inline_element(element: _Element, speakers: list[Speaker]) -> list[Spe
 
 
 def parse_turn(
-    element: _Element, speakers_dict: dict[str, Speaker], trs_section: TRSSection
+    element: _Element,
+    speakers_dict: dict[str, Speaker],
+    trs_section: TRSSection,
+    trs_audio: str | Path | None,
 ) -> list[SpeechTurn]:
     speech_turns = []
     trs_turn = TRSTurn.model_validate(
@@ -81,6 +95,7 @@ def parse_turn(
         content=[],
         trs_turn=trs_turn,
         trs_section=trs_section,
+        audio_file_path=trs_audio,
     )
 
     # First bit of text before any element
@@ -110,6 +125,7 @@ def parse_turn(
             content=[],
             trs_turn=trs_turn,
             trs_section=trs_section,
+            audio_file_path=trs_audio,
         )
 
         # Last bit of text after the last Sync
@@ -151,6 +167,7 @@ def parse_trs_file(file_path: str | Path) -> Transcription:
     episode = root.find("Episode")
     trs_episode = TRSEpisode.model_validate(clean_attrib(episode.attrib))  # type: ignore (if there were no episode, lxml would have thrown an error)
     trs_trans = TRSTrans.model_validate(clean_attrib(root.attrib))
+    trs_audio = resolve_audio_path([file_path, trs_trans.audio_filename])
     turns = []
 
     for section in root.findall(".//Section"):
@@ -158,7 +175,7 @@ def parse_trs_file(file_path: str | Path) -> Transcription:
             clean_attrib(section.attrib), context={"topics_dict": topics_dict}
         )
         for turn in section.findall(".//Turn"):
-            turns.extend(parse_turn(turn, speakers_dict, trs_section))
+            turns.extend(parse_turn(turn, speakers_dict, trs_section, trs_audio))
 
     transcription = Transcription(
         trs_file_path=Path(file_path),
@@ -167,6 +184,7 @@ def parse_trs_file(file_path: str | Path) -> Transcription:
         turns=turns,
         trs_episode=trs_episode,
         trs_trans=trs_trans,
+        audio_file_path=trs_audio,
     )
 
     return transcription
