@@ -5,8 +5,13 @@ from typing import Annotated
 import typer
 import typer.rich_utils
 
-from trsproc import parser, utils
-from trsproc.named_entities import NamedEntity, extract_nes_from_transcription
+from trsproc import named_entities, parser, utils
+from trsproc.named_entities import (
+    NamedEntity,
+    clean_ne_from_trs,
+    create_trs_from_ne_table,
+    extract_nes_from_transcription,
+)
 from trsproc.new_parser import parse_trs_file
 from trsproc.parser import TRSParser
 from trsproc.stats import TranscriptionStats, get_transcription_stats
@@ -136,7 +141,7 @@ def txt(
     """Extracts the text from .trs files into .txt files, in a txt subfolder
 
     This is intended to be used for easily modifying the text
-    from .trs files (e.g for fixing typos).
+    from .trs files (e.g. for fixing typos).
     """
     if folder is None:
         folder = Path.cwd() if file is None else file.parent
@@ -230,16 +235,20 @@ def cne(
     ] = None,
 ):
     """Deletes the Named Entity annotations if any are present in the input TRS.
-    Writes the resulting .trs files in [folder]/clean"""
+    Writes the resulting .trs files in [folder]/clean with the same filename."""
     if folder is None:
-        folder = Path.cwd()
+        folder = Path.cwd() if file is None else file.parent
+    folder = folder.absolute()
+    folder_out = folder / "clean"
+    folder_out.mkdir(parents=True, exist_ok=True)
     for filename in get_files(folder, file, "trs"):
-        trs_parser = TRSParser(filename)
-        trs_parser.clean_ne_from_trs()
+        trs_parser = parse_trs_file(filename)
+        clean_transcriptions = clean_ne_from_trs(trs_parser)
+        write_trs(clean_transcriptions, folder_out / filename.name)
 
 
 @app.command(
-    short_help="Extracts named entites from .trs files",
+    short_help="Extracts named entities from .trs files",
 )
 def ne(
     folder: Annotated[
@@ -291,7 +300,7 @@ def lang(
     """Adds a language tag to each transcription segment not having one in the input TRS files.
 
     The language can either be specified with the `--language` option,
-    or within a json file, which can be specified with the --json-dict
+    or within a JSON file, which can be specified with the --json-dict
     option (which defaults to [folder]/lang-tag.json).
 
     The resulting .trs files will be written in [folder]/lang
@@ -343,16 +352,30 @@ def pne(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:  # TODO: Get a pre-annotation json file to understand and test
-    # the utils.pre_annotate function, and add the required tsv and json
+    # the utils.pre_annotate function, and add the required tsv and JSON
     # files as arguments.
     """Pre-annotates the input TRS using the table created with the
     `ne` command as a custom annotation dictionary."""
     if folder is None:
         folder = Path.cwd()
-    files: list[Path] = get_files(folder, file, "trs")
-    for filename in files:
-        trs_parser = TRSParser(filename)
-        utils.trs_preannotation(trs_parser)
+    tsv_files: list[Path] = get_files(folder, file, "tsv")
+    if not tsv_files:
+        print("\N{WARNING SIGN} File not found. Run `ne` command to create the table.")
+        return
+    named_entities_tables = [
+        table
+        for tsv_file in tsv_files
+        if (table := named_entities.read_tsv_ne_and_check_format(tsv_file))
+    ]
+    folder_out = folder / "pne"
+    folder_out.mkdir(parents=True, exist_ok=True)
+    for filename in get_files(folder, file, "trs"):
+        trs_parser = parse_trs_file(filename)
+        for named_entities_table in named_entities_tables:
+            trs_built_from_table = create_trs_from_ne_table(
+                filename.name, trs_parser, named_entities_table
+            )
+            write_trs(trs_built_from_table, folder_out / filename.name)
 
 
 @app.command(
@@ -369,7 +392,7 @@ def tmp(
     ] = None,
 ) -> None:  # FIXME: The tmp command was broken in commit
     # 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the
-    # retrieve_contents method. This method will have to be carefuly
+    # retrieve_contents method. This method will have to be carefully
     # refactored, too.
     """Extracts report sections from .trs files.
     Saves the extractions in a folder [folder]/tmp"""
