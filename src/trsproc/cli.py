@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 import typer.rich_utils
 
-from trsproc import parser, utils
+from trsproc import parser, utils, named_entities
 from trsproc.named_entities import (
     NamedEntity,
     clean_ne_from_trs,
@@ -362,15 +362,17 @@ def pne(
     if not tsv_files:
         print("\N{WARNING SIGN} File not found. Run `ne` command to create the table.")
         return
-    tsv_tables = [
-        table for tsv_file in tsv_files if (table := utils.read_tsv_ne_and_check_format(tsv_file))
+    named_entities_tables = [
+        table for tsv_file in tsv_files
+        if (table := named_entities.read_tsv_ne_and_check_format(tsv_file))
     ]
     folder_out = folder / "pne"
     folder_out.mkdir(parents=True, exist_ok=True)
     for filename in get_files(folder, file, "trs"):
         trs_parser = parse_trs_file(filename)
-        for table in tsv_tables:
-            trs_built_from_table = create_trs_from_ne_table(filename.name, trs_parser, table)
+        for named_entities_table in named_entities_tables:
+            trs_built_from_table = create_trs_from_ne_table(filename.name, trs_parser,
+                                                            named_entities_table)
             write_trs(trs_built_from_table, folder_out / filename.name)
 
 

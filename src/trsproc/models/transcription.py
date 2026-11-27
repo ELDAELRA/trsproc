@@ -158,9 +158,9 @@ class Transcription(TrsprocModel):
         end = self.turns[-1].end if self.turns else 0.0
         return end - elapsed_time
 
-    def get_turn_with_index(self, start: str, end: str) -> tuple[int, SpeechTurn]:
+    def get_turn_with_index(self, start: float, end: float) -> tuple[int, SpeechTurn]:
         """Retrieve the speechturn corresponding to a given startTime and endTime"""
         for idx, turn in enumerate(self.turns):
-            if turn.start == float(start) and turn.end == float(end):
+            if turn.start == start and turn.end == end:
                 return idx, turn
         raise KeyError(f"No SpeechTurn found between {start} & {end}")

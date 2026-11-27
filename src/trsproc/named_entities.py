@@ -1,3 +1,6 @@
+import csv
+from pathlib import Path
+
 from trsproc.models import Event, SpeakerType, Transcription, TrsprocModel, Utterance
 
 
@@ -14,6 +17,27 @@ class NamedEntity(TrsprocModel):
     segment_duration: float
     speaker: str
     speaker_sex: SpeakerType
+
+
+def read_tsv_ne_and_check_format(tsv_input: Path | str) -> list[NamedEntity]:
+    """Parse a TSV file into a Python list of dictionaries,
+    only if the format is correct.
+
+    Args:
+        tsv_input: Path to the TSV file.
+
+    Returns:
+        The parsed TSV data as a Python list of dictionaries.
+    """
+    with open(tsv_input, encoding="utf-8", newline="") as f:
+        table_info = csv.DictReader(f, delimiter=",")
+        fieldnames = table_info.fieldnames
+        if not fieldnames:
+            raise ValueError("Empty table or missing header")
+        missing = NamedEntity.__annotations__.keys() - set(fieldnames)
+        if missing:
+            raise ValueError(f"Missing columns: {sorted(missing)}")
+        return [NamedEntity(**row) for row in table_info]
 
 
 def extract_nes_from_transcription(transcription: Transcription) -> list[NamedEntity]:
@@ -119,7 +143,7 @@ def clean_ne_from_trs(transcription: Transcription) -> Transcription:
 
 
 def create_trs_from_ne_table(
-    trs_filename: str, transcription: Transcription, table_info: list
+    trs_filename: str, transcription: Transcription, named_entities_table: list[NamedEntity]
 ) -> Transcription:
     """Pre-annotates the input TRS using the table created with the
     `ne` command as a custom annotation dictionary.
@@ -128,7 +152,7 @@ def create_trs_from_ne_table(
 
     Args:
         trs_filename: A string trs filename.
-        table_info: A list of dictionaries with entities information.
+        named_entities_table: A list of Named Entity objects retrieved from the table file.
         transcription: A :class:`Transcription` instance from the TRS file.
 
     Returns:
@@ -137,12 +161,12 @@ def create_trs_from_ne_table(
     transcription_without_entities = clean_ne_from_trs(transcription)
     transcription = transcription_without_entities
 
-    for name_entity in table_info:
-        if trs_filename == name_entity["file_name"]:
-            segment_start = name_entity["segment_start"]
-            segment_end = name_entity["segment_end"]
-            ne_content = name_entity["ne_content"]
-            ne_class = name_entity["ne_class"]
+    for name_entity in named_entities_table:
+        if trs_filename == name_entity.file_name:
+            segment_start = name_entity.segment_start
+            segment_end = name_entity.segment_end
+            ne_content = name_entity.ne_content
+            ne_class = name_entity.ne_class
 
             try:
                 _, speechturn = transcription.get_turn_with_index(segment_start, segment_end)
