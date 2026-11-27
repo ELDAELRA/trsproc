@@ -5,7 +5,7 @@ from typing import Annotated
 import typer
 import typer.rich_utils
 
-from trsproc import parser, utils, named_entities
+from trsproc import named_entities, parser, utils
 from trsproc.named_entities import (
     NamedEntity,
     clean_ne_from_trs,
