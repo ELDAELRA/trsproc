@@ -141,7 +141,7 @@ def txt(
     """Extracts the text from .trs files into .txt files, in a txt subfolder
 
     This is intended to be used for easily modifying the text
-    from .trs files (e.g for fixing typos).
+    from .trs files (e.g. for fixing typos).
     """
     if folder is None:
         folder = Path.cwd() if file is None else file.parent
@@ -300,7 +300,7 @@ def lang(
     """Adds a language tag to each transcription segment not having one in the input TRS files.
 
     The language can either be specified with the `--language` option,
-    or within a json file, which can be specified with the --json-dict
+    or within a JSON file, which can be specified with the --json-dict
     option (which defaults to [folder]/lang-tag.json).
 
     The resulting .trs files will be written in [folder]/lang
@@ -352,7 +352,7 @@ def pne(
         typer.Option(help="A single file to process instead of a whole folder"),
     ] = None,
 ) -> None:  # TODO: Get a pre-annotation json file to understand and test
-    # the utils.pre_annotate function, and add the required tsv and json
+    # the utils.pre_annotate function, and add the required tsv and JSON
     # files as arguments.
     """Pre-annotates the input TRS using the table created with the
     `ne` command as a custom annotation dictionary."""
@@ -363,7 +363,8 @@ def pne(
         print("\N{WARNING SIGN} File not found. Run `ne` command to create the table.")
         return
     named_entities_tables = [
-        table for tsv_file in tsv_files
+        table
+        for tsv_file in tsv_files
         if (table := named_entities.read_tsv_ne_and_check_format(tsv_file))
     ]
     folder_out = folder / "pne"
@@ -371,8 +372,9 @@ def pne(
     for filename in get_files(folder, file, "trs"):
         trs_parser = parse_trs_file(filename)
         for named_entities_table in named_entities_tables:
-            trs_built_from_table = create_trs_from_ne_table(filename.name, trs_parser,
-                                                            named_entities_table)
+            trs_built_from_table = create_trs_from_ne_table(
+                filename.name, trs_parser, named_entities_table
+            )
             write_trs(trs_built_from_table, folder_out / filename.name)
 
 
@@ -390,7 +392,7 @@ def tmp(
     ] = None,
 ) -> None:  # FIXME: The tmp command was broken in commit
     # 30c7b1f777280dd461bd25ce0d67e5bd41830c91, which changed the
-    # retrieve_contents method. This method will have to be carefuly
+    # retrieve_contents method. This method will have to be carefully
     # refactored, too.
     """Extracts report sections from .trs files.
     Saves the extractions in a folder [folder]/tmp"""

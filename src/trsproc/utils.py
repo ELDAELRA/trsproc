@@ -32,6 +32,8 @@ def parse_json(json_input):
     """
     with open(json_input, encoding="utf-8") as f:
         return json.load(f)
+
+
 def tmp_report(trs_input, section_type="report"):
     """Generate a validation report for sections of the given type.
 
